@@ -39,14 +39,17 @@ No build step, no framework, no dependencies to install. `index.html` is the who
 
 ## External resources
 
-The page loads two things from outside, both allowed in the Content Security Policy in `netlify.toml`:
+The page loads **one** thing from outside, allowed in the Content Security Policy in `netlify.toml`:
 
-- **Google Fonts** (Newsreader, IBM Plex Sans, IBM Plex Mono). Google receives visitors' IP addresses. This is disclosed in the privacy section of the page.
-- **three.js r128** from cdnjs, for the 3D device on the hero.
+- **three.js r128** from cdnjs, for the 3D device on the hero. If it is blocked, the page still works: the 3D view falls back to a message pointing at the drawn elevation further down.
 
-If either is blocked, the page still works. The 3D view falls back to a message pointing at the drawn elevation further down, and the fonts fall back to Georgia and a system sans.
+Fonts are self hosted in `/fonts` (Newsreader, IBM Plex Sans, IBM Plex Mono, latin subsets, 156 KB in total), so no request goes to Google and no visitor IP address is shared with them. If you want zero third party requests at all, vendor `three.min.js` into the repo and drop `cdnjs.cloudflare.com` from the CSP.
 
-If you want zero third party requests, self host both and tighten the CSP to `'self'`.
+## The deck
+
+`/deck` is the pitch deck as a self hosted page, built from the same slides as the Claude artifact. Arrow keys or click to move, `n` for speaker notes, `f` for full screen. The URL carries the slide number, so `/deck/#7` links straight to a slide. Printing the page gives one slide per page for a PDF.
+
+Eight of the ten slides hold more content than fits a 1920x1080 slide. The viewer handles this by giving each slide the height it needs and zooming to fit, so nothing is ever cut off, but dense slides render smaller than sparse ones. The real fix is cutting copy rather than changing the viewer.
 
 ## Editing
 

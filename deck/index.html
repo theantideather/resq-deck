@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="en-IN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ResQ &#183; Deck</title>
+<meta name="description" content="The ResQ investor deck. Ten slides on emergency guidance for clinics: the problem, one session, the two tracks behind it, the access card and the team.">
+<link rel="canonical" href="https://resqai.life/deck/">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0C1719">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="ResQ &#183; Deck">
+<meta property="og:description" content="Ten slides on emergency guidance for clinics.">
+<meta property="og:image" content="https://resqai.life/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+@font-face{font-family:"Newsreader";src:url(../fonts/newsreader-latin-400-normal.woff2) format("woff2");font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:"Newsreader";src:url(../fonts/newsreader-latin-500-normal.woff2) format("woff2");font-weight:500;font-style:normal;font-display:swap}
+@font-face{font-family:"IBM Plex Sans";src:url(../fonts/ibm-plex-sans-latin-400-normal.woff2) format("woff2");font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:"IBM Plex Sans";src:url(../fonts/ibm-plex-sans-latin-500-normal.woff2) format("woff2");font-weight:500;font-style:normal;font-display:swap}
+@font-face{font-family:"IBM Plex Sans";src:url(../fonts/ibm-plex-sans-latin-600-normal.woff2) format("woff2");font-weight:600;font-style:normal;font-display:swap}
+@font-face{font-family:"IBM Plex Mono";src:url(../fonts/ibm-plex-mono-latin-400-normal.woff2) format("woff2");font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:"IBM Plex Mono";src:url(../fonts/ibm-plex-mono-latin-500-normal.woff2) format("woff2");font-weight:500;font-style:normal;font-display:swap}
+</style>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;height:100%}
+body{background:#05100F;color:#E8EEEC;font-family:"IBM Plex Sans",ui-sans-serif,system-ui,-apple-system,sans-serif;overflow:hidden}
+#stage{position:fixed;inset:0;overflow:hidden}
+#scaler{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0;background:#F2F4F3;overflow:hidden}
+#scaler>section{position:absolute;left:0;top:0;width:1920px;min-height:1080px;visibility:hidden;opacity:0}
+#scaler>section.on{visibility:visible;opacity:1}
+x-connector{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;display:block}
+
+#bar{position:fixed;left:0;right:0;bottom:0;height:46px;display:flex;align-items:center;gap:14px;
+  padding:0 16px;background:#05100F;border-top:1px solid #16292B;font-size:13px;color:#7E9694;
+  font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace}
+#bar button{font:inherit;color:#D6E2E0;background:transparent;border:1px solid #16292B;padding:5px 11px;cursor:pointer}
+#bar button:hover{border-color:#5FBDB5}
+#bar button[aria-pressed="true"]{background:#16292B;color:#F2F4F3}
+#pos{min-width:6ch}
+#track{flex:1;display:flex;gap:3px;height:3px}
+#track i{flex:1;background:#16292B;cursor:pointer}
+#track i.seen{background:#2E4A4C}
+#track i.now{background:#5FBDB5}
+#title{flex:0 1 auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:34ch;color:#A9BDBA}
+#notes{position:fixed;left:0;right:0;bottom:46px;max-height:34vh;overflow:auto;padding:18px 22px;
+  background:#0A1618;border-top:1px solid #16292B;font-size:15px;line-height:1.55;color:#BFD8D5;display:none}
+#notes.on{display:block}
+#notes b{display:block;color:#7E9694;font-family:"IBM Plex Mono",monospace;font-size:12px;margin-bottom:7px;font-weight:400}
+#hint{position:fixed;top:14px;right:16px;font-family:"IBM Plex Mono",monospace;font-size:12px;color:#3E5A5C}
+:focus-visible{outline:2px solid #5FBDB5;outline-offset:2px}
+@media (max-width:760px){ #title{display:none} #hint{display:none} }
+
+@media print{
+  @page{size:1920px 1080px;margin:0}
+  html,body{overflow:visible;background:#fff}
+  #stage{position:static;display:block}
+  #stage{overflow:visible}
+  #scaler{position:static!important;width:1920px;height:auto;transform:none!important}
+  #scaler>section{position:relative!important;visibility:visible!important;opacity:1!important;page-break-after:always;break-after:page}
+  #bar,#notes,#hint{display:none!important}
+}
+</style>
+</head>
+<body>
+<div id="stage"><div id="scaler">
+<section id="cover" data-transition="fade" style="background:#0C1719; color:#E8EEEC; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px 128px 160px; display:flex; flex-direction:column; justify-content:space-between">
+<div style="display:flex; flex-direction:column; gap:40px">
+<h1 style="font-family:Newsreader, Georgia, serif; font-size:188px; font-weight:400; line-height:1; letter-spacing:-4px; color:#F2F4F3">ResQ</h1>
+<p style="font-size:44px; line-height:1.3; width:1180px; color:#BFD8D5">An emergency response system for clinics. A holographic assistant that talks the practitioner through the first two minutes, while a council of specialist agents checks the case in the background.</p>
+</div>
+<div style="display:flex; align-items:flex-end; justify-content:space-between; gap:48px">
+<p style="font-size:28px; line-height:1.4; color:#7E9694">Life ResQ Healthcare Systems LLP<br>Pune, India</p>
+<p style="font-family:'IBM Plex Mono', 'Courier New', monospace; font-size:26px; color:#0F6E6B; letter-spacing:1px"><span style="color:#5FBDB5">Confidential, not for circulation</span></p>
+</div>
+</section>
+<section id="problem" data-transition="fade" style="background:#F2F4F3; color:#141A1B; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px 128px 160px; display:flex; flex-direction:column; gap:56px">
+<h2 style="font-family:Newsreader, Georgia, serif; font-size:76px; font-weight:400; line-height:1.1; width:1400px">Most emergencies happen where the help isn't</h2>
+<div style="display:flex; gap:32px">
+<div style="flex:1; display:flex; flex-direction:column; gap:16px; border-top:3px solid #0F6E6B; padding:28px 0 0">
+<p style="font-family:Newsreader, Georgia, serif; font-size:96px; line-height:1; font-weight:400">7 lakh</p>
+<p style="font-size:26px; line-height:1.4; color:#4B5658">Sudden cardiac deaths in India each year. A fifth of them in people under 50.</p>
+</div>
+<div style="flex:1; display:flex; flex-direction:column; gap:16px; border-top:3px solid #0F6E6B; padding:28px 0 0">
+<p style="font-family:Newsreader, Georgia, serif; font-size:96px; line-height:1; font-weight:400">2%</p>
+<p style="font-size:26px; line-height:1.4; color:#4B5658">Of Indian adults know how to perform CPR.</p>
+</div>
+<div style="flex:1; display:flex; flex-direction:column; gap:16px; border-top:3px solid #0F6E6B; padding:28px 0 0">
+<p style="font-family:Newsreader, Georgia, serif; font-size:96px; line-height:1; font-weight:400">88%</p>
+<p style="font-size:26px; line-height:1.4; color:#4B5658">Of cardiac arrests happen at home or in a clinic, not in a hospital.</p>
+</div>
+<div style="flex:1; display:flex; flex-direction:column; gap:16px; border-top:3px solid #C4342C; padding:28px 0 0">
+<p style="font-family:Newsreader, Georgia, serif; font-size:96px; line-height:1; font-weight:400; color:#C4342C">7&#8211;10%</p>
+<p style="font-size:26px; line-height:1.4; color:#4B5658">Drop in the chance of survival for every minute without CPR.</p>
+</div>
+</div>
+<p style="font-size:32px; line-height:1.45; width:1400px; color:#4B5658">Rural emergency response times exceed 60 minutes. Roughly 27% of deaths in India occur with no medical attention at the time of death. The gap is not hospital capability. It is the interval before anyone qualified arrives.</p>
+<p style="position:absolute; left:128px; bottom:64px; font-size:24px; color:#6A7179">Sources: Rao et al., Sudden Cardiac Death in India (2012); Census civil registration data; American Heart Association</p>
+</section>
+<section id="why" data-transition="fade" style="background:#F2F4F3; color:#141A1B; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px 128px 160px; display:flex; gap:80px; align-items:flex-start">
+<div style="width:700px; display:flex; flex-direction:column; gap:36px">
+<h2 style="font-family:Newsreader, Georgia, serif; font-size:76px; font-weight:400; line-height:1.1">One practitioner, eight jobs, four minutes</h2>
+<p style="font-size:32px; line-height:1.5; color:#4B5658">In most Indian clinics a single dentist or physician works with one assistant. When a patient collapses mid-procedure, everything on the right has to happen at once, from memory, under stress.</p>
+<p style="font-size:32px; line-height:1.5; color:#4B5658">Textbooks, refresher courses and protocol charts all assume calm recall. Emergencies do not supply it.</p>
+<p style="font-size:32px; line-height:1.5; color:#141A1B">ResQ takes every job except the two that need human hands.</p>
+</div>
+<div style="flex:1; display:flex; flex-direction:column; gap:14px">
+<div style="display:flex; align-items:center; gap:20px; background:#E2E7E5; padding:22px 28px; border-left:6px solid #0F6E6B"><p style="font-size:29px; line-height:1.3">Recognise the condition correctly</p></div>
+<div style="display:flex; align-items:center; gap:20px; background:#E2E7E5; padding:22px 28px; border-left:6px solid #0F6E6B"><p style="font-size:29px; line-height:1.3">Recall the right protocol and sequence</p></div>
+<div style="display:flex; align-items:center; gap:20px; background:#E2E7E5; padding:22px 28px; border-left:6px solid #0F6E6B"><p style="font-size:29px; line-height:1.3">Recall the correct drug and dose</p></div>
+<div style="display:flex; align-items:center; gap:20px; background:#E2E7E5; padding:22px 28px; border-left:6px solid #0F6E6B"><p style="font-size:29px; line-height:1.3">Check what the patient's history rules out</p></div>
+<div style="display:flex; align-items:center; gap:20px; background:#E2E7E5; padding:22px 28px; border-left:6px solid #0F6E6B"><p style="font-size:29px; line-height:1.3">Call an ambulance and give directions</p></div>
+<div style="display:flex; align-items:center; gap:20px; background:#E2E7E5; padding:22px 28px; border-left:6px solid #0F6E6B"><p style="font-size:29px; line-height:1.3">Warn a hospital that can treat this</p></div>
+<div style="display:flex; align-items:center; gap:20px; background:#E2E7E5; padding:22px 28px; border-left:6px solid #0F6E6B"><p style="font-size:29px; line-height:1.3">Record what was given, and when</p></div>
+<div style="display:flex; align-items:center; gap:20px; background:#0C1719; padding:22px 28px; border-left:6px solid #C4342C"><p style="font-size:29px; line-height:1.3; color:#F2F4F3">Keep compressions going, without pause</p></div>
+</div>
+</section>
+<section id="session" data-transition="fade" style="background:#0C1719; color:#D6E2E0; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px 128px 160px; display:flex; flex-direction:column; gap:44px">
+<div style="display:flex; align-items:flex-end; justify-content:space-between; gap:60px">
+<h2 style="font-family:Newsreader, Georgia, serif; font-size:76px; font-weight:400; line-height:1.1; color:#F2F4F3; width:1020px">One session, from "Activate ResQ"</h2>
+<p style="font-size:26px; line-height:1.4; color:#7E9694; width:480px; text-align:right">A dental clinic, mid-procedure. Illustration of designed behaviour.</p>
+</div>
+<div style="display:flex; flex-direction:column; gap:14px; font-family:'IBM Plex Mono', 'Courier New', monospace">
+<div style="display:flex; gap:24px; align-items:flex-start"><p style="width:100px; font-size:26px; color:#7E9694">00:00</p><p style="width:170px; font-size:26px; color:#7E9694">Practitioner</p><p style="flex:1; font-size:26px; line-height:1.4; color:#FFFFFF">Activate ResQ. My patient has crushing chest pain and he's sweating.</p></div>
+<div style="display:flex; gap:24px; align-items:flex-start"><p style="width:100px; font-size:26px; color:#7E9694">00:02</p><p style="width:170px; font-size:26px; color:#5FBDB5">ResQ</p><p style="flex:1; font-size:26px; line-height:1.4; color:#D6E2E0">Stop the procedure. Sit him upright and keep him still. Requesting an ambulance now.</p></div>
+<div style="display:flex; gap:24px; align-items:flex-start"><p style="width:100px; font-size:26px; color:#7E9694">00:04</p><p style="width:170px; font-size:26px; color:#7E9694">Dispatch</p><p style="flex:1; font-size:26px; line-height:1.4; color:#7E9694">Ambulance requested &#183; ETA 9 min &#183; hospital with cath lab alerted</p></div>
+<div style="display:flex; gap:24px; align-items:flex-start"><p style="width:100px; font-size:26px; color:#7E9694">00:26</p><p style="width:170px; font-size:26px; color:#D9A24B">Council</p><p style="flex:1; font-size:26px; line-height:1.4; color:#E0CFA8">14 specialists reviewing &#183; 47M &#183; chest pain, diaphoresis &#183; on record: hypertension</p></div>
+<div style="display:flex; gap:24px; align-items:flex-start"><p style="width:100px; font-size:26px; color:#7E9694">00:38</p><p style="width:170px; font-size:26px; color:#5FBDB5">ResQ</p><p style="flex:1; font-size:26px; line-height:1.4; color:#D6E2E0">Take his blood pressure and read it back to me.</p></div>
+<div style="display:flex; gap:24px; align-items:flex-start"><p style="width:100px; font-size:26px; color:#7E9694">00:41</p><p style="width:170px; font-size:26px; color:#D9A24B">Council</p><p style="flex:1; font-size:26px; line-height:1.4; color:#E0CFA8">Acute coronary syndrome 0.71 &#183; flag: nitrate contraindicated, PDE-5 inhibitor 14 h ago</p></div>
+<div style="display:flex; gap:24px; align-items:flex-start; background:#2A1513; border-left:5px solid #C4342C; padding:18px 24px 18px 27px"><p style="width:100px; font-size:26px; color:#E8736A">00:42</p><p style="width:170px; font-size:26px; color:#E8736A">ResQ</p><p style="flex:1; font-size:26px; line-height:1.4; color:#FFD9D5">Do not give the nitrate spray. His record shows sildenafil last night, and with nitrate his blood pressure can crash.</p></div>
+</div>
+<p style="position:absolute; left:128px; bottom:64px; font-size:26px; color:#7E9694; width:1664px">The correction arrives 42 seconds in, at a pause in the protocol, and before the step it would have changed.</p>
+</section>
+<section id="architecture" data-transition="fade" style="background:#F2F4F3; color:#141A1B; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px 128px 160px; display:flex; flex-direction:column; gap:44px">
+<h2 style="font-family:Newsreader, Georgia, serif; font-size:68px; font-weight:400; line-height:1.1; width:1540px">Two tracks, joined at safe moments</h2>
+<div style="position:relative; width:1664px; height:470px">
+<p style="position:absolute; left:0px; top:0px; width:700px; font-size:26px; color:#0F6E6B; font-weight:500">Fast path. The practitioner is never waiting</p>
+<div style="position:absolute; left:0px; top:56px; width:340px; height:190px; background:#FFFFFF; border:2px solid #0F6E6B; padding:24px; display:flex; flex-direction:column; justify-content:space-between">
+<h3 style="font-size:30px; font-weight:600; line-height:1.25">Recognise the emergency</h3>
+<p style="font-size:24px; line-height:1.35; color:#0F6E6B">under 2 seconds</p>
+</div>
+<div style="position:absolute; left:364px; top:56px; width:420px; height:190px; background:#E2E7E5; border:2px solid #4B5658; padding:24px; display:flex; flex-direction:column; justify-content:space-between">
+<h3 style="font-size:30px; font-weight:600; line-height:1.25">Compressions in progress</h3>
+<p style="font-size:24px; line-height:1.35; color:#4B5658">not interruptible</p>
+</div>
+<div style="position:absolute; left:808px; top:56px; width:360px; height:190px; background:#FFFFFF; border:3px solid #0F6E6B; padding:24px; display:flex; flex-direction:column; justify-content:space-between">
+<h3 style="font-size:30px; font-weight:600; line-height:1.25">A pause in the protocol</h3>
+<p style="font-size:24px; line-height:1.35; color:#0F6E6B">safe to change course here</p>
+</div>
+<div style="position:absolute; left:1192px; top:56px; width:472px; height:190px; background:#FFFFFF; border:2px solid #C4342C; padding:24px; display:flex; flex-direction:column; justify-content:space-between">
+<h3 style="font-size:30px; font-weight:600; line-height:1.25">The next instruction, a drug</h3>
+<p style="font-size:24px; line-height:1.35; color:#C4342C">held until it has been checked</p>
+</div>
+<x-connector x1="340" y1="151" x2="364" y2="151" head="end" route="straight" style="color:#4B5658; border-width:2px"></x-connector>
+<x-connector x1="784" y1="151" x2="808" y2="151" head="end" route="straight" style="color:#4B5658; border-width:2px"></x-connector>
+<x-connector x1="1168" y1="151" x2="1192" y2="151" head="end" route="straight" style="color:#4B5658; border-width:2px"></x-connector>
+<x-connector x1="988" y1="326" x2="988" y2="252" head="end" route="straight" style="color:#A9741B; border-width:3px"></x-connector>
+<p style="position:absolute; left:1064px; top:276px; width:600px; font-size:26px; line-height:1.4; color:#A9741B">A correction is applied here, at a pause, and before the step it would change.</p>
+<p style="position:absolute; left:0px; top:286px; width:700px; font-size:26px; color:#A9741B; font-weight:500">Council. Runs the whole time, never in the way</p>
+<div style="position:absolute; left:0px; top:326px; width:1040px; height:130px; background:#F7F1E4; border:2px solid #A9741B; padding:24px; display:flex; align-items:center">
+<p style="font-size:28px; line-height:1.4">Specialist agents read the case, argue it out, and return a ranked set of possibilities plus anything they refuse to rule out.</p>
+</div>
+</div>
+<p style="font-size:32px; line-height:1.5; width:1500px; color:#141A1B">Speed and accuracy are normally a trade-off. ResQ runs both, and merges them only where it is safe to.</p>
+</section>
+<section id="council" data-transition="fade" style="background:#F2F4F3; color:#141A1B; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px 128px 160px; display:flex; flex-direction:column; gap:40px">
+<div style="display:flex; align-items:flex-end; justify-content:space-between; gap:60px">
+<h2 style="font-family:Newsreader, Georgia, serif; font-size:68px; font-weight:400; line-height:1.1; width:960px">A spectrum, not a verdict</h2>
+<p style="font-size:27px; line-height:1.45; color:#4B5658; width:600px">Each agent reasons from one specialty: cardiology, pharmacology, toxicology, oral surgery. They read each other's conclusions and push back before anything is ranked.</p>
+</div>
+<div style="display:flex; flex-direction:column; gap:18px">
+<div style="display:flex; align-items:center; gap:28px">
+<p style="width:520px; font-size:30px; line-height:1.3">Acute coronary syndrome</p>
+<div style="width:820px; height:56px; background:#E2E7E5; display:flex"><div style="width:71%; background:#0F6E6B"></div></div>
+<p style="width:120px; font-family:'IBM Plex Mono', 'Courier New', monospace; font-size:28px; text-align:right; color:#4B5658">0.71</p>
+</div>
+<div style="display:flex; align-items:center; gap:28px">
+<p style="width:520px; font-size:30px; line-height:1.3">Oesophageal spasm</p>
+<div style="width:820px; height:56px; background:#E2E7E5; display:flex"><div style="width:11%; background:#0F6E6B"></div></div>
+<p style="width:120px; font-family:'IBM Plex Mono', 'Courier New', monospace; font-size:28px; text-align:right; color:#4B5658">0.11</p>
+</div>
+<div style="display:flex; align-items:center; gap:28px">
+<p style="width:520px; font-size:30px; line-height:1.3">Panic attack</p>
+<div style="width:820px; height:56px; background:#E2E7E5; display:flex"><div style="width:8%; background:#0F6E6B"></div></div>
+<p style="width:120px; font-family:'IBM Plex Mono', 'Courier New', monospace; font-size:28px; text-align:right; color:#4B5658">0.08</p>
+</div>
+<div style="display:flex; align-items:center; gap:28px">
+<p style="width:520px; font-size:30px; line-height:1.3; color:#C4342C; font-weight:500">Aortic dissection, kept in view</p>
+<div style="width:820px; height:56px; background:#E2E7E5; display:flex"><div style="width:4%; background:#C4342C"></div></div>
+<p style="width:120px; font-family:'IBM Plex Mono', 'Courier New', monospace; font-size:28px; text-align:right; color:#C4342C">0.04</p>
+</div>
+<div style="display:flex; align-items:center; gap:28px">
+<p style="width:520px; font-size:30px; line-height:1.3">Musculoskeletal pain</p>
+<div style="width:820px; height:56px; background:#E2E7E5; display:flex"><div style="width:3%; background:#0F6E6B"></div></div>
+<p style="width:120px; font-family:'IBM Plex Mono', 'Courier New', monospace; font-size:28px; text-align:right; color:#4B5658">0.03</p>
+</div>
+</div>
+<p style="font-size:30px; line-height:1.45; width:1500px; color:#4B5658">The fourth line is the point. It is unlikely, and missing it kills the patient, so it stays on the list and shapes what ResQ tells the practitioner to check. A majority vote would have discarded it.</p>
+</section>
+<section id="card" data-transition="fade" style="background:#0C1719; color:#D6E2E0; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px 128px 160px; display:flex; flex-direction:column; gap:48px">
+<div style="display:flex; align-items:flex-end; justify-content:space-between; gap:60px">
+<h2 style="font-family:Newsreader, Georgia, serif; font-size:68px; font-weight:400; line-height:1.1; color:#F2F4F3; width:1060px">That catch only works if he is your patient</h2>
+<p style="font-size:26px; line-height:1.45; color:#7E9694; width:520px; text-align:right">A stranger who collapses in your waiting room has no record you can read.</p>
+</div>
+<div style="display:flex; gap:40px; align-items:stretch">
+<div style="width:520px; background:#16292B; border:2px solid #1F3436; padding:36px; display:flex; flex-direction:column; gap:22px">
+<p style="font-family:Newsreader, Georgia, serif; font-size:40px; line-height:1.1; color:#F2F4F3">Medical access card</p>
+<p style="font-family:'IBM Plex Mono', 'Courier New', monospace; font-size:22px; color:#7E9694">carried by the patient</p>
+<div style="display:flex; flex-direction:column; gap:14px">
+<p style="font-size:26px; line-height:1.3; color:#BFD8D5">Blood group, allergies, what they take</p>
+<p style="font-size:26px; line-height:1.3; color:#E8736A">Alert: PDE-5 inhibitor, 14 hours ago</p>
+<p style="font-size:26px; line-height:1.3; color:#BFD8D5">Conditions, emergency contact</p>
+</div>
+</div>
+<div style="flex:1; display:flex; flex-direction:column; gap:26px">
+<p style="font-size:30px; line-height:1.45; color:#D6E2E0">The key to a record is split three ways, so nobody holds it alone, including us.</p>
+<div style="display:flex; flex-direction:column; gap:18px">
+<div style="display:flex; gap:22px; align-items:baseline"><p style="font-family:'IBM Plex Mono', 'Courier New', monospace; font-size:24px; color:#5FBDB5; width:40px">1</p><p style="flex:1; font-size:27px; line-height:1.4; color:#BFD8D5"><span style="color:#F2F4F3">The public anchor.</span> On chain, holds no medical information.</p></div>
+<div style="display:flex; gap:22px; align-items:baseline"><p style="font-family:'IBM Plex Mono', 'Courier New', monospace; font-size:24px; color:#5FBDB5; width:40px">2</p><p style="flex:1; font-size:27px; line-height:1.4; color:#BFD8D5"><span style="color:#F2F4F3">The clinic's share.</span> Inside the treating practice's system.</p></div>
+<div style="display:flex; gap:22px; align-items:baseline"><p style="font-family:'IBM Plex Mono', 'Courier New', monospace; font-size:24px; color:#5FBDB5; width:40px">3</p><p style="flex:1; font-size:27px; line-height:1.4; color:#BFD8D5"><span style="color:#F2F4F3">The patient's share.</span> On the card, in their wallet.</p></div>
+</div>
+</div>
+</div>
+<div style="display:flex; gap:40px">
+<div style="flex:1; border-top:3px solid #5FBDB5; padding:26px 0 0">
+<p style="font-family:'IBM Plex Mono', 'Courier New', monospace; font-size:24px; color:#5FBDB5; margin-bottom:12px">two shares of three</p>
+<p style="font-size:29px; line-height:1.4; color:#D6E2E0">The emergency view opens in seconds. Enough to stop the wrong drug. Every opening is logged where the patient can read it.</p>
+</div>
+<div style="flex:1; border-top:3px solid #D9A24B; padding:26px 0 0">
+<p style="font-family:'IBM Plex Mono', 'Courier New', monospace; font-size:24px; color:#D9A24B; margin-bottom:12px">all three shares</p>
+<p style="font-size:29px; line-height:1.4; color:#D6E2E0">The complete record opens, and it takes the patient's own share, so it happens with them rather than around them.</p>
+</div>
+</div>
+</section>
+<section id="device" data-transition="fade" style="background:#F2F4F3; color:#141A1B; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px 128px 160px; display:flex; gap:96px; align-items:center">
+<svg aria-label="The ResQ desk unit: a cylindrical transparent enclosure on a base, with a human figure appearing inside it, a camera and microphones in the top cap, and a scannable code on the base" width="400" height="600" viewBox="0 0 420 620">
+<ellipse cx="210" cy="68" rx="115" ry="28" fill="none" stroke="#141A1B" stroke-width="3"/>
+<path d="M95 68 L95 100 M325 68 L325 100" fill="none" stroke="#141A1B" stroke-width="3"/>
+<path d="M95 100 A115 28 0 0 0 325 100" fill="none" stroke="#141A1B" stroke-width="3"/>
+<circle cx="150" cy="60" r="5" fill="none" stroke="#141A1B" stroke-width="2"/>
+<circle cx="190" cy="52" r="5" fill="none" stroke="#141A1B" stroke-width="2"/>
+<circle cx="230" cy="52" r="5" fill="none" stroke="#141A1B" stroke-width="2"/>
+<circle cx="270" cy="60" r="5" fill="none" stroke="#141A1B" stroke-width="2"/>
+<circle cx="210" cy="92" r="11" fill="none" stroke="#141A1B" stroke-width="3"/>
+<circle cx="210" cy="92" r="4" fill="#141A1B"/>
+<path d="M95 100 L95 442 M325 100 L325 442" fill="none" stroke="#141A1B" stroke-width="3"/>
+<path d="M118 150 L143 186 M126 148 L151 184" fill="none" stroke="#9BAAA8" stroke-width="2"/>
+<path d="M272 372 L297 408 M280 370 L305 406" fill="none" stroke="#9BAAA8" stroke-width="2"/>
+<ellipse cx="210" cy="228" rx="27" ry="34" fill="none" stroke="#0F6E6B" stroke-width="3"/>
+<path d="M198 258 L198 274 M222 258 L222 274" fill="none" stroke="#0F6E6B" stroke-width="3"/>
+<path d="M148 316 C148 288 176 274 210 274 C244 274 272 288 272 316" fill="none" stroke="#0F6E6B" stroke-width="3"/>
+<path d="M148 316 L152 404 M272 316 L268 404" fill="none" stroke="#0F6E6B" stroke-width="3"/>
+<path d="M172 300 L172 392 M248 300 L248 392" fill="none" stroke="#0F6E6B" stroke-width="2"/>
+<path d="M172 392 L248 392" fill="none" stroke="#0F6E6B" stroke-width="2"/>
+<path d="M196 280 L210 296 L224 280" fill="none" stroke="#0F6E6B" stroke-width="2"/>
+<ellipse cx="210" cy="442" rx="115" ry="28" fill="none" stroke="#141A1B" stroke-width="3"/>
+<path d="M95 442 L95 530 M325 442 L325 530" fill="none" stroke="#141A1B" stroke-width="3"/>
+<path d="M95 530 A115 28 0 0 0 325 530" fill="none" stroke="#141A1B" stroke-width="3"/>
+<path d="M97 458 A115 28 0 0 0 323 458" fill="none" stroke="#0F6E6B" stroke-width="3"/>
+<rect x="186" y="474" width="48" height="48" fill="none" stroke="#141A1B" stroke-width="2"/>
+<rect x="192" y="480" width="12" height="12" fill="#141A1B"/>
+<rect x="216" y="480" width="12" height="12" fill="#141A1B"/>
+<rect x="192" y="504" width="12" height="12" fill="#141A1B"/>
+<rect x="210" y="498" width="8" height="8" fill="#141A1B"/>
+<rect x="222" y="508" width="8" height="8" fill="#141A1B"/>
+<path d="M268 480 L268 516 M280 480 L280 516 M292 480 L292 516" fill="none" stroke="#141A1B" stroke-width="2"/>
+<rect x="124" y="486" width="30" height="20" rx="10" fill="none" stroke="#141A1B" stroke-width="2"/>
+</svg>
+<div style="flex:1; display:flex; flex-direction:column; gap:40px">
+<h2 style="font-family:Newsreader, Georgia, serif; font-size:68px; font-weight:400; line-height:1.1">Built for a room where nobody has a free hand</h2>
+<div style="display:flex; flex-direction:column; gap:30px">
+<p style="font-size:33px; line-height:1.45; color:#141A1B">A face that speaks to you, because under stress people follow a voice and a face. They do not read lists.</p>
+<p style="font-size:33px; line-height:1.45; color:#141A1B">A microphone that hears you across the room. The wake phrase is recognised on the unit, so nothing leaves the clinic before you ask.</p>
+<p style="font-size:33px; line-height:1.45; color:#141A1B">Protocols stored on the device, so the guidance carries on when the connection drops.</p>
+</div>
+</div>
+</section>
+<section id="market" data-transition="fade" style="background:#F2F4F3; color:#141A1B; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px 128px 160px; display:flex; flex-direction:column; gap:52px">
+<h2 style="font-family:Newsreader, Georgia, serif; font-size:68px; font-weight:400; line-height:1.1; width:1500px">Dentists first, because it is the hardest place to be caught alone</h2>
+<div style="display:flex; gap:48px">
+<div style="flex:1; border-top:3px solid #0F6E6B; padding:30px 0 0">
+<p style="font-family:Newsreader, Georgia, serif; font-size:92px; line-height:1; margin-bottom:16px">75,000</p>
+<p style="font-size:28px; line-height:1.4; color:#4B5658">Members of the Indian Dental Association, which has given a written letter of interest. One agreement reaches all of them.</p>
+</div>
+<div style="flex:1; border-top:3px solid #0F6E6B; padding:30px 0 0">
+<p style="font-family:Newsreader, Georgia, serif; font-size:92px; line-height:1; margin-bottom:16px">&#8377;3,000</p>
+<p style="font-size:28px; line-height:1.4; color:#4B5658">Per practitioner, per year, from the pilot study. The unit and the training courses are sold alongside it.</p>
+</div>
+<div style="flex:1; border-top:3px solid #0F6E6B; padding:30px 0 0">
+<p style="font-family:Newsreader, Georgia, serif; font-size:92px; line-height:1; margin-bottom:16px">$47.8B</p>
+<p style="font-size:28px; line-height:1.4; color:#4B5658">India's digital health market by 2033, from $8.8B in 2024. Emergency response is the part nobody has built properly.</p>
+</div>
+</div>
+<p style="font-size:32px; line-height:1.5; width:1480px; color:#141A1B">A dental clinic is the cleanest place to prove this works. Procedures are elective, the patient is reclined, complications are well documented, and one practitioner carries the whole emergency alone. If ResQ helps there, the same argument carries everywhere somebody is on their own.</p>
+<p style="position:absolute; left:128px; bottom:64px; font-size:24px; color:#6A7179">Market sizing from published India digital health forecasts. Membership figure from the Indian Dental Association.</p>
+</section>
+<section id="team" data-transition="fade" style="background:#0C1719; color:#D6E2E0; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px 128px 160px; display:flex; flex-direction:column; gap:44px">
+<h2 style="font-family:Newsreader, Georgia, serif; font-size:68px; font-weight:400; line-height:1.1; color:#F2F4F3; width:1500px">Two dentists who have been alone in the room</h2>
+<div style="display:flex; gap:40px">
+<div style="flex:1; border-top:3px solid #5FBDB5; padding:32px 0 0">
+<h3 style="font-size:40px; font-weight:400; font-family:Newsreader, Georgia, serif; line-height:1.15; color:#F2F4F3; margin-bottom:10px">Dr. Sameer Patil</h3>
+<p style="font-size:26px; line-height:1.4; color:#5FBDB5; margin-bottom:18px">Co-founder &#183; MDS Orthodontics</p>
+<p style="font-size:28px; line-height:1.5; color:#BFD8D5">Principal of Sinhgad Dental College, Pune. Three decades of practice, and the relationships that put ResQ in front of dental councils and colleges.</p>
+</div>
+<div style="flex:1; border-top:3px solid #5FBDB5; padding:32px 0 0">
+<h3 style="font-size:40px; font-weight:400; font-family:Newsreader, Georgia, serif; line-height:1.15; color:#F2F4F3; margin-bottom:10px">Dr. Om Gurram</h3>
+<p style="font-size:26px; line-height:1.4; color:#5FBDB5; margin-bottom:18px">Co-founder &#183; BDS</p>
+<p style="font-size:28px; line-height:1.5; color:#BFD8D5">Dentist, trained at Sinhgad. Owns the clinical design: what the library covers, the order the steps come in, and the rules the system may never break.</p>
+</div>
+</div>
+<div style="background:#16292B; padding:34px 40px; display:flex; flex-direction:column; gap:14px">
+<p style="font-size:26px; line-height:1.4; color:#7E9694">Where we are</p>
+<p style="font-size:28px; line-height:1.5; color:#BFD8D5">Protocol library in authoring &#183; council and avatar in build &#183; desk unit in hardware selection &#183; access card in design &#183; clinic pilots recruiting in Pune &#183; transport and hospital integrations in discussion</p>
+</div>
+<div style="display:flex; align-items:flex-end; justify-content:space-between; gap:48px; border-top:2px solid #1F3436; padding:30px 0 0">
+<div>
+<p style="font-size:30px; line-height:1.4; color:#F2F4F3; margin-bottom:8px">The whole story, in detail</p>
+<p style="font-family:'IBM Plex Mono', 'Courier New', monospace; font-size:30px; color:#5FBDB5">resqai.life</p>
+</div>
+<p style="font-size:28px; line-height:1.4; color:#BFD8D5; text-align:right">resqmanagement@gmail.com<br>+91 98901 74206</p>
+</div>
+</section>
+</div></div>
+
+<div id="hint">arrows to move &#183; n for notes &#183; f for full screen</div>
+
+<div id="notes" aria-live="polite"><b>Speaker notes</b><span id="notetext"></span></div>
+
+<nav id="bar" aria-label="Slide controls">
+  <button id="prev" type="button" aria-label="Previous slide">Prev</button>
+  <button id="next" type="button" aria-label="Next slide">Next</button>
+  <span id="pos">1 / 1</span>
+  <div id="track" role="tablist" aria-label="Slides"></div>
+  <span id="title"></span>
+  <button id="bnotes" type="button" aria-pressed="false">Notes</button>
+  <button id="bfull" type="button">Full screen</button>
+</nav>
+
+<script>
+(function(){
+"use strict";
+var NOTES = ["Open on the two-minute idea, not the company. The whole deck argues one thing: speed and accuracy are usually a trade-off in emergency guidance, and ResQ is the design that refuses the trade.", "Do not rush these numbers. The fourth one is the business: every minute of delay is measurable mortality, so a system that removes even ninety seconds of hesitation has a quantifiable effect.", "The last row is the only one a human must do. Everything above it is coordination and recall, which is exactly what software is good at. That division is the product.", "Read the 00:42 line slowly. Every clinician in the room will check it, and it is correct: nitrates are contraindicated within the PDE-5 window. That one line is the demo, the patent claim and the sales pitch at the same time.", "This is the slide that matters. Existing AI triage tools make the clinician wait for an answer; research systems that debate a case take minutes and deliver one verdict at the end. Neither is usable inside a live emergency. The merge rule is what makes both usable at once, and it is the basis of the patent claim.", "A single confident answer is the most dangerous thing an AI can hand a clinician. Ranking with an explicit must-not-miss set is how clinicians already think, and it is why doctors trust this output rather than arguing with it.", "This is what turns ResQ from a clinic tool into infrastructure. The nitrate catch on the previous slides depends on knowing the patient's medication list, which today only works for your own registered patients. The card makes it work for anyone who walks in. Say plainly that it is in design, and that the break glass rules need DPDP Act review.", "Keep this short. The hardware is a display head with a microphone and a processor; the enclosure is ours. The point is that the form factor is deliberate: hands free, always on, impossible to ignore. Detail lives on the website.", "Three numbers, one argument. Expect \"why dentists?\" and answer with proof rather than market size. The full revenue detail is on the website if anyone wants it.", "Close on the clinical point: both founders are dentists who have had to manage an emergency with one assistant and no second opinion. Send people to the site rather than adding slides; it now carries the network, the library, the model and the access card in full."];
+var TITLES = ["ResQ", "Most emergencies happen where the help isn't", "One practitioner, eight jobs, four minutes", "One session, from \"Activate ResQ\"", "Two tracks, joined at safe moments", "A spectrum, not a verdict", "That catch only works if he is your patient", "Built for a room where nobody has a free hand", "Dentists first, because it is the hardest place to be caught alone", "Two dentists who have been alone in the room"];
+var secs = Array.prototype.slice.call(document.querySelectorAll('#scaler > section'));
+var scaler = document.getElementById('scaler');
+var pos = document.getElementById('pos');
+var track = document.getElementById('track');
+var titleEl = document.getElementById('title');
+var notesEl = document.getElementById('notes');
+var noteText = document.getElementById('notetext');
+var i = 0;
+
+/* x-connector: a straight line with an arrow head, in the parent's pixel space */
+if (!window.customElements.get('x-connector')) {
+  customElements.define('x-connector', class extends HTMLElement {
+    connectedCallback(){
+      var host = this.offsetParent || this.parentNode;
+      var w = host.clientWidth || 1664, h = host.clientHeight || 440;
+      var x1=+this.getAttribute('x1'), y1=+this.getAttribute('y1');
+      var x2=+this.getAttribute('x2'), y2=+this.getAttribute('y2');
+      var col=this.style.color || '#4B5658';
+      var bw=parseFloat(this.style.borderWidth)||2;
+      var id='ah'+Math.random().toString(36).slice(2,8);
+      var dx=x2-x1, dy=y2-y1, len=Math.hypot(dx,dy)||1;
+      var head=Math.max(9, bw*4);
+      var ex=x2-(dx/len)*head*0.85, ey=y2-(dy/len)*head*0.85;
+      this.innerHTML =
+        '<svg width="100%" height="100%" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none" aria-hidden="true">'+
+        '<defs><marker id="'+id+'" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="'+(head/bw)+'" markerHeight="'+(head/bw)+'" orient="auto-start-reverse">'+
+        '<path d="M0 0 L10 5 L0 10 z" fill="'+col+'"/></marker></defs>'+
+        '<line x1="'+x1+'" y1="'+y1+'" x2="'+ex+'" y2="'+ey+'" stroke="'+col+'" stroke-width="'+bw+'" marker-end="url(#'+id+')"/>'+
+        '</svg>';
+    }
+  });
+}
+
+secs.forEach(function(s,k){
+  var b=document.createElement('i');
+  b.setAttribute('role','tab');
+  b.title='Slide '+(k+1)+': '+TITLES[k];
+  b.addEventListener('click', function(){ go(k); });
+  track.appendChild(b);
+});
+
+var heights = secs.map(function(){ return 1080; });
+function measure(){
+  var t = scaler.style.transform; scaler.style.transform='none';
+  var prevH = scaler.style.height; scaler.style.height='auto';
+  secs.forEach(function(sec,k){
+    var was = sec.classList.contains('on');
+    sec.classList.add('on');
+    var sr = sec.getBoundingClientRect(), maxB = 920;
+    sec.querySelectorAll('*').forEach(function(el){
+      var r = el.getBoundingClientRect();
+      var bt = r.bottom - sr.top;
+      if (bt > maxB) maxB = bt;
+    });
+    heights[k] = Math.max(1080, Math.ceil(maxB + 160));
+    if (!was) sec.classList.remove('on');
+  });
+  scaler.style.transform = t; scaler.style.height = prevH;
+}
+function fit(){
+  var pad = 46 + (notesEl.classList.contains('on') ? notesEl.offsetHeight : 0);
+  var w = window.innerWidth, h = window.innerHeight - pad;
+  var H = heights[i] || 1080;
+  var s = Math.min(w/1920, h/H);
+  scaler.style.height = H + 'px';
+  scaler.style.transform = 'translate('+((w-1920*s)/2)+'px,'+((h-H*s)/2)+'px) scale('+s+')';
+}
+
+function go(n){
+  i = Math.max(0, Math.min(secs.length-1, n));
+  secs.forEach(function(s,k){ s.classList.toggle('on', k===i); });
+  Array.prototype.forEach.call(track.children, function(b,k){
+    b.className = k===i ? 'now' : (k<i ? 'seen' : '');
+    b.setAttribute('aria-selected', k===i);
+  });
+  pos.textContent = (i+1)+' / '+secs.length;
+  titleEl.textContent = TITLES[i] || '';
+  noteText.textContent = NOTES[i] || 'No notes for this slide.';
+  if (location.hash !== '#'+(i+1)) history.replaceState(null,'','#'+(i+1));
+  fit();
+}
+
+document.getElementById('prev').addEventListener('click', function(){ go(i-1); });
+document.getElementById('next').addEventListener('click', function(){ go(i+1); });
+document.getElementById('bnotes').addEventListener('click', function(){
+  var on = !notesEl.classList.contains('on');
+  notesEl.classList.toggle('on', on);
+  this.setAttribute('aria-pressed', on);
+  fit();
+});
+document.getElementById('bfull').addEventListener('click', function(){
+  if (document.fullscreenElement) document.exitFullscreen();
+  else document.documentElement.requestFullscreen().catch(function(){});
+});
+document.addEventListener('keydown', function(e){
+  if (e.metaKey||e.ctrlKey||e.altKey) return;
+  var k=e.key;
+  if (k==='ArrowRight'||k==='PageDown'||k===' '){ e.preventDefault(); go(i+1); }
+  else if (k==='ArrowLeft'||k==='PageUp'){ e.preventDefault(); go(i-1); }
+  else if (k==='Home'){ e.preventDefault(); go(0); }
+  else if (k==='End'){ e.preventDefault(); go(secs.length-1); }
+  else if (k==='n'||k==='N'){ document.getElementById('bnotes').click(); }
+  else if (k==='f'||k==='F'){ document.getElementById('bfull').click(); }
+});
+document.getElementById('stage').addEventListener('click', function(e){
+  if (e.target.closest('a,button')) return;
+  go(e.clientX < window.innerWidth/2 ? i-1 : i+1);
+});
+window.addEventListener('resize', fit);
+window.addEventListener('hashchange', function(){
+  var n=parseInt(location.hash.slice(1),10); if(n) go(n-1);
+});
+var start = parseInt(location.hash.slice(1),10);
+go(start ? start-1 : 0);
+function remeasure(){ measure(); fit(); }
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(remeasure);
+else window.addEventListener('load', remeasure);
+setTimeout(remeasure, 400);
+})();
+</script>
+</body>
+</html>
