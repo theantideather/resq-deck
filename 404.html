@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en-IN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Page not found · ResQ</title>
+<meta name="description" content="That page does not exist on the ResQ site. Links back to the main page and to pilot enquiries.">
+<meta name="robots" content="noindex, follow">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400&family=IBM+Plex+Mono:wght@400&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F2F4F3; --ink:#141A1B; --ink-soft:#4B5658; --rule:#CBD3D1; --teal:#0F6E6B;
+  --serif:"Newsreader", Georgia, serif;
+  --sans:"IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --paper:#0D1415; --ink:#E6EDEB; --ink-soft:#A0B0AE; --rule:#26393A; --teal:#5FBDB5; }
+}
+:root[data-theme="dark"]{ --paper:#0D1415; --ink:#E6EDEB; --ink-soft:#A0B0AE; --rule:#26393A; --teal:#5FBDB5; }
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--sans); font-size:17px; line-height:1.6;
+  min-height:100vh; display:flex; flex-direction:column; justify-content:center}
+.wrap{max-width:720px; margin:0 auto; padding:64px 24px}
+.code{font-family:var(--mono); font-size:.8rem; letter-spacing:.09em; color:var(--teal); margin-bottom:20px}
+h1{font-family:var(--serif); font-weight:400; font-size:clamp(2rem,5.5vw,3rem); line-height:1.1; margin:0 0 18px}
+p{margin:0 0 1em; color:var(--ink-soft); max-width:52ch}
+ul{list-style:none; margin:30px 0 0; padding:0; border-top:1px solid var(--rule)}
+li{border-bottom:1px solid var(--rule)}
+li a{display:block; padding:15px 0; color:var(--ink); text-decoration:none}
+li a:hover{color:var(--teal)}
+li span{display:block; font-size:.88rem; color:var(--ink-soft)}
+.note{margin-top:34px; font-size:.86rem}
+:focus-visible{outline:2px solid var(--teal); outline-offset:3px}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="code">404</div>
+  <h1>That page is not here</h1>
+  <p>The link may be old, or it may have been mistyped. Everything on this site lives on one page, so one of these will get you there.</p>
+  <ul>
+    <li><a href="/">The main page<span>What ResQ is, and a replay of an emergency session</span></a></li>
+    <li><a href="/#council">The council<span>Six specialists arguing a real case</span></a></li>
+    <li><a href="/#device">The device<span>The unit that sits on the desk</span></a></li>
+    <li><a href="/#pilot">Clinic pilots<span>How to put one in your practice</span></a></li>
+  </ul>
+  <p class="note">If you reached this from a link on another site, write to <a href="mailto:resqmanagement@gmail.com" style="color:var(--ink)">resqmanagement@gmail.com</a> and tell us where it was, and we will fix it.</p>
+</main>
+</body>
+</html>

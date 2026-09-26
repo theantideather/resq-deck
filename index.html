@@ -1,0 +1,2222 @@
+<!doctype html>
+<html lang="en-IN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ResQ &#183; Emergency guidance for clinics</title>
+<meta name="description" content="ResQ is an emergency response system for clinics. A desk unit gives the practitioner a first instruction in about two seconds, while a council of specialist AI agents checks the case and corrects the plan only at a step where a change is safe.">
+<link rel="canonical" href="https://resqai.life/">
+<meta name="theme-color" content="#0C1719">
+<meta name="color-scheme" content="light dark">
+<meta name="author" content="Life ResQ Healthcare Systems LLP">
+
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ResQ">
+<meta property="og:url" content="https://resqai.life/">
+<meta property="og:title" content="ResQ &#183; Emergency guidance for clinics">
+<meta property="og:description" content="ResQ is an emergency response system for clinics. A desk unit gives the practitioner a first instruction in about two seconds, while a council of specialist AI agents checks the case and corrects the plan only at a step where a change is safe.">
+<meta property="og:image" content="https://resqai.life/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="ResQ. Someone collapses in your clinic. The next two minutes decide the rest.">
+<meta property="og:locale" content="en_IN">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="ResQ &#183; Emergency guidance for clinics">
+<meta name="twitter:description" content="ResQ is an emergency response system for clinics. A desk unit gives the practitioner a first instruction in about two seconds, while a council of specialist AI agents checks the case and corrects the plan only at a step where a change is safe.">
+<meta name="twitter:image" content="https://resqai.life/og.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Life ResQ Healthcare Systems LLP",
+  "alternateName": "ResQ",
+  "url": "https://resqai.life/",
+  "logo": "https://resqai.life/icon-512.png",
+  "email": "resqmanagement@gmail.com",
+  "telephone": "+91-98901-74206",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "1306 Aspire Tower 6, Amanora Park Town, Hadapsar",
+    "addressLocality": "Pune",
+    "addressRegion": "Maharashtra",
+    "postalCode": "411028",
+    "addressCountry": "IN"
+  },
+  "founder": [
+    { "@type": "Person", "name": "Dr. Sameer Patil" },
+    { "@type": "Person", "name": "Dr. Om Gurram" }
+  ]
+}
+</script>
+
+<style>
+:root{
+  --paper:#F2F4F3; --paper-2:#E6EBE9; --paper-3:#D9E1DE;
+  --ink:#141A1B; --ink-soft:#4B5658; --rule:#CBD3D1;
+  --teal:#0F6E6B; --red:#C4342C; --amber:#A9741B; --violet:#5B4BA8; --focus:#0F6E6B;
+  --band:#0C1719; --band-2:#112326; --band-3:#162D30; --band-line:#1F383B;
+  --band-ink:#DCE7E5; --band-dim:#86A09D;
+  --band-hi:#F4F8F7; --band-teal:#46B8AF; --band-amber:#E2AA4C; --band-red:#F06A60; --band-violet:#A99BEE;
+  --serif:"Newsreader", Georgia, "Times New Roman", serif;
+  --sans:"IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0D1415; --paper-2:#141E1F; --paper-3:#1B2728;
+    --ink:#E6EDEB; --ink-soft:#A0B0AE; --rule:#26393A;
+    --teal:#5FBDB5; --red:#E8736A; --amber:#D9A24B; --violet:#A99BEE; --focus:#5FBDB5;
+    --band:#071012; --band-2:#0D1C1F; --band-3:#132628; --band-line:#1A2F32;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0D1415; --paper-2:#141E1F; --paper-3:#1B2728;
+  --ink:#E6EDEB; --ink-soft:#A0B0AE; --rule:#26393A;
+  --teal:#5FBDB5; --red:#E8736A; --amber:#D9A24B; --violet:#A99BEE; --focus:#5FBDB5;
+  --band:#071012; --band-2:#0D1C1F; --band-3:#132628; --band-line:#1A2F32;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%; scroll-behavior:smooth}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--sans); font-size:17px; line-height:1.6}
+h1,h2,h3{font-family:var(--serif); font-weight:400; letter-spacing:-.012em; margin:0; text-wrap:balance}
+h1{font-size:clamp(2.1rem,5.2vw,3.9rem); line-height:1.05}
+h2{font-size:clamp(1.7rem,3.8vw,2.6rem); line-height:1.12}
+h3{font-family:var(--sans); font-size:1.05rem; font-weight:600; line-height:1.35}
+p{margin:0 0 1em}
+a{color:inherit}
+button{font:inherit; color:inherit}
+:focus-visible{outline:2px solid var(--focus); outline-offset:3px; border-radius:2px}
+.wrap{max-width:1180px; margin:0 auto; padding-inline:24px}
+@media (max-width:480px){ .wrap{padding-inline:16px} }
+.prose{max-width:62ch}
+.lede{font-size:1.13rem; color:var(--ink-soft)}
+.eyebrow{font-family:var(--mono); font-size:.73rem; letter-spacing:.09em; text-transform:uppercase; color:var(--ink-soft); display:flex; align-items:center; gap:10px; margin-bottom:18px}
+section.block{padding-block:88px; border-top:1px solid var(--rule)}
+.caption{font-size:.86rem; color:var(--ink-soft); max-width:60ch}
+
+.band{--focus:var(--band-teal); background:var(--band); color:var(--band-ink); position:relative; overflow:hidden; isolation:isolate}
+.band .lede,.band .caption,.band .eyebrow{color:var(--band-dim)}
+.band .more div{border-top-color:var(--band-line)}
+.band .more h3{color:var(--band-hi)}
+.band .more p{color:var(--band-dim)}
+.band .prose h2{color:var(--band-hi)}
+.paths{position:absolute; inset:-10% -5% auto -5%; width:110%; height:92%; z-index:-2; pointer-events:none; color:var(--band-teal)}
+.paths path{fill:none; stroke:currentColor; stroke-dasharray:.32 .68}
+@keyframes flow{from{stroke-dashoffset:1} to{stroke-dashoffset:0}}
+
+.masthead{display:flex; align-items:center; justify-content:space-between; gap:16px; padding-block:22px 0}
+.logo{font-family:var(--serif); font-size:1.6rem; text-decoration:none; display:flex; align-items:center; gap:10px}
+.logo span{color:var(--band-teal)}
+.logo svg{width:22px; height:22px}
+.masthead nav{display:flex; gap:22px; font-size:.92rem; color:var(--band-dim)}
+.masthead nav a{text-decoration:none}
+.masthead nav a:hover{color:var(--band-ink)}
+@media (max-width:860px){ .masthead nav{display:none} }
+
+.hero-grid{display:grid; gap:36px; padding-block:46px 30px}
+@media (min-width:980px){ .hero-grid{grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr); gap:56px; align-items:center} }
+.hero-copy h1{max-width:16ch; margin-bottom:22px}
+.hero-copy .lede{max-width:48ch}
+.live-dot{width:8px; height:8px; border-radius:50%; background:var(--band-teal); display:inline-block; animation:ping 2s infinite}
+@keyframes ping{0%{box-shadow:0 0 0 0 rgba(70,184,175,.55)} 80%,100%{box-shadow:0 0 0 9px rgba(70,184,175,0)}}
+.reveal .w{display:inline-block; white-space:nowrap}
+.reveal .ch{display:inline-block; animation:rise .8s cubic-bezier(.2,.8,.2,1) both; animation-delay:calc(var(--i)*16ms)}
+@keyframes rise{from{opacity:0; transform:translateY(.45em) rotate(3deg); filter:blur(4px)} to{opacity:1; transform:none; filter:none}}
+.fade-up{animation:fadeUp .9s .55s cubic-bezier(.2,.8,.2,1) both}
+@keyframes fadeUp{from{opacity:0; transform:translateY(14px)} to{opacity:1; transform:none}}
+.cta-row{display:flex; flex-wrap:wrap; gap:12px; margin-top:24px}
+.btn{display:inline-flex; align-items:center; gap:10px; padding:12px 20px; text-decoration:none; font-weight:500; font-size:.96rem;
+  background:var(--ink); color:var(--paper); border:1px solid var(--ink); position:relative; overflow:hidden; cursor:pointer;
+  transition:background .25s, color .25s, border-color .25s}
+.btn:hover{background:var(--paper); color:var(--ink)}
+.btn-quiet{background:transparent; color:var(--ink); border-color:var(--rule)}
+.btn-quiet:hover{border-color:var(--ink)}
+.band .btn{background:var(--band-teal); border-color:var(--band-teal); color:#061012}
+.band .btn-quiet{background:transparent; color:var(--band-ink); border-color:var(--band-line)}
+.band .btn-quiet:hover{border-color:var(--band-dim)}
+
+/* ---- 3D device stage ---- */
+.stage{position:relative; border:1px solid var(--band-line); border-radius:0; overflow:hidden;
+  background:#0A1618}
+.stage-canvas{display:block; width:100%; height:clamp(420px, 58vh, 600px); touch-action:pan-y; cursor:grab}
+.stage-canvas:active{cursor:grabbing}
+.stage-badge{position:absolute; top:12px; left:12px; display:flex; align-items:center; gap:8px; font-family:var(--mono); font-size:.68rem;
+  letter-spacing:.06em; text-transform:uppercase; color:var(--band-dim); border:1px solid var(--band-line); border-radius:2px; padding:5px 9px; background:rgba(7,16,18,.6)}
+.stage-badge i{width:7px; height:7px; border-radius:50%; background:var(--band-teal); box-shadow:0 0 8px var(--band-teal)}
+.stage-badge.speaking i{background:var(--band-teal); animation:blink2 .6s infinite alternate}
+.stage-badge.alert{color:#FFD9D5; border-color:var(--band-red)}
+.stage-badge.alert i{background:var(--band-red); box-shadow:0 0 10px var(--band-red)}
+@keyframes blink2{to{opacity:.35}}
+.stage-tools{position:absolute; left:12px; right:12px; bottom:12px; display:flex; flex-wrap:wrap; gap:8px; align-items:center}
+.tool{font-family:var(--mono); font-size:.72rem; color:var(--band-ink); background:rgba(7,16,18,.65); border:1px solid var(--band-line); padding:7px 12px; border-radius:2px; cursor:pointer}
+.tool:hover{border-color:var(--band-dim)}
+.tool[aria-pressed="true"]{background:var(--band-3); color:var(--band-hi)}
+.stage-hint{margin-left:auto; font-family:var(--mono); font-size:.66rem; color:var(--band-dim)}
+.lbl3d{position:absolute; transform:translate(-50%,-50%); font-family:var(--mono); font-size:.68rem; color:var(--band-ink);
+  background:rgba(7,16,18,.82); border:1px solid var(--band-teal); padding:4px 8px;
+  white-space:nowrap; opacity:0; transition:opacity .35s; pointer-events:none}
+.stage-fallback{display:none; padding:24px; text-align:center; color:var(--band-dim); font-size:.9rem}
+.stage-load{position:absolute; inset:0; display:grid; place-items:center; gap:12px; align-content:center;
+  font-family:var(--mono); font-size:.7rem; letter-spacing:.12em; text-transform:uppercase; color:var(--band-dim); background:var(--band)}
+.stage-load.gone{opacity:0; visibility:hidden; transition:opacity .5s, visibility .5s}
+.stage-load .sk{width:58%; max-width:220px; height:3px; background:var(--band-line); overflow:hidden}
+.stage-load .sk i{display:block; height:100%; width:38%; background:var(--band-teal); animation:skid 1.3s ease-in-out infinite}
+@keyframes skid{0%{transform:translateX(-100%)} 100%{transform:translateX(320%)}}
+/* 11 (mobile) sticky call to action */
+.mcta{position:fixed; left:0; right:0; bottom:0; z-index:60; display:none; gap:10px; align-items:center; justify-content:space-between;
+  padding:10px 16px calc(10px + env(safe-area-inset-bottom)); background:var(--band); border-top:1px solid var(--band-line)}
+.mcta span{font-size:.82rem; color:var(--band-dim)}
+.mcta a{background:var(--band-teal); color:#061012; text-decoration:none; padding:10px 16px; font-size:.86rem; font-weight:500; white-space:nowrap}
+.mcta.show{display:flex}
+@media (min-width:760px){ .mcta{display:none !important} }
+
+/* ---- console ---- */
+.console-wrap{padding-block:14px 76px}
+.console{background:var(--band-2); border:1px solid var(--band-line); border-radius:0;
+  font-family:var(--mono); font-size:.82rem; line-height:1.5}
+.c-top{display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:14px; padding:14px 18px; border-bottom:1px solid var(--band-line)}
+.c-clock{display:flex; align-items:center; gap:14px}
+#clock{font-size:1.7rem; font-variant-numeric:tabular-nums; color:var(--band-hi); min-width:5ch}
+.c-state{color:var(--band-dim); font-size:.72rem; text-transform:uppercase; letter-spacing:.08em; padding:3px 8px; border:1px solid var(--band-line); border-radius:2px; transition:.3s}
+.c-state.alert{color:#FFD9D5; border-color:var(--band-red); background:rgba(240,106,96,.12)}
+.c-controls{display:flex; align-items:center; gap:8px}
+.cbtn,.seg button{font-family:var(--mono); font-size:.72rem; color:var(--band-ink); background:transparent; cursor:pointer; border:1px solid var(--band-line); padding:6px 12px; border-radius:2px}
+.cbtn:hover,.seg button:hover{border-color:var(--band-dim)}
+.seg{display:flex}
+.seg button{border-radius:0}
+.seg button+button{border-left:0}
+.seg button[aria-pressed="true"]{background:var(--band-3); color:var(--band-hi)}
+.c-scrub{position:relative; padding:12px 18px 6px; border-bottom:1px solid var(--band-line)}
+.ticks{position:absolute; left:18px; right:18px; top:8px; height:6px; pointer-events:none}
+.ticks i{position:absolute; top:0; width:2px; height:6px; background:var(--band-dim); opacity:.7}
+.ticks i.council{background:var(--band-amber)}
+.ticks i.resq{background:var(--band-teal)}
+.ticks i.hold{background:var(--band-red); height:8px; top:-1px; width:3px}
+#scrub{width:100%; margin-top:6px; accent-color:var(--band-teal); cursor:pointer}
+.c-grid{display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .c-grid{grid-template-columns:1fr 1fr} .pane-proto{grid-column:1/-1} }
+@media (min-width:1080px){ .c-grid{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) minmax(0,.95fr)} .pane-proto{grid-column:auto} }
+.pane{padding:14px 18px 18px; border-bottom:1px solid var(--band-line); min-width:0}
+@media (min-width:760px){ .pane+.pane{border-left:1px solid var(--band-line)} .pane-proto{border-left:0} }
+@media (min-width:1080px){ .pane{border-bottom:0} .pane-proto{border-left:1px solid var(--band-line)} }
+.pane-h{display:flex; align-items:center; justify-content:space-between; gap:10px; color:var(--band-dim); font-size:.69rem; text-transform:uppercase; letter-spacing:.09em; margin-bottom:12px; min-height:22px}
+.tag{font-size:.67rem; letter-spacing:.03em; text-transform:none; padding:2px 8px; border:1px solid var(--band-line); border-radius:2px; color:var(--band-dim); white-space:nowrap; transition:.3s}
+.tag.amber{color:var(--band-amber); border-color:rgba(226,170,76,.45)}
+.tag.teal{color:var(--band-teal); border-color:rgba(70,184,175,.45)}
+.tag.red{color:#FFD9D5; border-color:var(--band-red); background:rgba(240,106,96,.12); animation:blinkbg 1s steps(2) infinite}
+@keyframes blinkbg{50%{background:rgba(240,106,96,.3)}}
+.voice{display:flex; gap:3px; align-items:center; height:16px}
+.voice i{width:3px; height:4px; background:var(--band-teal); border-radius:1px; opacity:.35}
+.voice.on i{opacity:1; animation:vis .5s ease-in-out infinite alternate}
+.voice.on i:nth-child(2){animation-delay:.12s} .voice.on i:nth-child(3){animation-delay:.24s}
+.voice.on i:nth-child(4){animation-delay:.08s} .voice.on i:nth-child(5){animation-delay:.18s}
+@keyframes vis{from{height:3px} to{height:15px}}
+.feed{height:430px; overflow-y:auto; display:flex; flex-direction:column; gap:10px; padding-right:4px; scrollbar-width:thin}
+@media (max-width:759px){ .feed{height:360px} }
+.line{display:none; grid-template-columns:44px minmax(0,1fr); gap:10px}
+.line.show{display:grid; animation:lineIn .45s cubic-bezier(.2,.8,.2,1) both}
+@keyframes lineIn{from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:none}}
+.line .t{color:var(--band-dim); font-variant-numeric:tabular-nums}
+.who{display:block; font-size:.67rem; color:var(--band-dim)}
+.line.user .txt{color:var(--band-hi)}
+.line.resq .who{color:var(--band-teal)}
+.line.resq .txt{color:#E9F4F2; font-family:var(--sans); font-size:.9rem}
+.line.sys .txt{color:var(--band-dim)}
+.line.council .who{color:var(--band-amber)}
+.line.council .txt{color:#E6D3A9}
+.line.hold{border-left:2px solid var(--band-red); padding-left:9px; margin-left:-11px; background:linear-gradient(90deg, rgba(240,106,96,.1), transparent 70%)}
+.line.hold .who{color:var(--band-red)}
+.line.hold .txt{color:#FFE1DD; font-family:var(--sans); font-size:.9rem}
+.txt.typing::after{content:""; display:inline-block; width:7px; height:1em; vertical-align:-2px; margin-left:2px; background:currentColor; animation:caret .8s steps(2) infinite}
+@keyframes caret{50%{opacity:0}}
+.ring-box{position:relative; width:100%; max-width:330px; margin:0 auto; aspect-ratio:1/1}
+.ring-box canvas{position:absolute; inset:0; width:100%; height:100%}
+.stance-key{display:flex; flex-wrap:wrap; gap:4px 12px; margin:8px 0 2px; font-size:.65rem; color:var(--band-dim)}
+.stance-key span{display:inline-flex; align-items:center; gap:5px}
+.stance-key i{width:9px; height:9px; border-radius:50%}
+.sk-a{background:var(--band-teal)} .sk-p{background:var(--band-amber)} .sk-d{background:var(--band-violet)} .sk-f{background:var(--band-red)}
+.ticker{min-height:62px; margin-top:6px; padding:8px 10px; border:1px solid var(--band-line); border-radius:0; background:rgba(0,0,0,.18)}
+.ticker .tk-who{display:block; font-size:.67rem; color:var(--band-amber)}
+.ticker .tk-body{color:#E6D3A9}
+.ticker .st-pill{font-size:.6rem; padding:1px 5px; border:1px solid currentColor; border-radius:2px; margin-left:6px; text-transform:uppercase; letter-spacing:.05em}
+.st-agree{color:var(--band-teal)} .st-partial{color:var(--band-amber)} .st-dis{color:var(--band-violet)} .st-flag{color:var(--band-red)}
+.ticker.flash{animation:tkflash .6s ease-out}
+@keyframes tkflash{from{background:rgba(226,170,76,.16)} to{background:rgba(0,0,0,.18)}}
+.mini-spec{margin-top:10px; display:grid; gap:5px}
+.ms{display:grid; grid-template-columns:minmax(0,1fr) 38px; gap:8px; align-items:center}
+.ms .bar{position:relative; height:18px; background:rgba(134,160,157,.08); overflow:hidden}
+.ms .bar i{position:absolute; inset:0 auto 0 0; background:rgba(70,184,175,.55); width:0}
+.ms.flag .bar i{background:rgba(226,170,76,.55)}
+.ms .nm{position:absolute; left:7px; top:50%; transform:translateY(-50%); font-size:.7rem; color:var(--band-ink); white-space:nowrap}
+.ms .v{text-align:right; color:var(--band-dim); font-variant-numeric:tabular-nums; font-size:.73rem}
+.flags{display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; min-height:24px}
+.chip{font-size:.67rem; padding:2px 8px; border-radius:2px; border:1px solid; animation:lineIn .4s both}
+.chip.amber{color:var(--band-amber); border-color:rgba(226,170,76,.5)}
+.chip.red{color:#FFD9D5; border-color:var(--band-red); background:rgba(240,106,96,.14)}
+.steps{list-style:none; margin:0; padding:0; display:grid; gap:6px}
+.step{display:grid; grid-template-columns:30px minmax(0,1fr) auto; gap:10px; align-items:start; padding:9px 10px; border:1px solid var(--band-line); border-radius:0; position:relative; transition:.35s}
+.step .s-id{color:var(--band-dim)}
+.step .s-t{color:var(--band-ink); font-family:var(--sans); font-size:.86rem; line-height:1.35}
+.step .s-kind{color:var(--band-dim); font-size:.65rem; margin-top:2px}
+.step[data-k="gated"]{border-style:dashed}
+.step.pending{opacity:.55}
+.step.done{opacity:.7}
+.step.done .s-id::after{content:" done"; font-size:.6rem; letter-spacing:.04em; color:var(--band-teal)}
+.step.active{border-color:var(--band-teal); background:rgba(70,184,175,.08); opacity:1}
+.step.active::before{content:""; position:absolute; left:-1px; top:-1px; bottom:-1px; width:3px; background:var(--band-teal); animation:barPulse 1.4s ease-in-out infinite}
+@keyframes barPulse{50%{opacity:.35}}
+.step.held{border-color:var(--band-red); background:rgba(240,106,96,.08); opacity:1}
+.step.held .s-t{text-decoration:line-through; text-decoration-color:var(--band-red); color:#FFD9D5}
+.s-badge{font-size:.63rem; white-space:nowrap; padding:1px 6px; border-radius:2px; align-self:center}
+.s-badge:empty{display:none}
+.s-badge.red{color:#FFD9D5; border:1px solid var(--band-red); background:rgba(240,106,96,.16)}
+.s-badge.teal{color:var(--band-teal); border:1px solid rgba(70,184,175,.5)}
+.s-badge.landing{animation:land .6s cubic-bezier(.2,1.4,.4,1) both}
+@keyframes land{from{transform:translateY(-26px) scale(.8); opacity:0} to{transform:none; opacity:1}}
+.legend{display:flex; flex-wrap:wrap; gap:6px 14px; margin-top:12px; color:var(--band-dim); font-size:.65rem}
+.legend span{display:inline-flex; align-items:center; gap:6px}
+.legend b{width:14px; height:10px; border:1px solid var(--band-dim); border-radius:1px; display:inline-block}
+.legend b.g{border-style:dashed}
+.legend b.n{background:rgba(134,160,157,.35)}
+.dispatch{margin-top:14px; display:grid; grid-template-columns:1fr 1fr; gap:8px}
+.disp{border:1px solid var(--band-line); border-radius:0; padding:8px 10px}
+.disp small{display:block; color:var(--band-dim); font-size:.63rem; text-transform:uppercase; letter-spacing:.08em}
+.disp b{font-weight:500; color:var(--band-hi); font-variant-numeric:tabular-nums}
+.c-foot{display:flex; flex-wrap:wrap; justify-content:space-between; gap:8px 16px; padding:10px 18px; border-top:1px solid var(--band-line); color:var(--band-dim); font-size:.69rem}
+
+/* ---- problem ---- */
+.problem-grid{display:grid; gap:48px; margin-top:40px}
+@media (min-width:900px){ .problem-grid{grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr); gap:60px; align-items:start} }
+.figs{display:grid; gap:24px}
+.fig{display:grid; grid-template-columns:minmax(120px,34%) minmax(0,1fr); gap:18px; align-items:baseline; padding-bottom:20px; border-bottom:1px solid var(--rule)}
+.fig .n{font-family:var(--serif); font-size:clamp(2.1rem,4.4vw,3rem); line-height:1; font-variant-numeric:tabular-nums}
+.fig p{font-size:.95rem; color:var(--ink-soft); margin:0}
+.chart{width:100%; height:auto; display:block; overflow:visible}
+.chart text{font-family:var(--mono); font-size:11px; fill:var(--ink-soft)}
+.chart .ax{stroke:var(--rule); stroke-width:1}
+.chart .band-area{fill:var(--red); opacity:.12}
+.chart .mid{fill:none; stroke:var(--red); stroke-width:2; stroke-dasharray:1}
+.chart .edge{fill:none; stroke:var(--red); stroke-width:1; opacity:.45}
+.chart .dot{fill:var(--teal)}
+.chart .ring{fill:none; stroke:var(--teal); animation:ringOut 2.4s ease-out infinite}
+.inview .chart .mid{animation:draw 2.2s cubic-bezier(.4,0,.2,1) both}
+@keyframes draw{from{stroke-dashoffset:1} to{stroke-dashoffset:0}}
+@keyframes ringOut{from{r:4; opacity:.9} to{r:22; opacity:0}}
+.chart-title{font-size:.9rem; font-weight:500; margin-bottom:10px}
+
+/* ---- lanes ---- */
+.lanes-box{margin-top:44px; overflow-x:auto; border:1px solid var(--rule); background:var(--paper-2); border-radius:0; padding:18px 12px}
+.lanes{display:block; width:100%; min-width:720px; height:auto}
+.lanes text{font-family:var(--mono); font-size:12px; fill:var(--ink-soft)}
+.lanes .lbl{font-family:var(--sans); font-size:13px; font-weight:600; fill:var(--ink)}
+.lanes .track{fill:none; stroke:var(--rule); stroke-width:2}
+.lanes .pulse{fill:none; stroke-width:3; stroke-linecap:round; stroke-dasharray:4 96; animation:pulseRun linear infinite}
+.lanes .pulse.fast{stroke:var(--teal); animation-duration:2.4s}
+.lanes .pulse.slow{stroke:var(--amber); animation-duration:7s}
+.lanes .pulse.merge{stroke:var(--red); stroke-dasharray:8 92; animation-duration:7s; animation-delay:1.5s}
+@keyframes pulseRun{from{stroke-dashoffset:100} to{stroke-dashoffset:0}}
+.lanes .st rect{fill:var(--paper); stroke:var(--ink-soft); stroke-width:1.2}
+.lanes .st.g rect{stroke-dasharray:4 3}
+.lanes .st.target rect{stroke:var(--teal); stroke-width:2}
+.lanes .st.held rect{stroke:var(--red); stroke-width:2}
+.lanes .st text{fill:var(--ink)}
+.lanes .agent{fill:var(--amber); animation:churn 2.6s ease-in-out infinite}
+@keyframes churn{0%,100%{transform:translateY(0); opacity:.45} 50%{transform:translateY(-7px); opacity:1}}
+.lanes .hold-x{stroke:var(--red); stroke-width:2.4}
+.lanes .origin{fill:var(--ink)}
+.lanes .origin-ring{fill:none; stroke:var(--ink); opacity:.4; transform-box:fill-box; transform-origin:center; animation:ringOut2 2s ease-out infinite}
+@keyframes ringOut2{from{transform:scale(1); opacity:.5} to{transform:scale(2.6); opacity:0}}
+.stages{margin-top:44px; display:grid}
+.stage-row{display:grid; grid-template-columns:76px minmax(0,1fr); gap:20px; padding:22px 0; border-top:1px solid var(--rule)}
+.stage-row:last-child{border-bottom:1px solid var(--rule)}
+.stage-row .at{font-family:var(--mono); font-size:.85rem; color:var(--teal); padding-top:3px}
+.stage-row p{margin:6px 0 0; color:var(--ink-soft); max-width:60ch; font-size:.96rem}
+@media (max-width:520px){ .stage-row{grid-template-columns:1fr; gap:4px} }
+
+/* ---- council chamber ---- */
+.council-sec{padding-block:92px}
+.case-strip{display:grid; gap:14px; margin-top:36px; padding:16px 18px; border:1px solid var(--band-line); border-radius:0; background:var(--band-2)}
+@media (min-width:820px){ .case-strip{grid-template-columns:minmax(0,.72fr) minmax(0,1.28fr); gap:28px; align-items:center} }
+.case-who{font-family:var(--mono); font-size:.8rem; color:var(--band-ink)}
+.case-who b{display:block; font-family:var(--sans); font-size:1.02rem; font-weight:600; color:var(--band-hi); margin-bottom:3px}
+.case-who span{color:var(--band-dim)}
+.labs{display:flex; flex-wrap:wrap; gap:6px}
+.lab{font-family:var(--mono); font-size:.7rem; padding:4px 8px; border:1px solid var(--band-line); border-radius:2px; color:var(--band-dim); transition:.4s}
+.lab b{color:var(--band-ink); font-weight:500}
+.lab.hot{border-color:var(--band-amber); color:var(--band-amber); background:rgba(226,170,76,.1)}
+.lab.hot b{color:#F2DFB6}
+.rail{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:26px}
+.rail div{padding:10px 12px; border-top:2px solid var(--band-line); color:var(--band-dim); font-size:.8rem; transition:.4s}
+.rail div.on{border-top-color:var(--band-teal); color:var(--band-hi)}
+@media (max-width:700px){ .rail{grid-template-columns:repeat(2,1fr)} }
+.chamber-grid{display:grid; gap:26px; margin-top:26px}
+@media (min-width:1020px){ .chamber-grid{grid-template-columns:minmax(0,1.25fr) minmax(0,.9fr); gap:34px; align-items:start} }
+.chamber{width:100%; height:auto; display:block; overflow:visible}
+.chamber text{font-family:var(--mono); fill:var(--band-dim)}
+.seat-c{fill:var(--band-2); stroke:var(--band-line); stroke-width:2; transition:stroke .5s, fill .5s}
+.seat.agree .seat-c{stroke:var(--band-teal)} .seat.partial .seat-c{stroke:var(--band-amber)} .seat.dis .seat-c{stroke:var(--band-violet)}
+.seat.speaking .seat-c{fill:var(--band-3); stroke-width:3}
+.seat .ini{font-size:15px; fill:var(--band-ink); font-weight:500}
+.seat .nm{font-size:11px}
+.seat .halo{fill:none; stroke:var(--band-amber); opacity:0; transform-box:fill-box; transform-origin:center}
+.seat.speaking .halo{animation:halo 1.8s ease-out infinite}
+@keyframes halo{from{transform:scale(1); opacity:.7} to{transform:scale(1.9); opacity:0}}
+.lectern{fill:var(--band-2); stroke:var(--band-line)}
+.lectern-ring{fill:none; stroke:var(--band-teal); opacity:.5; transform-box:fill-box; transform-origin:center; animation:halo 3s ease-out infinite}
+.arrow{fill:none; stroke-width:2.5; stroke-dasharray:1; stroke-dashoffset:1; animation:draw 1s ease-out forwards}
+.arrow.agree{stroke:var(--band-teal)} .arrow.partial{stroke:var(--band-amber)}
+.arrow.dis{stroke:var(--band-violet)} .arrow.open{stroke:var(--band-dim)}
+.arrow-dot{r:5; opacity:0; animation:dotMove 1.1s ease-out forwards}
+@keyframes dotMove{0%{opacity:0} 15%{opacity:1} 100%{opacity:1}}
+.axis-box{margin-top:14px; padding:14px 16px; border:1px solid var(--band-line); border-radius:0; background:rgba(0,0,0,.16)}
+.axis-h{display:flex; justify-content:space-between; font-family:var(--mono); font-size:.68rem; color:var(--band-dim); margin-bottom:8px}
+.axis{position:relative; height:52px; border-radius:0; background:linear-gradient(90deg, rgba(169,155,238,.22), rgba(134,160,157,.1) 50%, rgba(70,184,175,.22))}
+.axis .mid-l{position:absolute; left:50%; top:0; bottom:0; width:1px; background:var(--band-line)}
+.dotA{position:absolute; top:50%; width:26px; height:26px; margin:-13px 0 0 -13px; border-radius:50%; background:var(--band-2); border:2px solid var(--band-line);
+  display:grid; place-items:center; font-family:var(--mono); font-size:.6rem; color:var(--band-ink); transition:left 1s cubic-bezier(.2,.8,.2,1), border-color .6s}
+.dotA.agree{border-color:var(--band-teal)} .dotA.partial{border-color:var(--band-amber)} .dotA.dis{border-color:var(--band-violet)}
+.dotA.moved{box-shadow:0 0 0 6px rgba(70,184,175,.15)}
+.quote{padding:16px 18px; border:1px solid var(--band-line); border-top-width:2px; background:var(--band-2); min-height:210px}
+.quote.agree{border-top-color:var(--band-teal)} .quote.partial{border-top-color:var(--band-amber)} .quote.dis{border-top-color:var(--band-violet)}
+.q-head{display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-bottom:10px}
+.q-stance{font-family:var(--mono); font-size:.66rem; text-transform:uppercase; letter-spacing:.07em; padding:3px 8px; border:1px solid currentColor; border-radius:2px}
+.q-who{font-weight:600; color:var(--band-hi)}
+.q-to{font-family:var(--mono); font-size:.72rem; color:var(--band-dim)}
+.quote p{margin:0; color:var(--band-ink); font-size:.97rem}
+.q-cites{display:flex; flex-wrap:wrap; gap:6px; margin-top:12px; font-family:var(--mono); font-size:.67rem; color:var(--band-dim)}
+.matrix{margin-top:18px; display:grid; grid-template-columns:auto repeat(6, minmax(0,1fr)); gap:3px; font-family:var(--mono); font-size:.6rem}
+.matrix .mh{color:var(--band-dim); display:grid; place-items:center; padding:2px}
+.matrix .mc{aspect-ratio:1/1; border-radius:2px; background:rgba(134,160,157,.08); transition:background .6s}
+.matrix .mc.agree{background:rgba(70,184,175,.55)}
+.matrix .mc.partial{background:rgba(226,170,76,.5)}
+.matrix .mc.disagree{background:rgba(169,155,238,.45)}
+.matrix .mc.self{background:transparent; border:1px solid var(--band-line)}
+.m-key{display:flex; flex-wrap:wrap; gap:6px 14px; margin-top:10px; font-size:.66rem; color:var(--band-dim)}
+.m-key span{display:inline-flex; align-items:center; gap:6px}
+.m-key i{width:10px; height:10px; border-radius:2px}
+.player{display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-top:16px}
+.dots{display:flex; gap:5px; margin-left:auto}
+.dots button{width:22px; height:6px; padding:0; border:0; border-radius:0; background:var(--band-line); cursor:pointer}
+.dots button[aria-current="true"]{background:var(--band-teal)}
+.outcome{display:grid; gap:18px; margin-top:34px}
+@media (min-width:900px){ .outcome{grid-template-columns:minmax(0,.8fr) minmax(0,1.1fr) minmax(0,1.1fr)} }
+.ocard{border:1px solid var(--band-line); border-radius:0; padding:18px; background:var(--band-2)}
+.ocard h3{color:var(--band-hi); margin-bottom:8px}
+.ocard p{margin:0; color:var(--band-dim); font-size:.92rem}
+.ocard.dissent{border-top-width:2px; border-top-color:var(--band-violet)}
+.gauge{display:grid; place-items:center; gap:6px}
+.gauge svg{width:150px; height:150px}
+.gauge .g-bg{fill:none; stroke:var(--band-line); stroke-width:10}
+.gauge .g-fg{fill:none; stroke:var(--band-teal); stroke-width:10; stroke-linecap:round; transition:stroke-dashoffset 1.2s cubic-bezier(.2,.8,.2,1)}
+.gauge .g-n{font-family:var(--serif); font-size:34px; fill:var(--band-hi)}
+.gauge .g-s{font-family:var(--mono); font-size:10px; fill:var(--band-dim)}
+.flag-list{list-style:none; margin:0; padding:0; display:grid; gap:8px}
+.flag-list li{display:grid; grid-template-columns:auto minmax(0,1fr); gap:10px; font-size:.88rem; color:var(--band-ink)}
+.flag-list b{font-family:var(--mono); font-size:.62rem; padding:2px 6px; border:1px solid currentColor; border-radius:2px; height:fit-content; letter-spacing:.05em}
+.f-crit{color:var(--band-red)} .f-warn{color:var(--band-amber)} .f-note{color:var(--band-dim)}
+.spec-line{margin-top:26px; border:1px solid var(--band-line); border-radius:0; padding:18px}
+.spec-axis{position:relative; height:74px; margin-top:26px; border-radius:0;
+  background:linear-gradient(90deg, rgba(134,160,157,.12), rgba(70,184,175,.28) 50%, rgba(240,106,96,.2))}
+.spec-axis .zone{position:absolute; top:-20px; font-family:var(--mono); font-size:.64rem; color:var(--band-dim); transform:translateX(-50%)}
+.spec-mark{position:absolute; top:50%; transform:translate(-50%,-50%); text-align:center; font-family:var(--mono); font-size:.68rem; color:var(--band-ink); width:130px}
+.spec-mark i{display:block; width:12px; height:12px; border-radius:50%; margin:0 auto 6px; background:var(--band-dim)}
+.spec-mark.cons i{background:var(--band-teal); box-shadow:0 0 0 6px rgba(70,184,175,.18)}
+.spec-mark.over i{background:var(--band-red)}
+.tilt-stage{perspective:1400px; margin-top:34px}
+.tilt{transform-origin:50% 0; will-change:transform; display:grid; gap:18px}
+@media (min-width:900px){ .tilt{grid-template-columns:minmax(0,1fr) minmax(0,1fr)} }
+.panel{background:var(--band-2); border:1px solid var(--band-line); border-radius:0; padding:18px}
+.panel-h{display:flex; justify-content:space-between; align-items:center; gap:10px; font-family:var(--mono); font-size:.68rem; color:var(--band-dim); text-transform:uppercase; letter-spacing:.09em; margin-bottom:12px}
+.json{margin:0; font-family:var(--mono); font-size:.76rem; line-height:1.55; white-space:pre-wrap; word-break:break-word; color:var(--band-ink); min-height:16em}
+.json .k{color:var(--band-dim)} .json .s{color:#CFE7E3} .json .n{color:var(--band-teal)} .json .r{color:#FFD0CA; background:rgba(240,106,96,.14)}
+.toggle{display:inline-flex; border:1px solid var(--band-line); border-radius:0; overflow:hidden}
+.toggle button{background:transparent; border:0; padding:6px 12px; font-family:var(--mono); font-size:.7rem; color:var(--band-dim); cursor:pointer; text-transform:none; letter-spacing:0}
+.toggle button[aria-pressed="true"]{background:var(--band-3); color:var(--band-hi)}
+.big-spec{display:grid; gap:8px}
+.bs{display:grid; grid-template-columns:minmax(0,1fr) 64px; gap:12px; align-items:center}
+.bs .bar{position:relative; height:28px; background:rgba(134,160,157,.08); overflow:hidden}
+.bs .bar i{position:absolute; inset:0 auto 0 0; background:rgba(70,184,175,.6); transition:width .9s cubic-bezier(.2,.8,.2,1), background .4s}
+.bs.flag .bar i{background:rgba(226,170,76,.7)}
+.bs.dropped .bar i{background:rgba(134,160,157,.3)}
+.bs .nm{position:absolute; left:10px; top:50%; transform:translateY(-50%); font-size:.85rem; white-space:nowrap; color:var(--band-ink)}
+.bs .nm em{font-style:normal; font-family:var(--mono); font-size:.66rem; margin-left:8px; color:var(--band-amber)}
+.bs.dropped .nm em{color:var(--band-red)}
+.bs .v{font-family:var(--mono); font-size:.78rem; color:var(--band-dim); text-align:right}
+.spec-note{font-size:.9rem; color:var(--band-dim); margin:14px 0 0; min-height:3.2em}
+
+/* ---- device section ---- */
+.device-grid{display:grid; gap:40px; margin-top:40px; align-items:center}
+@media (min-width:900px){ .device-grid{grid-template-columns:minmax(0,.78fr) minmax(0,1.22fr); gap:60px} }
+.elev-stage{background:var(--paper-2); border:1px solid var(--rule); border-radius:0; padding:18px}
+.elev{display:block; width:100%; max-width:320px; margin:0 auto; height:auto}
+.elev .body{fill:var(--paper); stroke:var(--ink-soft); stroke-width:1.4}
+.elev .metal{fill:var(--paper-3); stroke:var(--ink-soft); stroke-width:1.4}
+.elev .glassy{fill:var(--teal); fill-opacity:.06; stroke:var(--ink-soft); stroke-width:1.4}
+.elev .dark{fill:var(--ink); opacity:.85}
+.elev .led{fill:none; stroke:var(--teal); stroke-width:2.5; animation:lr 2.6s ease-in-out infinite}
+@keyframes lr{50%{opacity:.35}}
+.elev .bot{fill:var(--teal); opacity:.75; animation:hover 5s ease-in-out infinite}
+@keyframes hover{50%{transform:translateY(-5px)}}
+.elev .key{font-family:var(--mono); font-size:10px; fill:var(--ink); font-weight:600}
+.elev .keyc{fill:var(--paper); stroke:var(--ink); stroke-width:1}
+.elev .lead{stroke:var(--ink-soft); stroke-width:.8; stroke-dasharray:2 2}
+.parts{list-style:none; margin:20px 0 0; padding:0; border-top:1px solid var(--rule)}
+@media (min-width:600px){ .parts{display:grid; grid-template-columns:1fr 1fr; column-gap:28px} }
+.parts li{padding:12px 0; border-bottom:1px solid var(--rule); font-size:.94rem; display:grid; grid-template-columns:22px minmax(0,1fr); gap:10px}
+.parts li em{font-style:normal; font-family:var(--mono); font-size:.72rem; color:var(--teal)}
+.parts li b{display:block; font-weight:600; font-size:.92rem}
+.parts li span{color:var(--ink-soft); font-size:.87rem}
+.around{display:grid; margin-top:44px; border-top:1px solid var(--rule)}
+.card{border-bottom:1px solid var(--rule); background:transparent; padding:32px 0; display:grid; gap:22px; align-items:start}
+@media (min-width:900px){ .card{grid-template-columns:minmax(0,14ch) minmax(0,1fr) minmax(0,25rem); gap:40px} }
+.card .when{font-family:var(--mono); font-size:.76rem; color:var(--teal); padding-top:6px}
+.card h3{font-family:var(--serif); font-weight:400; font-size:1.42rem; line-height:1.2; margin-bottom:10px}
+.card p{margin:0; color:var(--ink-soft); font-size:.95rem; max-width:44ch}
+.vis{background:var(--paper-2); border-radius:0; padding:14px; font-family:var(--mono); font-size:.73rem; min-height:230px}
+.brief-h{display:flex; justify-content:space-between; color:var(--ink-soft); margin-bottom:8px}
+.brief{list-style:none; margin:0; padding:0; display:grid; gap:4px}
+.brief li{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px; padding:5px 8px; background:var(--paper); border-radius:2px}
+.inview .brief li{animation:slideIn .5s cubic-bezier(.2,.8,.2,1) both; animation-delay:calc(var(--d)*170ms + 150ms)}
+@keyframes slideIn{from{opacity:0; transform:translateX(-10px)} to{opacity:1; transform:none}}
+.ok{color:var(--teal)} .warn{color:var(--amber)}
+.phone{width:170px; margin:0 auto; border:2px solid var(--ink-soft); border-radius:0; padding:10px 8px; background:var(--paper)}
+.phone::before{content:""; display:block; width:40px; height:4px; background:var(--rule); border-radius:2px; margin:0 auto 8px}
+.bub{border-radius:0; padding:6px 8px; margin-bottom:6px; font-size:.67rem; line-height:1.35}
+.bub.in{background:var(--paper-2)}
+.bub.out{background:rgba(15,110,107,.14); margin-left:18px}
+.photo{height:54px; border-radius:0; margin-bottom:4px; background:repeating-linear-gradient(135deg, var(--paper-3) 0 6px, var(--paper-2) 6px 12px)}
+.upbar{height:3px; background:var(--rule); border-radius:2px; overflow:hidden}
+.upbar i{display:block; height:100%; width:100%; background:var(--teal); transform-origin:left; animation:up 4.5s ease-in-out infinite}
+@keyframes up{0%{transform:scaleX(0)} 45%,100%{transform:scaleX(1)}}
+.added{animation:added 4.5s ease-in-out infinite}
+@keyframes added{0%,45%{opacity:0; transform:translateY(4px)} 55%,92%{opacity:1; transform:none} 100%{opacity:0}}
+.packet{display:flex; justify-content:space-between; margin-top:10px; color:var(--ink-soft)}
+.map{display:block; width:100%; height:auto}
+.map text{font-family:var(--mono); font-size:9.5px; fill:var(--ink-soft)}
+.map .road{stroke:var(--rule); stroke-width:6; fill:none; stroke-linecap:round}
+.map .route{stroke:var(--teal); stroke-width:2.5; fill:none; stroke-dasharray:1; animation:route 5s ease-in-out infinite}
+@keyframes route{0%{stroke-dashoffset:1} 55%,100%{stroke-dashoffset:0}}
+.map .rip{fill:none; stroke:var(--red); transform-box:fill-box; transform-origin:center; animation:ringOut2 2.2s ease-out infinite}
+.map .rip.b{animation-delay:1.1s}
+.map .unit{fill:var(--ink)}
+.map .hosp{fill:var(--paper); stroke:var(--ink-soft)}
+.map .hosp.sel{stroke:var(--teal); stroke-width:2}
+.rank{list-style:none; margin:8px 0 0; padding:0; display:grid; gap:3px}
+.rank li{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px}
+.anim-pause .upbar i,.anim-pause .added,.anim-pause .route,.anim-pause .rip{animation-play-state:paused}
+.more{display:grid; gap:30px; margin-top:44px}
+.more{max-width:78ch}
+.more div{display:grid; grid-template-columns:minmax(0,22ch) minmax(0,1fr); gap:24px; padding:18px 0; border-top:1px solid var(--rule)}
+@media (max-width:640px){ .more div{grid-template-columns:1fr; gap:4px} }
+.more p{color:var(--ink-soft); font-size:.94rem; margin:6px 0 0}
+
+/* ---- medical access card ---- */
+.cardgrid{display:grid; gap:30px; margin-top:40px}
+@media (min-width:980px){ .cardgrid{grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr); gap:54px; align-items:start} }
+.mcard{border:1px solid var(--band-line); background:var(--band-2); padding:22px; display:grid; gap:18px}
+.mcard .mc-top{display:flex; justify-content:space-between; align-items:flex-start; gap:14px}
+.mcard .mc-name{font-family:var(--serif); font-size:1.5rem; color:var(--band-hi); line-height:1.1}
+.mcard .mc-sub{font-family:var(--mono); font-size:.68rem; color:var(--band-dim); margin-top:5px}
+.mcard .mc-chip{width:44px; height:34px; border:1px solid var(--band-teal); display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr 1fr}
+.mcard .mc-chip i{border:.5px solid rgba(70,184,175,.45)}
+.mcard dl{margin:0; display:grid; grid-template-columns:auto 1fr; gap:7px 16px; font-size:.83rem}
+.mcard dt{font-family:var(--mono); font-size:.68rem; color:var(--band-dim); align-self:center}
+.mcard dd{margin:0; color:var(--band-ink)}
+.mcard dd b{color:var(--band-red); font-weight:500}
+.mc-foot{display:flex; justify-content:space-between; gap:12px; border-top:1px solid var(--band-line); padding-top:14px; font-family:var(--mono); font-size:.66rem; color:var(--band-dim)}
+.shares{display:grid; gap:0; border-top:1px solid var(--band-line)}
+.share{display:grid; grid-template-columns:34px minmax(0,1fr); gap:16px; padding:18px 0; border-bottom:1px solid var(--band-line); align-items:start}
+.share em{font-style:normal; font-family:var(--mono); font-size:.74rem; color:var(--band-teal); border:1px solid var(--band-line); width:34px; height:34px; display:grid; place-items:center}
+.share h3{color:var(--band-hi); font-size:1rem; margin-bottom:5px}
+.share p{margin:0; color:var(--band-dim); font-size:.9rem; max-width:52ch}
+.unlock{display:grid; gap:0; margin-top:34px; border-top:1px solid var(--band-line)}
+@media (min-width:760px){ .unlock{grid-template-columns:1fr 1fr} }
+.unlock div{padding:22px 0; border-bottom:1px solid var(--band-line)}
+@media (min-width:760px){ .unlock div{padding:24px 30px 24px 0} .unlock div+div{border-left:1px solid var(--band-line); padding-left:30px} }
+.unlock .n{font-family:var(--mono); font-size:.72rem; color:var(--band-teal); display:block; margin-bottom:9px}
+.unlock h3{color:var(--band-hi); margin-bottom:7px}
+.unlock p{margin:0; color:var(--band-dim); font-size:.92rem}
+.unlock.full .n{color:var(--band-amber)}
+
+/* ---- library, network, market, model, team ---- */
+.lib{display:grid; gap:0; margin-top:40px; border-top:1px solid var(--rule)}
+@media (min-width:760px){ .lib{grid-template-columns:repeat(4,1fr)} }
+.lib div{padding:24px 0; border-bottom:1px solid var(--rule)}
+@media (min-width:760px){ .lib div{padding:26px 26px 26px 0} .lib div+div{border-left:1px solid var(--rule); padding-left:26px} }
+.lib b{display:block; font-family:var(--serif); font-weight:400; font-size:clamp(2.2rem,4.4vw,3rem); line-height:1; font-variant-numeric:tabular-nums}
+.lib span{display:block; margin-top:10px; color:var(--ink-soft); font-size:.92rem; max-width:24ch}
+.net{display:grid; gap:0; margin-top:40px; border-top:1px solid var(--band-line)}
+@media (min-width:880px){ .net{grid-template-columns:1fr 1fr} }
+.net article{padding:26px 0; border-bottom:1px solid var(--band-line)}
+@media (min-width:880px){ .net article{padding:26px 34px 26px 0} .net article:nth-child(even){border-left:1px solid var(--band-line); padding-left:34px} }
+.net h3{color:var(--band-hi); margin-bottom:8px}
+.net p{margin:0; color:var(--band-dim); font-size:.95rem; max-width:48ch}
+.net .tagline{font-family:var(--mono); font-size:.7rem; color:var(--band-teal); display:block; margin-bottom:9px}
+.mk{display:grid; gap:30px; margin-top:40px}
+@media (min-width:880px){ .mk{grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr); gap:56px; align-items:start} }
+.mkfig{display:flex; align-items:baseline; gap:16px; flex-wrap:wrap; padding:22px 0; border-top:1px solid var(--rule)}
+.mkfig b{font-family:var(--serif); font-weight:400; font-size:clamp(2rem,4vw,2.7rem); line-height:1; font-variant-numeric:tabular-nums}
+.mkfig span{color:var(--ink-soft); font-size:.93rem; max-width:34ch}
+.rev{display:grid; gap:0; margin-top:36px; border-top:1px solid var(--rule)}
+.rev div{padding:22px 0; border-bottom:1px solid var(--rule); display:grid; gap:14px}
+@media (min-width:760px){ .rev div{grid-template-columns:minmax(0,20ch) minmax(0,1fr) max-content; gap:36px; align-items:baseline} }
+.rev h3{font-family:var(--serif); font-weight:400; font-size:1.3rem}
+.rev p{margin:0; color:var(--ink-soft); font-size:.94rem}
+.rev .price{font-family:var(--mono); font-size:.86rem; color:var(--teal); white-space:nowrap}
+.team{display:grid; gap:0; margin-top:40px; border-top:1px solid var(--rule)}
+@media (min-width:820px){ .team{grid-template-columns:1fr 1fr} }
+.team article{padding:28px 0; border-bottom:1px solid var(--rule)}
+@media (min-width:820px){ .team article{padding:30px 38px 30px 0} .team article:nth-child(even){border-left:1px solid var(--rule); padding-left:38px} }
+.team h3{font-family:var(--serif); font-weight:400; font-size:1.5rem; margin-bottom:4px}
+.team .role{font-family:var(--mono); font-size:.76rem; color:var(--teal); display:block; margin-bottom:12px}
+.team p{margin:0 0 .8em; color:var(--ink-soft); font-size:.94rem; max-width:46ch}
+.advisors{margin-top:26px; padding-top:22px; border-top:1px solid var(--rule); color:var(--ink-soft); font-size:.91rem; max-width:80ch}
+
+/* ---- status, pilot, footer ---- */
+.status{margin-top:30px; border-top:1px solid var(--rule); max-width:780px}
+.row{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:18px; padding:14px 0; border-bottom:1px solid var(--rule); align-items:center}
+.row .state{font-family:var(--mono); font-size:.77rem; color:var(--ink-soft); display:inline-flex; align-items:center; gap:8px}
+.row .state i{width:7px; height:7px; border-radius:50%; border:1px solid var(--ink-soft)}
+.row .state.build i{background:var(--teal); border-color:var(--teal); animation:ping2 2s infinite}
+@keyframes ping2{0%{box-shadow:0 0 0 0 rgba(15,110,107,.5)} 80%,100%{box-shadow:0 0 0 7px rgba(15,110,107,0)}}
+.pilot{padding-block:92px}
+.pilot h2{font-size:clamp(2rem,5vw,3.3rem); max-width:16ch; margin-bottom:18px}
+.pilot p{max-width:58ch; color:var(--band-dim)}
+footer{padding-block:36px 56px; font-size:.87rem; color:var(--ink-soft)}
+footer p{max-width:66ch}
+footer a{color:var(--ink)}
+.urgent{color:var(--red); font-weight:500}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none !important; transition:none !important}
+  html{scroll-behavior:auto}
+  .tilt{transform:none !important}
+}
+</style>
+</head>
+<body>
+<div class="band" id="top">
+  <svg class="paths" viewBox="0 0 696 316" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><g id="paths"></g></svg>
+
+  <header class="wrap masthead">
+    <a class="logo" href="#top" aria-label="ResQ home">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 13h5l2-6 4 12 2.5-8 1.5 2H22" fill="none" stroke="var(--band-teal)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Res<span>Q</span>
+    </a>
+    <nav aria-label="Sections">
+      <a href="#how">How it works</a><a href="#council">The council</a><a href="#device">The device</a><a href="#card">Access card</a><a href="#network">The network</a><a href="#business">Model</a><a href="#status">Where we are</a><a href="#pilot">Pilots</a>
+    </nav>
+  </header>
+
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <div class="eyebrow"><span class="live-dot"></span>Emergency guidance for clinics · Pune</div>
+      <h1 class="reveal" id="headline">Someone collapses in your clinic. The next two minutes decide the rest.</h1>
+      <div class="fade-up">
+        <p class="lede">ResQ stands on your desk and starts talking you through it about two seconds after you ask. While you follow its steps, a council of specialist agents argues the case and corrects the plan at a moment when it is safe to hear.</p>
+        <div class="cta-row">
+          <a class="btn" href="#pilot">Ask about a clinic pilot</a>
+          <a class="btn btn-quiet" href="#council">Watch the council argue</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="stage" id="stage">
+      <canvas class="stage-canvas" id="dev3d" aria-label="Interactive 3D model of the ResQ desk unit: a glass cylinder on a speaker base, with a robot assistant inside."></canvas>
+      <div class="stage-badge" id="devBadge"><i></i><span id="devState">standby</span></div>
+      <div class="stage-tools">
+        <button class="tool" id="btnActivate" type="button">Say "Activate ResQ"</button>
+        <button class="tool" id="btnExplode" type="button" aria-pressed="false">Exploded view</button>
+        <span class="stage-hint">drag to turn</span>
+      </div>
+      <div class="stage-fallback" id="devFallback">3D view unavailable in this browser. The unit is drawn in full further down the page.</div>
+      <div class="stage-load" id="devLoading"><div class="sk"><i></i></div>Loading the unit</div>
+    </div>
+  </div>
+
+  <div class="wrap console-wrap">
+    <div class="console" aria-label="Replay of an illustrative emergency session">
+      <div class="c-top">
+        <div class="c-clock">
+          <span class="live-dot" aria-hidden="true"></span>
+          <span id="clock" aria-label="Elapsed time">00:00</span>
+          <span id="state" class="c-state">Standby</span>
+        </div>
+        <div class="c-controls">
+          <div class="seg" role="group" aria-label="Playback speed">
+            <button id="sp1" type="button" aria-pressed="false">Real time</button>
+            <button id="sp3" type="button" aria-pressed="true">3×</button>
+          </div>
+          <button id="play" class="cbtn" type="button">Pause</button>
+          <button id="replay" class="cbtn" type="button">Replay</button>
+        </div>
+      </div>
+      <div class="c-scrub">
+        <div class="ticks" id="ticks" aria-hidden="true"></div>
+        <input type="range" id="scrub" min="0" max="72" step="0.1" value="0" aria-label="Jump to a moment in the session">
+      </div>
+      <div class="c-grid">
+        <div class="pane">
+          <div class="pane-h"><span>What the room hears</span><span class="voice" id="voice" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span></div>
+          <div class="feed" id="feed"></div>
+        </div>
+        <div class="pane">
+          <div class="pane-h"><span>The council</span><span id="round" class="tag">idle</span></div>
+          <div class="ring-box"><canvas id="ring" role="img" aria-label="Fourteen specialists are drawn from a library of about a thousand, assess the case alone, then cross-examine each other: agreements, partial agreements and challenges."></canvas></div>
+          <div class="stance-key"><span><i class="sk-a"></i>agrees</span><span><i class="sk-p"></i>partly agrees</span><span><i class="sk-d"></i>challenges</span><span><i class="sk-f"></i>contraindication</span></div>
+          <div class="ticker" id="ticker"><span class="tk-who">standby</span><span class="tk-body">Waiting for a case.</span></div>
+          <div class="mini-spec" id="minispec"></div>
+          <div class="flags" id="flags"></div>
+        </div>
+        <div class="pane pane-proto">
+          <div class="pane-h"><span>Protocol · suspected ACS</span><span class="tag" id="queue">no changes queued</span></div>
+          <ol class="steps" id="steps"></ol>
+          <div class="legend">
+            <span><b></b>safe to update here</span><span><b class="g"></b>blocked while a hold is pending</span><span><b class="n"></b>never interrupted</span>
+          </div>
+          <div class="dispatch">
+            <div class="disp"><small>Ambulance</small><b id="eta">not requested</b></div>
+            <div class="disp"><small>Hospital</small><b id="hosp">not requested</b></div>
+          </div>
+        </div>
+      </div>
+      <div class="c-foot">
+        <span>Illustration, not a recording · <span id="speedNote">played at 3× speed</span></span>
+        <span>Watch 00:41–00:42: the nitrate step is stopped before it starts</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<main>
+<section class="wrap block" id="problem" style="border-top:0">
+  <div class="prose">
+    <div class="eyebrow">The first minutes</div>
+    <h2>Most emergencies happen where the help isn't</h2>
+    <p class="lede">Not in a resuscitation bay with a team. In a clinic room with one practitioner, one assistant, and a patient who was fine four minutes ago.</p>
+  </div>
+  <div class="problem-grid">
+    <div class="figs">
+      <div class="fig"><span class="n" data-count="7" data-suffix="&nbsp;lakh">7&nbsp;lakh</span><p>Sudden cardiac deaths in India each year.</p></div>
+      <div class="fig"><span class="n" data-count="2" data-suffix="%">2%</span><p>Of Indian adults know how to perform CPR.</p></div>
+      <div class="fig"><span class="n">7–10%</span><p>Lost chance of survival for every minute that passes without CPR.</p></div>
+    </div>
+    <div class="observe">
+      <div class="chart-title">Chance of survival, relative to CPR starting at once</div>
+      <svg class="chart" viewBox="0 0 600 270" role="img" aria-label="Survival falls 7 to 10 points a minute without CPR: by minute 4, 60 to 72 percent; by minute 10, 0 to 30 percent.">
+        <line class="ax" x1="50" y1="220" x2="580" y2="220"/><line class="ax" x1="50" y1="20" x2="50" y2="220"/>
+        <line class="ax" x1="50" y1="70" x2="580" y2="70" stroke-dasharray="2 4"/><line class="ax" x1="50" y1="120" x2="580" y2="120" stroke-dasharray="2 4"/><line class="ax" x1="50" y1="170" x2="580" y2="170" stroke-dasharray="2 4"/>
+        <text x="40" y="24" text-anchor="end">100%</text><text x="40" y="74" text-anchor="end">75%</text><text x="40" y="124" text-anchor="end">50%</text><text x="40" y="174" text-anchor="end">25%</text><text x="40" y="224" text-anchor="end">0</text>
+        <text x="50" y="240" text-anchor="middle">0</text><text x="156" y="240" text-anchor="middle">2</text><text x="262" y="240" text-anchor="middle">4</text><text x="368" y="240" text-anchor="middle">6</text><text x="474" y="240" text-anchor="middle">8</text><text x="580" y="240" text-anchor="middle">10</text>
+        <text x="315" y="262" text-anchor="middle">minutes without CPR</text>
+        <polygon class="band-area" points="50,20 580,160 580,220"/>
+        <line class="edge" x1="50" y1="20" x2="580" y2="160"/><line class="edge" x1="50" y1="20" x2="580" y2="220"/>
+        <path class="mid" pathLength="1" d="M50 20 L580 190"/>
+        <line x1="262" y1="76" x2="262" y2="100" stroke="var(--ink-soft)" stroke-width="1"/>
+        <text x="270" y="92" style="fill:var(--ink)">minute 4: 60–72%</text>
+        <circle class="ring" cx="50" cy="20" r="4"/><circle class="dot" cx="50" cy="20" r="4.5"/>
+        <text x="62" y="16" style="fill:var(--teal)">ResQ's first instruction: 2 s in</text>
+      </svg>
+      <p class="caption" style="margin-top:10px">Band drawn from the 7–10% per minute figure. The practitioner has to recognise the condition, recall the protocol and dose, keep hands on the patient, call an ambulance and brief the hospital. ResQ takes everything except the hands-on part.</p>
+    </div>
+  </div>
+</section>
+
+<section class="wrap block" id="how">
+  <div class="prose">
+    <div class="eyebrow">When you say "Activate ResQ"</div>
+    <h2>Two things start at the same time</h2>
+    <p class="lede">One is fast, so you are never waiting. One is thorough, so you are not relying on speed alone. They meet only at steps where a change is safe to make.</p>
+  </div>
+  <div class="lanes-box">
+    <svg class="lanes" viewBox="0 0 960 300" role="img" aria-label="The fast path gives steps from about two seconds. The council runs alongside for about forty seconds and sends a hold that lands at the blood-pressure step, before the nitrate step starts.">
+      <path class="track" d="M60 150 C 130 150, 140 80, 210 80 L 920 80"/>
+      <path class="pulse fast" pathLength="100" d="M60 150 C 130 150, 140 80, 210 80 L 920 80"/>
+      <path class="track" d="M60 150 C 130 150, 140 226, 210 226 L 560 226"/>
+      <path class="pulse slow" pathLength="100" d="M60 150 C 130 150, 140 226, 210 226 L 560 226"/>
+      <path class="track" d="M560 226 C 605 226, 606 170, 606 104" stroke-dasharray="4 4"/>
+      <path class="pulse merge" pathLength="100" d="M560 226 C 605 226, 606 170, 606 104"/>
+      <circle class="origin-ring" cx="60" cy="150" r="9"/><circle class="origin" cx="60" cy="150" r="7"/>
+      <text x="60" y="185" text-anchor="middle">you speak</text>
+      <text class="lbl" x="214" y="44">Fast path</text><text x="290" y="44">first instruction ≈ 2 s</text>
+      <g class="st"><rect x="300" y="62" width="92" height="36" rx="3"/><text x="346" y="85" text-anchor="middle">S1 sit up</text></g>
+      <g class="st"><rect x="416" y="62" width="92" height="36" rx="3"/><text x="462" y="85" text-anchor="middle">S2 aspirin</text></g>
+      <g class="st target"><rect x="560" y="62" width="92" height="36" rx="3"/><text x="606" y="85" text-anchor="middle">S3 BP</text></g>
+      <g class="st g held"><rect x="676" y="62" width="92" height="36" rx="3"/><text x="722" y="85" text-anchor="middle">S4 nitrate</text></g>
+      <line class="hold-x" x1="684" y1="68" x2="760" y2="92"/>
+      <g class="st"><rect x="792" y="62" width="92" height="36" rx="3"/><text x="838" y="85" text-anchor="middle">S5 monitor</text></g>
+      <text class="lbl" x="214" y="266">Council</text><text x="282" y="266">runs alongside, never in the way · ≈ 40 s</text>
+      <g><circle class="agent" cx="250" cy="226" r="4"/><circle class="agent" cx="285" cy="226" r="4" style="animation-delay:.3s"/><circle class="agent" cx="320" cy="226" r="4" style="animation-delay:.6s"/><circle class="agent" cx="355" cy="226" r="4" style="animation-delay:.9s"/><circle class="agent" cx="390" cy="226" r="4" style="animation-delay:1.2s"/><circle class="agent" cx="425" cy="226" r="4" style="animation-delay:1.5s"/><circle class="agent" cx="460" cy="226" r="4" style="animation-delay:1.8s"/><circle class="agent" cx="495" cy="226" r="4" style="animation-delay:2.1s"/></g>
+      <text x="620" y="170" style="fill:var(--red)">hold lands at a safe step,</text><text x="620" y="186" style="fill:var(--red)">before the step it concerns</text>
+    </svg>
+  </div>
+  <div class="stages">
+    <div class="stage-row"><div class="at">00:00</div><div><h3>It listens, and it already knows who is in the chair</h3><p>The wake word is recognised on the unit itself, so nothing leaves the room before you ask. ResQ pulls up the patient from the appointment you are in.</p></div></div>
+    <div class="stage-row"><div class="at">00:02</div><div><h3>The first instruction, before you have finished describing it</h3><p>One clear step at a time, read out loud, with the reason, a metronome for compressions and a running clock.</p></div></div>
+    <div class="stage-row"><div class="at">00:04</div><div><h3>Help is already moving</h3><p>ResQ requests an ambulance, alerts a hospital that can treat this case, and tells you how far away they are. You never stop to make a call.</p></div></div>
+    <div class="stage-row"><div class="at">00:06</div><div><h3>A council of specialists reads the case</h3><p>Specialist agents work through what you described, the patient's record and any photograph your assistant sends. They argue it out rather than agreeing too quickly.</p></div></div>
+    <div class="stage-row"><div class="at">00:42</div><div><h3>A correction arrives when it is safe to hear it</h3><p>ResQ never cuts across compressions. It waits for a step where a change is safe, lands before the step it concerns, and says what changed and why.</p></div></div>
+  </div>
+</section>
+</main>
+
+<section class="band council-sec" id="council">
+  <div class="wrap">
+    <div class="prose">
+      <div class="eyebrow">The council · a worked case</div>
+      <h2 style="color:var(--band-hi)">Six specialists, one case, and a disagreement worth keeping</h2>
+      <p class="lede">This is a real deliberation from the council engine, replayed exchange by exchange. A generalist wants to start TB treatment. A pathologist refuses. Watch where each specialist stands, and what happens to the one who will not concede.</p>
+    </div>
+
+    <div class="case-strip">
+      <div class="case-who">
+        <b>48 M · Nagpur · referred by a GP</b>
+        <span>Five months of night sweats, 9 kg weight loss, fever 38.1–38.6 °C. Enlarging neck nodes for 3 months. Dry cough 8 weeks. BCG-vaccinated, no known TB contact.</span>
+      </div>
+      <div class="labs" id="labs">
+        <span class="lab" data-lab="hb">Hb <b>9.4</b> normocytic</span>
+        <span class="lab" data-lab="eos">Eosinophils <b>8%</b></span>
+        <span class="lab" data-lab="ldh">LDH <b>412</b></span>
+        <span class="lab" data-lab="ca">Calcium <b>11.2</b></span>
+        <span class="lab" data-lab="afb">Sputum AFB <b>neg ×3</b></span>
+        <span class="lab" data-lab="mtx">Mantoux <b>8 mm</b></span>
+        <span class="lab" data-lab="cxr">CXR <b>lobular hilar widening</b></span>
+        <span class="lab" data-lab="nodes">Nodes <b>bilateral, 3.2 cm</b></span>
+      </div>
+    </div>
+
+    <div class="rail" id="rail">
+      <div data-r="0">Call in the specialists</div>
+      <div data-r="1">Each one reads it alone</div>
+      <div data-r="2">They cross-examine</div>
+      <div data-r="3">Keep what must not be missed</div>
+    </div>
+
+    <div class="chamber-grid">
+      <div>
+        <svg class="chamber" id="chamber" viewBox="0 0 720 400" role="img" aria-label="Council chamber: six specialists seated in an arc around the case, with arrows showing who is answering whom.">
+          <defs>
+            <marker id="mAgree" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--band-teal)"/></marker>
+            <marker id="mPartial" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--band-amber)"/></marker>
+            <marker id="mDis" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--band-violet)"/></marker>
+            <marker id="mOpen" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--band-dim)"/></marker>
+          </defs>
+          <circle class="lectern-ring" cx="360" cy="312" r="54"/>
+          <circle class="lectern" cx="360" cy="312" r="48"/>
+          <text x="360" y="308" text-anchor="middle" style="font-size:12px; fill:var(--band-ink)">the case</text>
+          <text x="360" y="324" text-anchor="middle" style="font-size:11px">48 M</text>
+          <g id="arrows"></g>
+          <g id="seats"></g>
+        </svg>
+
+        <div class="axis-box">
+          <div class="axis-h"><span>◀ tuberculosis</span><span>where each specialist stands</span><span>Hodgkin's lymphoma ▶</span></div>
+          <div class="axis" id="axis"><div class="mid-l"></div></div>
+        </div>
+
+        <div class="player">
+          <button class="cbtn" id="cPrev" type="button">← Back</button>
+          <button class="cbtn" id="cPlay" type="button">Play debate</button>
+          <button class="cbtn" id="cNext" type="button">Next →</button>
+          <div class="dots" id="cDots" role="group" aria-label="Debate exchanges"></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="quote" id="quote">
+          <div class="q-head"><span class="q-stance" id="qStance">round 1</span><span class="q-who" id="qWho">Six specialists</span><span class="q-to" id="qTo"></span></div>
+          <p id="qText"></p>
+          <div class="q-cites" id="qCites"></div>
+        </div>
+        <div class="matrix" id="matrix" role="img" aria-label="Agreement matrix between the six specialists, updating as the debate proceeds."></div>
+        <div class="m-key">
+          <span><i style="background:rgba(70,184,175,.55)"></i>agree</span>
+          <span><i style="background:rgba(226,170,76,.5)"></i>partly agree</span>
+          <span><i style="background:rgba(169,155,238,.45)"></i>disagree</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="outcome">
+      <div class="ocard gauge">
+        <svg viewBox="0 0 120 120" role="img" aria-label="Consensus gauge">
+          <circle class="g-bg" cx="60" cy="60" r="48"/>
+          <circle class="g-fg" id="gFg" cx="60" cy="60" r="48" transform="rotate(-90 60 60)" stroke-dasharray="301.6" stroke-dashoffset="301.6"/>
+          <text class="g-n" id="gNum" x="60" y="60" text-anchor="middle" dominant-baseline="central">0%</text>
+          <text class="g-s" x="60" y="84" text-anchor="middle">confidence</text>
+        </svg>
+        <div style="text-align:center"><b id="gAgree" style="color:var(--band-hi)">4 of 6 lean lymphoma</b><div style="font-family:var(--mono); font-size:.7rem; color:var(--band-dim)">Hodgkin's, nodular sclerosis · stage II–III</div></div>
+      </div>
+      <div class="ocard dissent">
+        <h3>What the dissenter demanded, the panel accepted</h3>
+        <p><b style="color:var(--band-violet)">Oral oncologist, 47%:</b> smear-negative TB can look like this. Not a claim that it is TB. A demand that TB be excluded by GeneXpert on lavage before anyone commits. The panel accepted it. The same agent asked for HIV serology, which nobody had ordered.</p>
+      </div>
+      <div class="ocard">
+        <h3>Flags that outrank the ranking</h3>
+        <ul class="flag-list">
+          <li><b class="f-crit">critical</b><span>No anti-TB treatment before biopsy. Treating Hodgkin's as TB costs months.</span></li>
+          <li><b class="f-crit">critical</b><span>Calcium 11.2: hydrate, check PTH, recheck at 24 and 48 hours.</span></li>
+          <li><b class="f-warn">watch</b><span>SVC obstruction: facial swelling, arm oedema, raised JVP.</span></li>
+          <li><b class="f-warn">watch</b><span>Tumour lysis risk before chemotherapy: urate 8.2, LDH 412.</span></li>
+          <li><b class="f-note">gap</b><span>HIV serology not ordered.</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="spec-line">
+      <div class="panel-h"><span>The diagnostic spectrum</span><span>where each candidate sits</span></div>
+      <div class="spec-axis">
+        <span class="zone" style="left:12%">rare outlier</span><span class="zone" style="left:38%">possible</span><span class="zone" style="left:62%">council consensus</span><span class="zone" style="left:88%">over-diagnosed here</span>
+        <div class="spec-mark" style="left:12%"><i></i>Mediastinal germ cell tumour<br>pulmonologist · 5%</div>
+        <div class="spec-mark cons" style="left:62%"><i></i>Hodgkin's lymphoma<br>5 of 6 · 78%</div>
+        <div class="spec-mark over" style="left:88%"><i></i>Pulmonary TB<br>dissent · 47%</div>
+      </div>
+      <p class="caption" style="margin-top:44px; color:var(--band-dim)">In India, empirical anti-TB treatment is the common answer to this presentation. Placing candidates against how often they are reached for locally is what stops the council from simply agreeing with the room.</p>
+    </div>
+
+    <div class="prose" style="margin-top:80px">
+      <h2 style="color:var(--band-hi)">Why a spectrum beats a single answer</h2>
+      <p class="lede">Every agent answers in the same structure, so the answers can be compared, weighted and argued with, and so a rare, lethal possibility survives a vote it would otherwise lose.</p>
+    </div>
+    <div class="tilt-stage">
+      <div class="tilt" id="tilt">
+        <div class="panel observe" id="jsonPanel">
+          <div class="panel-h"><span>One agent's answer · emergency case</span><span style="color:var(--band-amber)">clinical pharmacology</span></div>
+          <pre class="json" id="json"></pre>
+        </div>
+        <div class="panel">
+          <div class="panel-h"><span>What reaches you</span>
+            <div class="toggle" role="group" aria-label="Aggregation method">
+              <button type="button" id="aggVote" aria-pressed="false">Majority vote</button>
+              <button type="button" id="aggSpec" aria-pressed="true">Council spectrum</button>
+            </div>
+          </div>
+          <div class="big-spec" id="bigspec"></div>
+          <p class="spec-note" id="specNote"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="wrap block" id="device" style="border-top:0">
+  <div class="prose">
+    <div class="eyebrow">The device</div>
+    <h2>Built for a room where nobody has a free hand</h2>
+  </div>
+  <div class="device-grid">
+    <div class="elev-stage">
+      <svg class="elev" viewBox="0 0 320 530" role="img" aria-label="Elevation drawing of the ResQ desk unit: domed cap with camera and microphones, transparent enclosure with the assistant inside, light ring on a black platform, perforated speaker base.">
+        <path class="metal" d="M74 118 Q74 58 160 54 Q246 58 246 118 L246 132 L74 132 Z"/>
+        <circle cx="160" cy="84" r="8" class="dark"/><circle cx="160" cy="84" r="3" fill="#7FD6CE"/>
+        <circle cx="106" cy="112" r="2.4" fill="var(--ink-soft)"/><circle cx="118" cy="112" r="2.4" fill="var(--ink-soft)"/><circle cx="202" cy="112" r="2.4" fill="var(--ink-soft)"/><circle cx="214" cy="112" r="2.4" fill="var(--ink-soft)"/>
+        <rect class="glassy" x="78" y="132" width="164" height="286" rx="6"/>
+        <line x1="98" y1="146" x2="98" y2="404" stroke="var(--paper)" stroke-opacity=".55" stroke-width="5"/>
+        <rect x="120" y="150" width="120" height="240" fill="var(--ink)" opacity=".1"/>
+        <g class="bot">
+          <circle cx="160" cy="232" r="24"/><ellipse cx="160" cy="236" rx="19" ry="11" fill="var(--ink)" opacity=".55"/>
+          <circle cx="152" cy="234" r="3" fill="#BFF2ED"/><circle cx="168" cy="234" r="3" fill="#BFF2ED"/>
+          <line x1="160" y1="205" x2="160" y2="192" stroke="var(--teal)" stroke-width="2"/><circle cx="160" cy="189" r="4"/>
+          <ellipse cx="160" cy="292" rx="26" ry="32"/><rect x="146" y="278" width="28" height="16" rx="3" fill="var(--ink)" opacity=".45"/>
+          <circle cx="128" cy="278" r="8"/><circle cx="192" cy="278" r="8"/>
+          <rect x="120" y="284" width="10" height="30" rx="5"/><rect x="190" y="284" width="10" height="30" rx="5"/>
+        </g>
+        <ellipse cx="160" cy="418" rx="82" ry="13" class="dark"/>
+        <ellipse cx="160" cy="418" rx="66" ry="10" class="led"/>
+        <path class="metal" d="M78 418 L242 418 L238 474 Q234 500 160 502 Q86 500 82 474 Z"/>
+        <g fill="var(--ink-soft)" opacity=".5">
+          <circle cx="104" cy="442" r="1.8"/><circle cx="124" cy="442" r="1.8"/><circle cx="144" cy="442" r="1.8"/><circle cx="164" cy="442" r="1.8"/><circle cx="184" cy="442" r="1.8"/><circle cx="204" cy="442" r="1.8"/>
+          <circle cx="114" cy="458" r="1.8"/><circle cx="134" cy="458" r="1.8"/><circle cx="154" cy="458" r="1.8"/><circle cx="174" cy="458" r="1.8"/><circle cx="194" cy="458" r="1.8"/>
+          <circle cx="124" cy="474" r="1.8"/><circle cx="144" cy="474" r="1.8"/><circle cx="164" cy="474" r="1.8"/><circle cx="184" cy="474" r="1.8"/>
+        </g>
+        <line class="lead" x1="160" y1="84" x2="288" y2="60"/><circle class="keyc" cx="296" cy="58" r="10"/><text class="key" x="296" y="62" text-anchor="middle">A</text>
+        <line class="lead" x1="240" y1="180" x2="288" y2="160"/><circle class="keyc" cx="296" cy="158" r="10"/><text class="key" x="296" y="162" text-anchor="middle">B</text>
+        <line class="lead" x1="186" y1="260" x2="288" y2="250"/><circle class="keyc" cx="296" cy="248" r="10"/><text class="key" x="296" y="252" text-anchor="middle">C</text>
+        <line class="lead" x1="226" y1="418" x2="288" y2="392"/><circle class="keyc" cx="296" cy="390" r="10"/><text class="key" x="296" y="394" text-anchor="middle">D</text>
+        <line class="lead" x1="210" y1="462" x2="288" y2="470"/><circle class="keyc" cx="296" cy="472" r="10"/><text class="key" x="296" y="476" text-anchor="middle">E</text>
+      </svg>
+      <p class="caption" style="text-align:center; margin:10px auto 0; font-family:var(--mono); font-size:.72rem">Concept drawing · the unit is not built yet</p>
+    </div>
+    <div>
+      <p class="lede">A face that speaks to you, a microphone that hears you across the room while your hands are busy, and the protocols stored on the unit itself.</p>
+      <ul class="parts">
+        <li><em>A</em><div><b>Camera and microphone array</b><span>Beamformed, so it picks you out at a few metres. "Activate ResQ" is recognised on the unit, not in the cloud.</span></div></li>
+        <li><em>B</em><div><b>Transparent enclosure</b><span>The assistant appears to stand inside it, at eye level with the person giving care.</span></div></li>
+        <li><em>C</em><div><b>The assistant</b><span>A stock face or someone the clinic trusts, used only with their recorded consent.</span></div></li>
+        <li><em>D</em><div><b>Status light ring</b><span>Readable from the doorway: standby, session running, guidance corrected.</span></div></li>
+        <li><em>E</em><div><b>Speaker base and on-board compute</b><span>Core protocols live here, so guidance carries on when the connection drops.</span></div></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="around">
+    <article class="card observe">
+      <div class="when">Before the first patient</div>
+      <div>
+        <h3>It knows what is in your cupboard</h3>
+        <p>ResQ reads the day's appointments, works out which emergencies those patients make likely, and checks your stock and expiry dates against them.</p>
+      </div>
+      <div class="vis">
+        <div class="brief-h"><span>Morning check · example</span><span>09:02</span></div>
+        <ul class="brief">
+          <li style="--d:0"><span>11:30 · type 2 diabetes</span><span></span></li>
+          <li style="--d:1"><span>Glucose gel</span><span class="ok">in stock</span></li>
+          <li style="--d:2"><span>Glucagon 1 mg</span><span class="warn">expired Aug 2026</span></li>
+          <li style="--d:3"><span>Adrenaline 1 mg/mL</span><span class="ok">to Mar 2027</span></li>
+          <li style="--d:4"><span>Aspirin 300 mg</span><span class="ok">in stock</span></li>
+          <li style="--d:5"><span>GTN spray</span><span class="ok">to Jan 2027</span></li>
+          <li style="--d:6"><span>Oxygen cylinder</span><span class="ok">70% full</span></li>
+        </ul>
+      </div>
+    </article>
+    <article class="card observe">
+      <div class="when">During</div>
+      <div>
+        <h3>Your assistant's phone becomes the camera</h3>
+        <p>Scan the code on the unit and a WhatsApp chat opens. A rash, a bite, a broken instrument: the photograph goes into the case and the council takes it into account.</p>
+      </div>
+      <div class="vis">
+        <div class="phone">
+          <div class="bub in">ResQ · session linked. Send photos or notes.</div>
+          <div class="bub out"><div class="photo"></div>Medicine strip from his bag<div class="upbar"><i></i></div></div>
+          <div class="bub in added">Added to the case. Council updating.</div>
+        </div>
+        <div class="packet"><span>case packet</span><span>record · 2 photos · 1 note</span></div>
+      </div>
+    </article>
+    <article class="card observe">
+      <div class="when">After activation</div>
+      <div>
+        <h3>The hospital knows before the patient arrives</h3>
+        <p>Ambulances and hospitals are ranked by how fast they arrive and whether they can treat this case. The receiving team gets what happened and what was given, updated as the picture changes.</p>
+      </div>
+      <div class="vis">
+        <svg class="map" viewBox="0 0 260 150" role="img" aria-label="Schematic: the hospital with a cath lab is chosen over a nearer hospital without one.">
+          <path class="road" d="M10 120 L120 80 L250 40"/><path class="road" d="M120 80 L70 20"/><path class="road" d="M120 80 L200 140"/>
+          <path class="route" pathLength="1" d="M120 80 L185 59 L232 44"/>
+          <circle class="rip" cx="120" cy="80" r="8"/><circle class="rip b" cx="120" cy="80" r="8"/>
+          <circle cx="120" cy="80" r="5" fill="var(--red)"/><text x="92" y="100">clinic</text>
+          <rect class="hosp" x="62" y="10" width="16" height="16" rx="2"/><text x="84" y="22">A · 6 km · no cath lab</text>
+          <rect class="hosp sel" x="232" y="34" width="16" height="16" rx="2"/><text x="252" y="64" text-anchor="end">B · cath lab</text>
+          <circle class="unit" cx="40" cy="109" r="4"/><text x="16" y="136">ambulance</text>
+        </svg>
+        <ul class="rank"><li><span>1 · Hospital B</span><span class="ok">cath lab ready · 14 min</span></li><li><span>2 · Hospital A</span><span>nearer · cannot treat</span></li></ul>
+      </div>
+    </article>
+  </div>
+
+  <div class="more">
+    <div><h3>Everything is timed</h3><p>Every instruction, drug and confirmation carries a timestamp. At the end there is a handover summary for the hospital and an honest record of what was done.</p></div>
+    <div><h3>Written for who is in the room</h3><p>Protocols are written at different skill levels. Someone without a prescriber's training is never told to give a prescription drug.</p></div>
+    <div><h3>Alongside the emergency services</h3><p>ResQ calls 108 when nothing faster accepts. It supports the person giving care; it does not stand in for emergency services.</p></div>
+  </div>
+</section>
+
+<section class="band" id="card">
+  <div class="wrap block" style="border-top:0">
+    <div class="prose">
+      <div class="eyebrow">The medical access card</div>
+      <h2 style="color:var(--band-hi)">The catch that saved him only works if he is your patient</h2>
+      <p class="lede">ResQ stopped that nitrate because the clinic's own records listed the sildenafil. A stranger who collapses in your waiting room has no record you can read. The access card is how that stops being true.</p>
+    </div>
+
+    <div class="cardgrid">
+      <div class="mcard" role="img" aria-label="A ResQ medical access card showing blood group O positive, a critical drug interaction flag for a PDE-5 inhibitor taken 14 hours ago, a penicillin allergy, and an emergency contact.">
+        <div class="mc-top">
+          <div>
+            <div class="mc-name">Medical access card</div>
+            <div class="mc-sub">carried by the patient &#183; tap or scan</div>
+          </div>
+          <div class="mc-chip" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        </div>
+        <dl>
+          <dt>blood</dt><dd>O positive</dd>
+          <dt>alerts</dt><dd><b>PDE-5 inhibitor, 14 h ago</b></dd>
+          <dt>allergy</dt><dd>Penicillin, rash and swelling</dd>
+          <dt>taking</dt><dd>Amlodipine, metformin, sildenafil</dd>
+          <dt>history</dt><dd>Hypertension, type 2 diabetes</dd>
+          <dt>contact</dt><dd>Spouse, +91 98xxx xxxxx</dd>
+        </dl>
+        <div class="mc-foot"><span>emergency view</span><span>opened 11:32, logged</span></div>
+      </div>
+
+      <div>
+        <p class="lede" style="margin-bottom:22px">The key to a patient's record is split three ways, so no single party holds it. Nobody can open the record alone, including us.</p>
+        <div class="shares">
+          <div class="share">
+            <em>1</em>
+            <div>
+              <h3>The public anchor</h3>
+              <p>An on-chain identity anchor that says a record exists and where its shares live. It holds no medical information at all, and it is useless on its own.</p>
+            </div>
+          </div>
+          <div class="share">
+            <em>2</em>
+            <div>
+              <h3>The clinic's share</h3>
+              <p>Held inside the treating practice's patient management system. It travels with the clinic, not with the patient, and it never leaves that system.</p>
+            </div>
+          </div>
+          <div class="share">
+            <em>3</em>
+            <div>
+              <h3>The patient's share</h3>
+              <p>Held by the patient, on the card in their wallet and mirrored in their own app. This is the share that makes the record theirs rather than the hospital's.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="unlock">
+      <div>
+        <span class="n">two shares of three</span>
+        <h3>The emergency view opens in seconds</h3>
+        <p>Blood group, allergies, current medications, active conditions, emergency contact and any advance directive. Enough to stop ResQ from telling you to give the wrong drug. Not the patient's full history, and not available for anything except an open emergency session.</p>
+      </div>
+      <div>
+        <span class="n">all three shares</span>
+        <h3>The complete record opens with the patient</h3>
+        <p>Combining all three shares derives a twelve word phrase that decrypts the whole record: notes, imaging, prescriptions, referrals, every clinic the patient has ever attended. It takes the patient's own share, so it happens with them, not around them.</p>
+      </div>
+    </div>
+
+    <div class="more" style="margin-top:44px">
+      <div><h3>Every opening is written down</h3><p>Break glass access is logged on the chain as an entry the patient can read: who opened it, at what time, under which emergency session, and what they saw. The log cannot be edited afterwards, including by us.</p></div>
+      <div><h3>The record itself is never on the chain</h3><p>Only key shares, pointers and the access log are on chain. The medical record is encrypted and held off chain, so a patient can still have data corrected or erased as the law requires.</p></div>
+      <div><h3>It works for a stranger</h3><p>A patient who has never visited your practice arrives with a card. The emergency view opens, ResQ reads their medications, and the contraindication check runs exactly as it would for a patient of twenty years.</p></div>
+    </div>
+
+    <p class="caption" style="margin-top:26px; color:var(--band-dim)">The access card is in design. Nothing described here is live yet, and the break glass rules need review under the DPDP Act 2023 before any patient data touches the system.</p>
+  </div>
+</section>
+
+<section class="wrap block" id="library">
+  <div class="prose">
+    <div class="eyebrow">The clinical library</div>
+    <h2>What it knows, and who wrote it</h2>
+    <p class="lede">Protocols are authored and reviewed by practising clinicians against current guidance, then versioned like code. A general model cannot safely produce a dose under time pressure. A reviewed protocol can.</p>
+  </div>
+  <div class="lib">
+    <div><b>250</b><span>Dental emergencies and procedural complications</span></div>
+    <div><b>20</b><span>Core medical emergencies, from anaphylaxis to cardiac arrest</span></div>
+    <div><b>10</b><span>Equipment failures that stop a procedure mid&#8209;way</span></div>
+    <div><b>10+</b><span>Indian languages, including colloquial descriptions of symptoms</span></div>
+  </div>
+  <div class="more">
+    <div><h3>Written for who is in the room</h3><p>The same emergency reads differently for a specialist, a nurse and a bystander. Someone without a prescriber's training is never told to give a prescription drug.</p></div>
+    <div><h3>Versioned and dated</h3><p>Every protocol carries an author, a reviewer and a review date. When guidance changes, the change is traceable and every unit gets it.</p></div>
+    <div><h3>It improves with use</h3><p>Anonymised outcomes sharpen the protocols. The library is the thing the subscription is actually for.</p></div>
+  </div>
+</section>
+
+<section class="band" id="network">
+  <div class="wrap block" style="border-top:0">
+    <div class="prose">
+      <div class="eyebrow">The network</div>
+      <h2 style="color:var(--band-hi)">Guidance is only half of it</h2>
+      <p class="lede">Responders are chosen by how fast they can arrive and whether they can treat this particular case, not by distance alone. A nearer hospital that cannot open a blocked artery is the wrong hospital.</p>
+    </div>
+    <div class="net">
+      <article>
+        <span class="tagline">ground transport</span>
+        <h3>Ambulances</h3>
+        <p>Requested in parallel with an acceptance handshake, tracked live, and passed to the next crew if nobody accepts. Falls back to 108 when nothing faster answers.</p>
+      </article>
+      <article>
+        <span class="tagline">air transport</span>
+        <h3>Air ambulance</h3>
+        <p>For transfers beyond ground range or ground time. Discussions are under way with air ambulance and ride hailing operators for transport capacity. Nothing is signed yet.</p>
+      </article>
+      <article>
+        <span class="tagline">rural reach</span>
+        <h3>Primary health centres</h3>
+        <p>India's network of roughly 30,000 primary health centres, used as stabilisation points before transfer and as forward stock for emergency drugs.</p>
+      </article>
+      <article>
+        <span class="tagline">the receiving end</span>
+        <h3>Hospitals</h3>
+        <p>The receiving team gets what happened, what was given and when, and what to prepare. The note is revised again if the council's view changes on the way in.</p>
+      </article>
+      <article>
+        <span class="tagline">instruments</span>
+        <h3>Connected devices</h3>
+        <p>Pulse oximeters, glucometers, blood pressure cuffs and wearables feed readings straight into the case, so numbers are not read aloud and retyped under pressure.</p>
+      </article>
+      <article>
+        <span class="tagline">supply</span>
+        <h3>Drugs and equipment</h3>
+        <p>Tomorrow's appointments are checked against the clinic's own stock and expiry dates, with resupply through pharmacies and kit delivery.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="wrap block" id="market" style="border-top:0">
+  <div class="prose">
+    <div class="eyebrow">Market</div>
+    <h2>A narrow beachhead inside a large market</h2>
+    <p class="lede">Dentistry first, deliberately. Procedures are elective, the patient is supine, complications are well documented, and one practitioner carries the whole emergency alone.</p>
+  </div>
+  <div class="mk">
+    <div>
+      <div class="mkfig"><b>$8.8B &#8594; $47.8B</b><span>India's digital health market, 2024 to 2033, growing at 17.67% a year</span></div>
+      <div class="mkfig"><b>75,000</b><span>Registered members of the Indian Dental Association, which has given a written letter of interest in the product</span></div>
+      <div class="mkfig"><b>3 lakh+</b><span>Registered dentists in India, before counting physicians, clinics and corporate health rooms</span></div>
+    </div>
+    <div>
+      <p>Emergency response is the part of that market nobody has built properly, because doing it needs three things at once: clinical content a doctor will trust, hardware that works hands free, and a dispatch network that actually answers.</p>
+      <p>A dental clinic is also the cleanest place to prove the product works. If one practitioner plus ResQ handles an emergency better than one practitioner alone, the same argument carries to every other setting where somebody is on their own.</p>
+      <p class="caption">Market sizing from published India digital health forecasts. Membership figure from the Indian Dental Association.</p>
+    </div>
+  </div>
+</section>
+
+<section class="wrap block" id="business">
+  <div class="prose">
+    <div class="eyebrow">How it earns</div>
+    <h2>Three lines, one asset behind them</h2>
+  </div>
+  <div class="rev">
+    <div>
+      <h3>Clinic subscription</h3>
+      <p>Per practitioner access to the protocol library, the guidance and dispatch. Indicative pricing comes from the pilot study and rises with features.</p>
+      <div class="price">&#8377;3,000 per year</div>
+    </div>
+    <div>
+      <h3>The unit</h3>
+      <p>The desk device sold or leased into clinics, hospital departments and primary health centres, bundled with the subscription that keeps it current.</p>
+      <div class="price">price on request</div>
+    </div>
+    <div>
+      <h3>Kits, training, certification</h3>
+      <p>Emergency kits and resupply, plus paid courses and instructor certification. The same content that powers the guidance, sold as preparedness.</p>
+      <div class="price">per course, per kit</div>
+    </div>
+  </div>
+  <div class="more">
+    <div><h3>Associations first</h3><p>Dental and medical councils are the distribution channel. One agreement reaches tens of thousands of practitioners who already trust the body recommending it.</p></div>
+    <div><h3>Then institutions</h3><p>Dental and medical colleges, hospital groups and corporate health rooms, where one buyer covers many practitioners.</p></div>
+    <div><h3>Then public health</h3><p>State health departments and primary health centres, where ResQ is bought as preparedness infrastructure rather than as software.</p></div>
+  </div>
+</section>
+
+<section class="wrap block" id="team">
+  <div class="prose">
+    <div class="eyebrow">Who is building it</div>
+    <h2>Two dentists who have been alone in the room</h2>
+  </div>
+  <div class="team">
+    <article>
+      <h3>Dr. Sameer Patil</h3>
+      <span class="role">Co&#8209;founder &#183; MDS Orthodontics</span>
+      <p>Principal of Sinhgad Dental College and Hospital, Pune, and Professor and Head of Orthodontics. Executive committee member of the Maharashtra State Dental Council, convenor of its continuing education and ethics committees, and senate member of Maharashtra University of Health Sciences, Nashik.</p>
+      <p>Three decades of clinical practice, and the institutional relationships that put ResQ in front of dental councils and colleges.</p>
+    </article>
+    <article>
+      <h3>Dr. Om Gurram</h3>
+      <span class="role">Co&#8209;founder &#183; BDS</span>
+      <p>Dentist, trained at Sinhgad Dental College, Pune. Owns the clinical design: which emergencies the library covers, the order the steps are given in, the proficiency level each version is written at, and the rules the system is never allowed to break.</p>
+      <p>His diagnostic work in dentistry has been exhibited twice at Jio World Centre at Indian Dental Association events, and he was the youngest speaker at the World Health Conference held there.</p>
+    </article>
+  </div>
+  <p class="advisors"><b>Advisors.</b> Bhushan Muthiyan, deep learning company chief executive, San Francisco. Srini K, software architecture, Washington DC. Mohit Bhishikar, director of technology operations, A.P. Moller Maersk. Dr. Sudarshan Ranpise, senior dentist and legal counsel. CA Rohit Tendulkar, business strategy.</p>
+</section>
+
+<section class="wrap block" id="status">
+  <div class="prose">
+    <div class="eyebrow">September 2026</div>
+    <h2>Where we actually are</h2>
+    <p class="lede">We would rather be trusted than impressive.</p>
+  </div>
+  <div class="status">
+    <div class="row"><div>Emergency protocols, written and reviewed by clinicians</div><div class="state build"><i></i>in progress</div></div>
+    <div class="row"><div>Specialist agent council</div><div class="state build"><i></i>in build</div></div>
+    <div class="row"><div>Speaking avatar</div><div class="state build"><i></i>in build</div></div>
+    <div class="row"><div>Desk unit hardware</div><div class="state"><i></i>sourcing</div></div>
+    <div class="row"><div>Ambulance and hospital integrations</div><div class="state"><i></i>in discussion</div></div>
+    <div class="row"><div>Clinic pilots</div><div class="state build"><i></i>recruiting</div></div>
+  </div>
+  <p class="caption" style="margin-top:22px">Life ResQ Healthcare Systems LLP was founded by practising dentists, Dr. Sameer Patil and Dr. Om Gurram, at Sinhgad Dental College, Pune. The system is designed around emergencies they have had to manage themselves.</p>
+</section>
+
+<section class="band pilot" id="pilot">
+  <svg class="paths" viewBox="0 0 696 316" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><g id="paths2"></g></svg>
+  <div class="wrap">
+    <div class="eyebrow">Pilots</div>
+    <h2 style="color:var(--band-hi)">Put one in your clinic</h2>
+    <p class="lede">We are looking for a small number of dental and general practices in and around Pune to run the first pilots. You get the unit and the protocols; we find out what breaks in a real clinic on a real day.</p>
+    <p>If you run a practice, a hospital, an ambulance service or a primary health centre, write and tell us what your clinic looks like.</p>
+    <div class="cta-row">
+      <a class="btn" href="mailto:resqmanagement@gmail.com?subject=ResQ%20clinic%20pilot">Write to us</a>
+      <a class="btn btn-quiet" href="tel:+919890174206">+91 98901 74206</a>
+    </div>
+  </div>
+</section>
+
+<section class="wrap block" id="legal">
+  <div class="prose">
+    <div class="eyebrow">Privacy and terms</div>
+    <h2>What this page does with your data</h2>
+    <p class="lede">Nothing. There is no form, no account, no analytics, no advertising and no tracking on this page.</p>
+  </div>
+  <div class="more" style="margin-top:34px">
+    <div><h3>No cookies, no tracking</h3><p>This page sets no cookies and stores nothing in your browser. It loads typefaces from Google Fonts, which means Google receives your IP address and browser details when the fonts are fetched; nothing else leaves your device.</p></div>
+    <div><h3>How we can be contacted</h3><p>The contact links open your own email client or dialler. We only hold what you choose to send us, and we use it to reply to you about a pilot. Ask us to delete it and we will.</p></div>
+    <div><h3>Terms of use</h3><p>This page describes a system under development. The sessions shown are illustrations of designed behaviour, not medical advice, not a recording of a patient, and not an offer of a product for sale. No clinical decision should be based on anything here.</p></div>
+  </div>
+  <p class="caption" style="margin-top:26px">When ResQ runs in a clinic it will process patient data, and that needs a full privacy policy, a data-processing agreement and a retention schedule reviewed by a lawyer under the DPDP Act 2023. That work has not been done yet, and this section does not stand in for it.</p>
+</section>
+
+<div class="mcta" id="mcta"><span>Pilots open in Pune</span><a href="#pilot">Ask about a pilot</a></div>
+
+<footer class="wrap">
+  <p><span class="urgent">ResQ supports the person giving care. It does not replace emergency medical services.</span> In an emergency in India, call 108 for an ambulance. The sessions on this page illustrate how the system is designed to behave; they are not recordings of real patients, and the council's output is a second opinion for a clinician, never a treatment decision.</p>
+  <p style="margin-top:18px">Life ResQ Healthcare Systems LLP · 1306 Aspire Tower 6, Amanora Park Town, Hadapsar, Pune 411028 · <a href="mailto:resqmanagement@gmail.com">resqmanagement@gmail.com</a></p>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+"use strict";
+var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+var $ = function(id){ return document.getElementById(id); };
+var clamp = function(v,a,b){ return Math.max(a, Math.min(b,v)); };
+var ease = function(x){ x = clamp(x,0,1); return x<.5 ? 4*x*x*x : 1-Math.pow(-2*x+2,3)/2; };
+function rng(seed){ return function(){ seed = (seed*16807)%2147483647; return (seed-1)/2147483646; }; }
+window.ResQState = {speaking:false, alert:false, active:false};
+
+/* ---------- flowing background paths (from the resqai.life site) ---------- */
+function paths(gid,n){
+  var g = $(gid); if(!g) return;
+  var r = rng(gid.length*97+11), ns='http://www.w3.org/2000/svg';
+  [1,-1].forEach(function(pos){
+    for (var i=0;i<n;i++){
+      var d = 'M-'+(380-i*5*pos)+' -'+(189+i*6)+'C-'+(380-i*5*pos)+' -'+(189+i*6)+' -'+(312-i*5*pos)+' '+(216-i*6)+' '+(152-i*5*pos)+' '+(343-i*6)+'C'+(616-i*5*pos)+' '+(470-i*6)+' '+(684-i*5*pos)+' '+(875-i*6)+' '+(684-i*5*pos)+' '+(875-i*6);
+      var p = document.createElementNS(ns,'path');
+      p.setAttribute('d',d); p.setAttribute('pathLength','1');
+      p.setAttribute('stroke-width',(0.5+i*0.03).toFixed(2));
+      p.setAttribute('stroke-opacity',(0.05+i*0.012).toFixed(3));
+      p.style.animationDuration = (18+r()*14).toFixed(1)+'s';
+      p.style.animationDelay = (-r()*20).toFixed(1)+'s';
+      g.appendChild(p);
+    }
+  });
+}
+paths('paths',28); paths('paths2',20);
+
+/* ---------- headline reveal ---------- */
+(function(){
+  var h = $('headline'); if(!h||reduced) return;
+  var text = h.textContent.trim(), words = text.split(' '), idx = 0;
+  h.setAttribute('aria-label', text); h.textContent = '';
+  words.forEach(function(word,wi){
+    var w = document.createElement('span'); w.className='w'; w.setAttribute('aria-hidden','true');
+    for (var c=0;c<word.length;c++){ var s=document.createElement('span'); s.className='ch'; s.style.setProperty('--i', idx++); s.textContent=word[c]; w.appendChild(s); }
+    h.appendChild(w); if (wi<words.length-1) h.appendChild(document.createTextNode(' '));
+  });
+})();
+
+/* sticky mobile call to action: hidden once the pilot section is on screen */
+(function(){
+  var bar=$('mcta'), pilot=$('pilot');
+  if(!bar||!pilot||!('IntersectionObserver' in window)) return;
+  var seenHero=false;
+  new IntersectionObserver(function(es){
+    es.forEach(function(e){
+      if(e.target.id==='pilot') bar.classList.toggle('show', !e.isIntersecting && seenHero);
+    });
+  },{threshold:.05}).observe(pilot);
+  new IntersectionObserver(function(es){
+    seenHero=!es[0].isIntersecting;
+    if(!seenHero) bar.classList.remove('show');
+  },{threshold:.2}).observe(document.querySelector('.console'));
+})();
+
+/* =====================================================================
+   1 · THE CASE ROOM
+   ===================================================================== */
+var DUR = 72;
+var script = [
+  {t:0,   who:'Practitioner', cls:'user', body:"Activate ResQ. My patient has crushing chest pain and he's sweating."},
+  {t:1.6, who:'Fast path', cls:'sys', body:'Recognised · suspected acute coronary syndrome · 1.6 s · protocol for dentists'},
+  {t:2,   who:'ResQ', cls:'resq', body:"Stop the procedure. Sit him upright and loosen his collar. I'm calling an ambulance now."},
+  {t:3.2, who:'Record', cls:'sys', body:'11:30 appointment · 47 M · hypertension · sildenafil 50 mg at 22:10 last night'},
+  {t:4.4, who:'Dispatch', cls:'sys', body:'Ambulance requested · advanced life support · Kharadi · ETA 9 min'},
+  {t:6,   who:'Council', cls:'council', body:'Calling in 14 of ~1,000 specialists · emergency medicine and pharmacology always included'},
+  {t:11,  who:'ResQ', cls:'resq', body:'Give him 300 mg aspirin to chew, unless he is allergic to aspirin. Chewed works faster than swallowed.'},
+  {t:12,  who:'Council', cls:'council', body:'Round 1 · each specialist assesses the case alone'},
+  {t:19,  who:'Practitioner', cls:'user', body:"He's chewed it. No allergy."},
+  {t:20,  who:'ResQ', cls:'resq', body:'Good. Keep him sitting up and still. Tell me if the pain moves or changes.'},
+  {t:26,  who:'Council', cls:'council', body:'Round 2 · specialists cross-examine each other'},
+  {t:30,  who:'ResQ', cls:'resq', body:'One question from the review: does the pain go through to his back?'},
+  {t:34,  who:'Practitioner', cls:'user', body:'No. Centre of the chest, going into his left arm.'},
+  {t:38,  who:'ResQ', cls:'resq', body:'Take his blood pressure and read it back to me.'},
+  {t:41,  who:'Council', cls:'council', body:'Spectrum ready · ACS 0.71 · flag: nitrate contraindicated, PDE-5 inhibitor 14 h ago'},
+  {t:42,  who:'ResQ · hold', cls:'hold', body:'Do not give the nitrate spray. He took sildenafil last night. Together they can drop his blood pressure dangerously.'},
+  {t:48,  who:'Practitioner', cls:'user', body:'BP 132 over 86.'},
+  {t:50,  who:'ResQ', cls:'resq', body:'132 over 86. The nitrate stays off because of the sildenafil, not the pressure. I will ask for it again in five minutes.'},
+  {t:57,  who:'Hospital', cls:'sys', body:'Hospital B · cath lab standing by · pre-arrival note updated: aspirin 00:11, nitrate withheld and why'},
+  {t:64,  who:'ResQ', cls:'resq', body:"Stay with him and keep talking to him. I'll tell you when the ambulance is two minutes away."}
+];
+var CPS = 19;
+var agents = [['EM','Emergency medicine'],['CPH','Clinical pharmacology'],['CAR','Cardiology'],['ICD','Interventional cardiology'],['VAS','Vascular surgery'],['PUL','Pulmonology'],['GI','Gastroenterology'],['PSY','Psychiatry'],['ANA','Anaesthesiology'],['OMS','Oral & maxillofacial surgery'],['TOX','Toxicology'],['END','Endocrinology'],['CCM','Critical care'],['MSK','Musculoskeletal medicine']];
+var ticks = [
+  {t:6.2,  a:0,  s:'', body:'Case received · 47 M, chest pain, sweating, record attached'},
+  {t:12.5, a:0,  s:'', body:'ACS most likely · aspirin appropriate · BP and pulse needed'},
+  {t:14,   a:2,  s:'agree', body:'ACS 0.48 · sweating supports it · an ECG would move me most'},
+  {t:15.8, a:6,  s:'dis', body:'Oesophageal spasm 0.22 · no swallowing trigger reported'},
+  {t:17.4, a:4,  s:'partial', body:'Dissection unlikely but must not be missed · ask: pain through to the back?'},
+  {t:19.2, a:5,  s:'', body:'Pulmonary embolism 0.05 · no recent immobility on record'},
+  {t:20.8, a:7,  s:'dis', body:'Panic 0.15 · age and sweating argue against'},
+  {t:22.4, a:8,  s:'partial', body:'Local anaesthetic with adrenaline 20 min ago · adds to heart rate, does not explain the pain'},
+  {t:24,   a:1,  s:'', body:'Record lists sildenafil 50 mg at 22:10 · checking against every upcoming step'},
+  {t:26.5, a:4,  s:'partial', body:'→ emergency medicine: keep dissection flagged, ask the back-pain question'},
+  {t:28.5, a:6,  s:'agree', body:'→ cardiology: no swallow trigger · lowering spasm, conceding'},
+  {t:31,   a:1,  s:'flag', body:'→ all: step S4 (nitrate) conflicts with a PDE-5 inhibitor within 24 h'},
+  {t:33,   a:2,  s:'agree', body:'→ pharmacology: agreed · S4 must not start'},
+  {t:35.5, a:2,  s:'dis', body:'→ gastroenterology: pain into the left arm, not the back · spasm 0.11'},
+  {t:39,   a:0,  s:'', body:'Distribution steady across two rounds · closing'},
+  {t:41,   a:-1, s:'flag', body:'Spectrum sent · 1 condition flagged · 1 step contraindicated'}
+];
+var chords = [[26.2,4,0,'partial'],[26.8,2,6,'dis'],[27.4,7,0,'dis'],[28,6,2,'agree'],[28.6,13,2,'agree'],[29.3,5,12,'agree'],[30,8,1,'partial'],[31,1,0,'flag'],[31.2,1,2,'flag'],[31.4,1,12,'flag'],[32,11,2,'agree'],[32.6,9,8,'partial'],[33,2,1,'agree'],[33.6,10,1,'agree'],[34.3,12,0,'agree'],[35,3,2,'agree'],[35.5,2,6,'dis'],[36.2,0,4,'partial'],[37,13,6,'dis'],[37.8,1,0,'flag'],[38.4,5,2,'agree']];
+var specNames = ['Acute coronary syndrome','Oesophageal spasm','Panic attack','Aortic dissection','Musculoskeletal pain'];
+var specKeys = [{t:13,v:[.42,.20,.18,.06,.14]},{t:26,v:[.55,.16,.13,.05,.08]},{t:37,v:[.67,.11,.10,.04,.05]},{t:41,v:[.71,.11,.08,.04,.03]}];
+var steps = [
+  {id:'S1', text:'Stop the procedure · sit upright, loosen collar', k:'merge-safe', from:2},
+  {id:'S2', text:'Aspirin 300 mg, chewed · check allergy', k:'merge-safe', from:11},
+  {id:'S3', text:'Blood pressure · read back', k:'merge-safe', from:38},
+  {id:'S4', text:'GTN spray under the tongue · only if systolic ≥ 90 and no PDE-5 inhibitor', k:'gated', from:9999},
+  {id:'S5', text:'Keep sitting up · reassess every 5 min · await ambulance', k:'merge-safe', from:50}
+];
+var feed=$('feed'), clock=$('clock'), stateEl=$('state'), voice=$('voice'), roundEl=$('round'), ticker=$('ticker');
+var tkWho=ticker.querySelector('.tk-who'), tkBody=ticker.querySelector('.tk-body');
+var flags=$('flags'), queue=$('queue'), eta=$('eta'), hosp=$('hosp'), scrub=$('scrub'), playBtn=$('play');
+function fmt(s){ s=Math.max(0,Math.floor(s)); return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); }
+var lineEls = script.map(function(l){
+  var row=document.createElement('div'); row.className='line '+l.cls;
+  var t=document.createElement('div'); t.className='t'; t.textContent=fmt(l.t);
+  var b=document.createElement('div');
+  var w=document.createElement('span'); w.className='who'; w.textContent=l.who;
+  var x=document.createElement('span'); x.className='txt';
+  b.appendChild(w); b.appendChild(x); row.appendChild(t); row.appendChild(b); feed.appendChild(row);
+  return {row:row, txt:x, n:-1};
+});
+script.forEach(function(l){ var i=document.createElement('i'); i.className=l.cls; i.style.left=(l.t/DUR*100)+'%'; $('ticks').appendChild(i); });
+var msRows = specNames.map(function(n,i){
+  var r=document.createElement('div'); r.className='ms'+(i===3?' flag':'');
+  r.innerHTML='<div class="bar"><i></i><span class="nm"></span></div><div class="v">0.00</div>';
+  r.querySelector('.nm').textContent=n; $('minispec').appendChild(r);
+  return {bar:r.querySelector('i'), v:r.querySelector('.v')};
+});
+var stepEls = steps.map(function(s){
+  var li=document.createElement('li'); li.className='step pending'; li.setAttribute('data-k',s.k);
+  li.innerHTML='<span class="s-id"></span><div><div class="s-t"></div><div class="s-kind"></div></div><span class="s-badge"></span>';
+  li.querySelector('.s-id').textContent=s.id;
+  li.querySelector('.s-t').textContent=s.text;
+  li.querySelector('.s-kind').textContent = s.k==='gated' ? 'blocked while a hold is pending' : 'safe to update here';
+  $('steps').appendChild(li);
+  return {li:li, badge:li.querySelector('.s-badge')};
+});
+
+/* council ring canvas */
+var cv=$('ring'), ctx=cv.getContext('2d'), cw=0, ch=0, dpr=1, col={};
+function readColors(){
+  var cs=getComputedStyle(document.documentElement);
+  ['--band-ink','--band-dim','--band-teal','--band-amber','--band-red','--band-line','--band-violet'].forEach(function(k){ col[k]=cs.getPropertyValue(k).trim(); });
+}
+readColors();
+try{ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(){ readColors(); render(T); }); }catch(e){}
+new MutationObserver(function(){ readColors(); render(T); }).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+var field=(function(){ var r=rng(7), a=[]; for(var i=0;i<150;i++){ a.push({ang:r()*6.283, rad:.80+r()*.18, ph:r()*6.28, s:.6+r()*.9}); } return a; })();
+var pickFrom=[3,14,25,36,47,58,69,80,91,102,113,124,135,146];
+function stanceCol(s){ return s==='agree'?col['--band-teal'] : s==='partial'?col['--band-amber'] : s==='dis'?col['--band-violet'] : s==='flag'?col['--band-red'] : col['--band-dim']; }
+function sizeCanvas(){
+  var r=cv.getBoundingClientRect(); dpr=Math.min(window.devicePixelRatio||1,2);
+  cw=r.width; ch=r.height; cv.width=Math.round(cw*dpr); cv.height=Math.round(ch*dpr); render(T);
+}
+if ('ResizeObserver' in window) new ResizeObserver(sizeCanvas).observe(cv.parentNode); else window.addEventListener('resize', sizeCanvas);
+function drawRing(t){
+  if(!cw) return;
+  ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,cw,ch);
+  var cx=cw/2, cy=ch/2, M=Math.min(cw,ch)/2, R=M*.62;
+  var fieldPos=function(i){ var f=field[i]; return [cx+Math.cos(f.ang)*f.rad*M*.98, cy+Math.sin(f.ang)*f.rad*M*.98]; };
+  var ringPos=function(i){ var a=-Math.PI/2+i*6.283/agents.length; return [cx+Math.cos(a)*R, cy+Math.sin(a)*R, a]; };
+  var prog=agents.map(function(_,i){ return ease((t-6-i*.22)/1.4); });
+  var pos=agents.map(function(_,i){ var f=fieldPos(pickFrom[i]), g=ringPos(i), p=prog[i]; return [f[0]+(g[0]-f[0])*p, f[1]+(g[1]-f[1])*p, g[2]]; });
+  var picked={}; pickFrom.forEach(function(k,i){ if(prog[i]>0) picked[k]=1; });
+  ctx.fillStyle=col['--band-dim'];
+  field.forEach(function(f,i){
+    if(picked[i]) return;
+    var p=fieldPos(i);
+    ctx.globalAlpha=.16+(reduced?0:.12*Math.sin(t*1.1+f.ph));
+    ctx.beginPath(); ctx.arc(p[0],p[1],f.s,0,6.283); ctx.fill();
+  });
+  ctx.globalAlpha=t>=6?.35:.15; ctx.strokeStyle=col['--band-line']; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.arc(cx,cy,R,0,6.283); ctx.stroke();
+  var active=t>=6&&t<41, done=t>=41, coreR=M*.15+(active&&!reduced?Math.sin(t*3.2)*2:0);
+  if(active||done){
+    ctx.globalAlpha=done?.22:.12; ctx.fillStyle=col['--band-amber'];
+    ctx.beginPath(); ctx.arc(cx,cy,coreR*1.8,0,6.283); ctx.fill();
+  }
+  ctx.globalAlpha=1; ctx.fillStyle='rgba(0,0,0,.35)';
+  ctx.beginPath(); ctx.arc(cx,cy,coreR,0,6.283); ctx.fill();
+  ctx.strokeStyle=done?col['--band-amber']:(active?col['--band-teal']:col['--band-line']); ctx.lineWidth=1.5; ctx.stroke();
+  ctx.fillStyle=done?col['--band-amber']:col['--band-dim'];
+  ctx.font='500 '+Math.max(8,M*.07)+'px "IBM Plex Mono", monospace'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(t<6?'standby':(done?'spectrum':'case'), cx, cy);
+  if(t>=12&&t<27){
+    agents.forEach(function(_,i){
+      var ts=12+i*.95, q=(t-ts)/1.5; if(q<0||q>1) return;
+      var p=pos[i];
+      ctx.globalAlpha=(1-q)*.45; ctx.strokeStyle=col['--band-teal']; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(p[0],p[1]); ctx.lineTo(cx,cy); ctx.stroke();
+      var e=ease(q);
+      ctx.globalAlpha=1; ctx.fillStyle=col['--band-teal'];
+      ctx.beginPath(); ctx.arc(p[0]+(cx-p[0])*e, p[1]+(cy-p[1])*e, 2.6, 0, 6.283); ctx.fill();
+    });
+  }
+  chords.forEach(function(c){
+    var q=(t-c[0])/1.4; if(q<0||q>1.25) return;
+    var a=pos[c[1]], b=pos[c[2]], s=stanceCol(c[3]);
+    ctx.globalAlpha=Math.max(0,.5*(1-Math.max(0,q-.2)/1.05)); ctx.strokeStyle=s; ctx.lineWidth=c[3]==='flag'?1.7:1.1;
+    var mx=(a[0]+b[0])/2+(cy-(a[1]+b[1])/2)*.18, my=(a[1]+b[1])/2+((a[0]+b[0])/2-cx)*.18;
+    ctx.beginPath(); ctx.moveTo(a[0],a[1]); ctx.quadraticCurveTo(mx,my,b[0],b[1]); ctx.stroke();
+    if(q<=1){
+      var e=ease(q), u=1-e;
+      ctx.globalAlpha=1; ctx.fillStyle=s;
+      ctx.beginPath(); ctx.arc(u*u*a[0]+2*u*e*mx+e*e*b[0], u*u*a[1]+2*u*e*my+e*e*b[1], c[3]==='flag'?3.4:2.6, 0, 6.283); ctx.fill();
+    }
+  });
+  if(done&&!reduced){
+    for(var k=0;k<3;k++){
+      var ph=((t-41)*.6+k/3)%1;
+      ctx.globalAlpha=(1-ph)*.35; ctx.strokeStyle=col['--band-amber']; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.arc(cx,cy,coreR+ph*(R-coreR),0,6.283); ctx.stroke();
+    }
+  }
+  var speaking=-1, sStance='';
+  for(var j=ticks.length-1;j>=0;j--){ if(t>=ticks[j].t){ if(t<ticks[j].t+2.2){ speaking=ticks[j].a; sStance=ticks[j].s; } break; } }
+  agents.forEach(function(ag,i){
+    if(prog[i]<=0) return;
+    var p=pos[i], flagged=i===1&&t>=31, core=i<2;
+    var c = flagged?col['--band-red'] : (i===speaking?stanceCol(sStance||'agree') : (active||done?col['--band-ink']:col['--band-dim']));
+    if(i===speaking||(flagged&&t<43)){
+      ctx.globalAlpha=.22+(reduced?0:.12*Math.sin(t*6)); ctx.fillStyle=c;
+      ctx.beginPath(); ctx.arc(p[0],p[1],M*.085,0,6.283); ctx.fill();
+    }
+    ctx.globalAlpha=.9; ctx.fillStyle=c;
+    ctx.beginPath(); ctx.arc(p[0],p[1], core?M*.04:M*.032, 0, 6.283); ctx.fill();
+    if(core){ ctx.globalAlpha=.55; ctx.strokeStyle=c; ctx.lineWidth=1; ctx.beginPath(); ctx.arc(p[0],p[1],M*.058,0,6.283); ctx.stroke(); }
+    if(prog[i]>.85){
+      ctx.globalAlpha=(prog[i]-.85)/.15*(i===speaking||flagged?1:.7);
+      ctx.fillStyle = i===speaking?stanceCol(sStance||'agree') : (flagged?col['--band-red']:col['--band-dim']);
+      ctx.font=Math.max(8.5,M*.062)+'px "IBM Plex Mono", monospace';
+      ctx.textAlign = Math.abs(Math.cos(p[2]))<.3 ? 'center' : (Math.cos(p[2])>0?'left':'right');
+      ctx.fillText(ag[0], cx+Math.cos(p[2])*(R+M*.2), cy+Math.sin(p[2])*(R+M*.17));
+    }
+  });
+  ctx.globalAlpha=1;
+}
+var T=0, lastTick=-1, lastShown=-1, playing=false, speed=3;
+function specAt(t){
+  if(t<specKeys[0].t) return null;
+  for(var i=specKeys.length-1;i>=0;i--){
+    if(t>=specKeys[i].t){
+      var a=specKeys[i], b=specKeys[i+1]; if(!b) return a.v;
+      var q=ease((t-a.t)/(b.t-a.t));
+      return a.v.map(function(v,k){ return v+(b.v[k]-v)*q; });
+    }
+  }
+}
+function render(t){
+  clock.textContent=fmt(t);
+  var st = t<.05?'Standby' : t<2?'Listening' : (t>=42&&t<48)?'Guidance corrected' : 'Session active';
+  stateEl.textContent=st; stateEl.classList.toggle('alert', st==='Guidance corrected');
+  var shown=0, speakingNow=false;
+  script.forEach(function(l,i){
+    var e=lineEls[i], vis=t>=l.t;
+    e.row.classList.toggle('show',vis);
+    if(!vis){ e.n=-1; return; }
+    shown++;
+    var n=l.body.length;
+    if(l.cls==='resq'||l.cls==='hold') n=Math.min(l.body.length, Math.floor((t-l.t)*CPS)+1);
+    if(n!==e.n){ e.txt.textContent=l.body.slice(0,n); e.n=n; }
+    var typing=n<l.body.length;
+    e.txt.classList.toggle('typing',typing);
+    if(typing) speakingNow=true;
+  });
+  voice.classList.toggle('on', speakingNow&&playing);
+  if(shown!==lastShown||speakingNow){ feed.scrollTop=feed.scrollHeight; lastShown=shown; }
+  window.ResQState = {speaking: speakingNow&&playing, alert: t>=41.5&&t<48, active: t>.05&&t<DUR};
+  roundEl.textContent = t<6?'idle' : t<12?'calling in specialists' : t<26?'round 1 · alone' : t<40?'round 2 · cross-examination' : t<41?'converging' : 'spectrum ready';
+  roundEl.className='tag '+(t<6?'':t<41?'amber':'teal');
+  var tk=-1; for(var j=ticks.length-1;j>=0;j--){ if(t>=ticks[j].t){ tk=j; break; } }
+  if(tk!==lastTick){
+    if(tk<0){ tkWho.textContent='standby'; tkBody.textContent='Waiting for a case.'; }
+    else{
+      var k=ticks[tk], label = k.s==='agree'?'agrees':k.s==='partial'?'partly agrees':k.s==='dis'?'challenges':k.s==='flag'?'flags':'';
+      tkWho.innerHTML='';
+      tkWho.appendChild(document.createTextNode(k.a<0?'Council':agents[k.a][1]));
+      if(label){ var pill=document.createElement('span'); pill.className='st-pill st-'+(k.s==='dis'?'dis':k.s==='partial'?'partial':k.s==='flag'?'flag':'agree'); pill.textContent=label; tkWho.appendChild(pill); }
+      tkBody.textContent=k.body;
+    }
+    ticker.classList.remove('flash'); void ticker.offsetWidth; if(tk>=0) ticker.classList.add('flash');
+    lastTick=tk;
+  }
+  var sv=specAt(t);
+  msRows.forEach(function(r,i){ r.bar.style.width = sv?(sv[i]*100).toFixed(1)+'%':'0%'; r.v.textContent = sv?sv[i].toFixed(2):'0.00'; });
+  var fl=(t>=27?1:0)+(t>=41?2:0);
+  if(flags.dataset.s!==String(fl)){
+    flags.innerHTML='';
+    if(t>=27){ var c1=document.createElement('span'); c1.className='chip amber'; c1.textContent='must not miss · aortic dissection'; flags.appendChild(c1); }
+    if(t>=41){ var c2=document.createElement('span'); c2.className='chip red'; c2.textContent='contraindicated · S4 nitrate'; flags.appendChild(c2); }
+    flags.dataset.s=String(fl);
+  }
+  steps.forEach(function(s,i){
+    var e=stepEls[i], cls='pending', badge='', bcls='';
+    var next=steps.slice(i+1).filter(function(x){ return x.from<9999; })[0];
+    if(t>=s.from) cls=(next&&t>=next.from)?'done':'active';
+    if(s.id==='S4'){ if(t>=42){ cls='held'; badge='held'; bcls='red landing'; } else if(t>=41){ badge='hold pending'; bcls='red'; } }
+    if(s.id==='S3'&&t>=42){ badge='hold delivered'; bcls='teal landing'; }
+    var full='step '+cls;
+    if(e.li.className!==full) e.li.className=full;
+    if(e.badge.textContent!==badge){ e.badge.textContent=badge; e.badge.className='s-badge '+bcls; }
+  });
+  var qs = t<41?'no changes queued' : t<42?'1 hold queued · waiting for a safe step' : 'hold delivered at S3';
+  if(queue.textContent!==qs){ queue.textContent=qs; queue.className='tag '+(t<41?'':t<42?'red':'teal'); }
+  if(t<4.4) eta.textContent='not requested';
+  else { var rem=Math.max(0,540-(t-4.4)); eta.textContent=Math.floor(rem/60)+' min '+String(Math.floor(rem%60)).padStart(2,'0')+' s'; }
+  hosp.textContent = t<4.4?'not requested' : t<57?'matching · cath lab' : 'B · cath lab ready';
+  scrub.value=t.toFixed(1);
+  drawRing(t);
+}
+var last=0, heroVisible=true;
+function frame(now){
+  if(!playing) return;
+  var dt=Math.min(.1,(now-last)/1000); last=now;
+  if(heroVisible&&!document.hidden) T+=dt*speed;
+  if(T>=DUR){ T=DUR; playing=false; playBtn.textContent='Play'; render(T); return; }
+  render(T); requestAnimationFrame(frame);
+}
+function play(){ if(T>=DUR) T=0; playing=true; playBtn.textContent='Pause'; last=performance.now(); requestAnimationFrame(frame); }
+function pause(){ playing=false; playBtn.textContent='Play'; render(T); }
+playBtn.addEventListener('click', function(){ playing?pause():play(); });
+$('replay').addEventListener('click', function(){ T=0; lastShown=-1; render(0); play(); });
+window.ResQReplay=function(){ T=0; lastShown=-1; render(0); play(); };
+scrub.addEventListener('input', function(){ T=parseFloat(scrub.value)||0; render(T); });
+function setSpeed(s){
+  speed=s; $('sp1').setAttribute('aria-pressed', s===1); $('sp3').setAttribute('aria-pressed', s===3);
+  $('speedNote').textContent = s===1?'playing in real time':'played at 3× speed';
+}
+$('sp1').addEventListener('click',function(){ setSpeed(1); });
+$('sp3').addEventListener('click',function(){ setSpeed(3); });
+if('IntersectionObserver' in window) new IntersectionObserver(function(es){ heroVisible=es[0].isIntersecting; },{threshold:.12}).observe(document.querySelector('.console'));
+sizeCanvas();
+if(reduced){ T=DUR; playBtn.textContent='Play'; render(T); }
+else { render(0); setTimeout(play, 1100); }
+
+/* =====================================================================
+   2 · COUNCIL CHAMBER: the TB vs Hodgkin's debate
+   ===================================================================== */
+var cAgents=[
+  {k:'gen', ini:'GEN', name:'Generalist', spec:'internal medicine'},
+  {k:'path',ini:'PATH',name:'Pathologist', spec:'tissue · haematology'},
+  {k:'pulm',ini:'PULM',name:'Pulmonologist', spec:'chest imaging'},
+  {k:'endo',ini:'ENDO',name:'Endocrinologist', spec:'calcium · metabolic'},
+  {k:'card',ini:'CARD',name:'Cardiologist', spec:'cardiac risk'},
+  {k:'onc', ini:'ONC', name:'Oral oncologist', spec:'dissenting view'}
+];
+var P0={gen:.30, path:.92, pulm:.95, endo:.90, card:.85, onc:.45};
+var cStages=[
+  {stance:'', label:'round 1 · alone', who:'Six specialists', to:'', rail:1,
+   text:'Each agent reads the same record without seeing the others. Four lean towards lymphoma. The generalist leans towards TB and wants treatment started today. The oral oncologist leans towards TB with caveats.',
+   cites:[], pos:{}},
+  {stance:'open', label:'opens', who:'Generalist', to:'→ the panel', from:'gen', target:'panel', rail:2,
+   text:'India has the world’s highest TB burden. B symptoms, bilateral nodes, a borderline Mantoux in a 48-year-old. Smear-negative TB is common. I would start HRZE today and wait for cultures.',
+   cites:['mtx','nodes'], pos:{}},
+  {stance:'dis', label:'challenges', who:'Pathologist', to:'→ Generalist', from:'path', target:'gen', rail:2,
+   text:'Not without tissue. Three findings sit awkwardly with TB and fit Hodgkin’s: eosinophilia at 8%, LDH 412, and a normocytic anaemia. Treat blind and we lose months if this is lymphoma.',
+   cites:['eos','ldh','hb'], pos:{}},
+  {stance:'agree', label:'adds evidence', who:'Pulmonologist', to:'→ supports Pathologist', from:'pulm', target:'path', rail:2,
+   text:'The imaging points the same way. Three negative smears, no cavitation, no upper-lobe infiltrate, no miliary pattern. What is there is lobular hilar and mediastinal widening: the classic Hodgkin’s picture.',
+   cites:['afb','cxr'], pos:{}},
+  {stance:'agree', label:'adds evidence', who:'Endocrinologist', to:'→ supports Pathologist', from:'endo', target:'path', rail:2,
+   text:'Calcium 11.2 needs explaining and PTH should be sent. Lymphoma raises calcitriol, though granulomatous disease can too, so I read this as supporting the other three markers rather than settling it alone.',
+   cites:['ca'], pos:{}},
+  {stance:'dis', label:'holds dissent', who:'Oral oncologist', to:'→ the panel', from:'onc', target:'panel', rail:2,
+   text:'I am not saying this is TB. I am saying we have not proved it is not. Smear-negative disease can present atypically, and delay carries its own mortality. GeneXpert on lavage before anyone commits to a lymphoma-only path.',
+   cites:['afb','mtx'], pos:{}},
+  {stance:'partial', label:'finds middle ground', who:'Pathologist', to:'→ Oral oncologist', from:'path', target:'onc', rail:2,
+   text:'Agreed on GeneXpert. That is the right middle ground. Run it on lavage alongside an excision biopsy of the largest node; results in 48 to 72 hours either way. What I object to is treatment before histology, not the test.',
+   cites:[], pos:{}, override:[['path','onc','partial']]},
+  {stance:'agree', label:'revises position', who:'Generalist', to:'→ the panel', from:'gen', target:'panel', rail:2,
+   text:'I concede. Normocytic anaemia, eosinophilia, LDH, calcium and the CXR pattern together make lymphoma the working diagnosis. I withdraw empirical ATT and support biopsy and GeneXpert together, with the TB exclusion written down.',
+   cites:['hb','eos','ldh','ca','cxr'], pos:{gen:.75}, override:[['path','onc','partial']]},
+  {stance:'', label:'verdict', who:'Council', to:'5 of 6, dissent recorded', rail:3,
+   text:'Working diagnosis: classical Hodgkin’s lymphoma, nodular sclerosis, likely stage II–III, at 78% confidence. Nothing is treated until histology returns. GeneXpert on lavage runs in parallel to close the dissenter’s question, and HIV serology is added because one agent noticed nobody had ordered it.',
+   cites:[], pos:{}, override:[['path','onc','partial'],['gen','onc','partial'],['pulm','onc','partial'],['endo','onc','partial'],['card','onc','partial']]}
+];
+var seatsG=$('seats'), arrowsG=$('arrows'), axisEl=$('axis'), matrixEl=$('matrix');
+var SEATA=[170,138,106,74,42,10], seatXY={};
+cAgents.forEach(function(a,i){
+  var rad=SEATA[i]*Math.PI/180, x=360+Math.cos(rad)*250, y=330-Math.sin(rad)*250;
+  seatXY[a.k]=[x,y];
+  var ns='http://www.w3.org/2000/svg', g=document.createElementNS(ns,'g');
+  g.setAttribute('class','seat'); g.setAttribute('data-k',a.k);
+  g.innerHTML='<circle class="halo" cx="'+x+'" cy="'+y+'" r="30"/><circle class="seat-c" cx="'+x+'" cy="'+y+'" r="28"/>'+
+    '<text class="ini" x="'+x+'" y="'+(y+5)+'" text-anchor="middle">'+a.ini+'</text>'+
+    '<text class="nm" x="'+x+'" y="'+(y+46)+'" text-anchor="middle">'+a.name+'</text>';
+  seatsG.appendChild(g);
+});
+var axisDots={};
+cAgents.forEach(function(a){
+  var d=document.createElement('div'); d.className='dotA'; d.textContent=a.ini.slice(0,2); d.title=a.name;
+  axisEl.appendChild(d); axisDots[a.k]=d;
+});
+(function(){
+  var html='<div class="mh"></div>';
+  cAgents.forEach(function(a){ html+='<div class="mh">'+a.ini.slice(0,2)+'</div>'; });
+  cAgents.forEach(function(a){
+    html+='<div class="mh">'+a.ini.slice(0,2)+'</div>';
+    cAgents.forEach(function(b){ html+='<div class="mc" data-p="'+a.k+'-'+b.k+'"></div>'; });
+  });
+  matrixEl.innerHTML=html;
+})();
+var cDots=$('cDots');
+cStages.forEach(function(s,i){
+  var b=document.createElement('button'); b.type='button'; b.setAttribute('aria-label','Exchange '+(i+1)+': '+s.label);
+  b.addEventListener('click', function(){ cAuto=false; setStage(i); });
+  cDots.appendChild(b);
+});
+var cIdx=cStages.length-1, cAuto=false, cTimer=null;
+function posAt(idx){
+  var p={}; Object.keys(P0).forEach(function(k){ p[k]=P0[k]; });
+  for(var i=0;i<=idx;i++){ var o=cStages[i].pos||{}; Object.keys(o).forEach(function(k){ p[k]=o[k]; }); }
+  return p;
+}
+function relOf(a,b,p,idx){
+  if(a===b) return 'self';
+  var d=Math.abs(p[a]-p[b]);
+  var r = d<.2?'agree' : d<.4?'partial' : 'disagree';
+  for(var i=0;i<=idx;i++){
+    (cStages[i].override||[]).forEach(function(o){
+      if((o[0]===a&&o[1]===b)||(o[0]===b&&o[1]===a)) r=o[2]==='partial'?'partial':o[2];
+    });
+  }
+  return r;
+}
+function setStage(i){
+  cIdx=clamp(i,0,cStages.length-1);
+  var s=cStages[cIdx], p=posAt(cIdx);
+  cAgents.forEach(function(a){
+    var seat=seatsG.querySelector('[data-k="'+a.k+'"]');
+    var cls='seat '+(p[a.k]>.6?'agree':p[a.k]>=.5?'partial':'dis');
+    if(s.from===a.k) cls+=' speaking';
+    seat.setAttribute('class',cls);
+    var d=axisDots[a.k];
+    d.style.left=(6+p[a.k]*88)+'%';
+    d.className='dotA '+(p[a.k]>.6?'agree':p[a.k]>=.5?'partial':'dis')+((s.pos&&s.pos[a.k]!==undefined)?' moved':'');
+  });
+  arrowsG.innerHTML='';
+  if(s.from){
+    var a=seatXY[s.from], b = s.target==='panel'?[360,312]:seatXY[s.target];
+    var cls = s.stance==='agree'?'agree':s.stance==='partial'?'partial':s.stance==='dis'?'dis':'open';
+    var mk = cls==='agree'?'mAgree':cls==='partial'?'mPartial':cls==='dis'?'mDis':'mOpen';
+    var cxp=(a[0]+b[0])/2+(360-(a[0]+b[0])/2)*.25, cyp=(a[1]+b[1])/2-70;
+    var ns='http://www.w3.org/2000/svg', path=document.createElementNS(ns,'path');
+    path.setAttribute('class','arrow '+cls); path.setAttribute('pathLength','1');
+    path.setAttribute('marker-end','url(#'+mk+')');
+    path.setAttribute('d','M'+a[0]+' '+a[1]+' Q'+cxp+' '+cyp+' '+b[0]+' '+b[1]);
+    arrowsG.appendChild(path);
+  }
+  $('qStance').textContent=s.label;
+  $('qStance').className='q-stance '+(s.stance==='agree'?'st-agree':s.stance==='partial'?'st-partial':s.stance==='dis'?'st-dis':'');
+  $('quote').className='quote '+(s.stance||'');
+  $('qWho').textContent=s.who; $('qTo').textContent=s.to||'';
+  $('qText').textContent=s.text;
+  var cites=$('qCites'); cites.innerHTML='';
+  document.querySelectorAll('#labs .lab').forEach(function(l){ l.classList.toggle('hot', (s.cites||[]).indexOf(l.dataset.lab)>=0); });
+  (s.cites||[]).forEach(function(c){
+    var el=document.querySelector('#labs .lab[data-lab="'+c+'"]');
+    if(el){ var sp=document.createElement('span'); sp.textContent='cites · '+el.textContent.trim(); cites.appendChild(sp); }
+  });
+  cAgents.forEach(function(a){ cAgents.forEach(function(b){
+    var cell=matrixEl.querySelector('[data-p="'+a.k+'-'+b.k+'"]');
+    if(cell) cell.className='mc '+relOf(a.k,b.k,p,cIdx);
+  }); });
+  var lean=0; Object.keys(p).forEach(function(k){ if(p[k]>.6) lean++; });
+  $('gAgree').textContent=lean+' of 6 lean lymphoma';
+  var conf = cIdx===cStages.length-1 ? 78 : Math.round(lean/6*100);
+  $('gNum').textContent=conf+'%';
+  $('gFg').setAttribute('stroke-dashoffset', (301.6*(1-conf/100)).toFixed(1));
+  Array.prototype.forEach.call(cDots.children, function(b,k){ b.setAttribute('aria-current', k===cIdx); });
+  document.querySelectorAll('#rail div').forEach(function(d){ d.classList.toggle('on', parseInt(d.dataset.r,10)<=(s.rail!==undefined?s.rail:3)); });
+}
+function cStep(d){ cAuto=false; clearTimeout(cTimer); setStage(cIdx+d); }
+$('cPrev').addEventListener('click', function(){ cStep(-1); });
+$('cNext').addEventListener('click', function(){ cStep(1); });
+$('cPlay').addEventListener('click', function(){
+  cAuto=!cAuto; $('cPlay').textContent=cAuto?'Pause debate':'Play debate';
+  if(cAuto){ if(cIdx>=cStages.length-1) setStage(0); advance(); } else clearTimeout(cTimer);
+});
+function advance(){
+  clearTimeout(cTimer);
+  if(!cAuto) return;
+  cTimer=setTimeout(function(){
+    if(cIdx>=cStages.length-1){ cAuto=false; $('cPlay').textContent='Play debate'; return; }
+    setStage(cIdx+1); advance();
+  }, 5200);
+}
+setStage(cStages.length-1);
+if('IntersectionObserver' in window && !reduced){
+  var started=false;
+  new IntersectionObserver(function(es){
+    if(es[0].isIntersecting && !started){
+      started=true; setStage(0); cAuto=true; $('cPlay').textContent='Pause debate'; advance();
+    }
+  },{threshold:.3}).observe($('chamber'));
+}
+
+/* ---------- structured answer + vote vs spectrum ---------- */
+var jsonSegs=[
+  ['{\n  ',''],['"agent"','k'],[': ',''],['"clinical_pharmacology"','s'],[',\n  ',''],
+  ['"round"','k'],[': ',''],['2','n'],[',\n  ',''],
+  ['"candidates"','k'],[': [\n    { ',''],['"condition"','k'],[': ',''],['"acute_coronary_syndrome"','s'],[', ',''],['"p"','k'],[': ',''],['0.68','n'],[' }\n  ],\n  ',''],
+  ['"evidence_for"','k'],[': [',''],['"crushing central pain"','s'],[', ',''],['"sweating"','s'],['],\n  ',''],
+  ['"contraindications"','k'],[': [\n    { ',''],['"state"','k'],[': ',''],['"S4_gtn_sublingual"','r'],[',\n      ',''],
+  ['"reason"','k'],[': ',''],['"sildenafil 50 mg, 14 h ago"','r'],[', ',''],['"severity"','k'],[': ',''],['"critical"','r'],[' }\n  ],\n  ',''],
+  ['"would_change_my_mind"','k'],[': ',''],['"patient confirms no sildenafil in 24 h"','s'],['\n}','']
+];
+var jsonEl=$('json'), jsonLen=jsonSegs.reduce(function(a,s){ return a+s[0].length; },0);
+function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
+function drawJson(n){
+  var out='', left=n;
+  for(var i=0;i<jsonSegs.length&&left>0;i++){
+    var s=jsonSegs[i][0].slice(0,left); left-=s.length;
+    out += jsonSegs[i][1] ? '<span class="'+jsonSegs[i][1]+'">'+esc(s)+'</span>' : esc(s);
+  }
+  jsonEl.innerHTML=out;
+}
+drawJson(jsonLen);
+var jsonTyped=false;
+function typeJson(){
+  if(jsonTyped||reduced) return; jsonTyped=true;
+  var n=0; jsonEl.classList.add('typing');
+  (function step(){ n+=5; drawJson(n); if(n<jsonLen) setTimeout(step,16); else jsonEl.classList.remove('typing'); })();
+}
+var votes=[9,2,2,0,1], spec=[.71,.11,.08,.04,.03];
+var bigRows=specNames.map(function(n,i){
+  var r=document.createElement('div'); r.className='bs'+(i===3?' flag':'');
+  r.innerHTML='<div class="bar"><i></i><span class="nm"></span></div><div class="v"></div>';
+  r.querySelector('.nm').textContent=n; $('bigspec').appendChild(r); return r;
+});
+function setAgg(mode){
+  $('aggVote').setAttribute('aria-pressed', mode==='vote');
+  $('aggSpec').setAttribute('aria-pressed', mode==='spec');
+  bigRows.forEach(function(r,i){
+    var nm=r.querySelector('.nm'), old=nm.querySelector('em'); if(old) old.remove();
+    var bar=r.querySelector('i'), v=r.querySelector('.v');
+    if(mode==='vote'){
+      bar.style.width=(votes[i]/14*100)+'%'; v.textContent=votes[i]+' / 14';
+      r.className='bs'+(i===3?' dropped':'');
+      if(i===3){ var em=document.createElement('em'); em.textContent='dropped'; nm.appendChild(em); }
+    } else {
+      bar.style.width=Math.max(spec[i]*100,1.5)+'%'; v.textContent=spec[i].toFixed(2);
+      r.className='bs'+(i===3?' flag':'');
+      if(i===3){ var em2=document.createElement('em'); em2.textContent='must not miss'; nm.appendChild(em2); }
+    }
+  });
+  $('specNote').textContent = mode==='vote'
+    ? 'No specialist put aortic dissection first, so a vote erases it, and nobody is told to ask about pain going through to the back.'
+    : 'Dissection is unlikely, and missing it would kill the patient. It stays on the list, weighted by severity, and shapes what ResQ asks you to check.';
+}
+$('aggVote').addEventListener('click', function(){ setAgg('vote'); });
+$('aggSpec').addEventListener('click', function(){ setAgg('spec'); });
+setAgg('spec');
+
+var tilt=$('tilt'), tiltQ=false;
+function doTilt(){
+  tiltQ=false;
+  var r=tilt.parentNode.getBoundingClientRect(), vh=window.innerHeight;
+  var p=clamp((vh-r.top)/(vh*.85),0,1);
+  tilt.style.transform='rotateX('+((1-p)*18).toFixed(2)+'deg) scale('+(0.94+0.06*p).toFixed(3)+')';
+}
+if(!reduced){
+  window.addEventListener('scroll', function(){ if(!tiltQ){ tiltQ=true; requestAnimationFrame(doTilt); } }, {passive:true});
+  doTilt();
+}
+
+/* ---------- in-view triggers ---------- */
+function countUp(el){
+  var end=parseFloat(el.dataset.count), suf=el.dataset.suffix||'', t0=performance.now();
+  (function f(now){ var q=ease((now-t0)/1400); el.innerHTML=Math.round(end*q)+suf; if(q<1) requestAnimationFrame(f); })(t0);
+}
+if('IntersectionObserver' in window){
+  var io=new IntersectionObserver(function(es){
+    es.forEach(function(e){
+      var el=e.target;
+      if(el.classList.contains('card')) el.classList.toggle('anim-pause', !e.isIntersecting);
+      if(!e.isIntersecting) return;
+      if(!el.classList.contains('inview')){
+        el.classList.add('inview');
+        if(el.id==='jsonPanel') typeJson();
+        if(el.dataset.count&&!reduced) countUp(el);
+      }
+    });
+  },{threshold:.35});
+  document.querySelectorAll('.observe, [data-count]').forEach(function(el){ io.observe(el); });
+}
+
+/* =====================================================================
+   3 · THE DEVICE IN 3D, WITH THE ROBOT INSIDE
+   ===================================================================== */
+(function(){
+  var canvas=$('dev3d');
+  var loadEl=$('devLoading');
+  function hideLoader(){ if(loadEl){ loadEl.classList.add('gone'); loadEl=null; } }
+  if(!window.THREE || !canvas){ canvas && (canvas.style.display='none'); hideLoader(); $('devFallback').style.display='block'; return; }
+  var THREE=window.THREE, renderer;
+  try{
+    renderer=new THREE.WebGLRenderer({canvas:canvas, antialias:true, alpha:true});
+  }catch(e){ canvas.style.display='none'; hideLoader(); $('devFallback').style.display='block'; return; }
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+  renderer.outputEncoding=THREE.sRGBEncoding;
+  renderer.toneMapping=THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure=1.05;
+  var scene=new THREE.Scene();
+  var camera=new THREE.PerspectiveCamera(30,1,.1,100);
+  camera.position.set(0,1.5,9.8);
+  camera.lookAt(0,1.2,0);
+
+  // studio environment for the glass and plastics
+  (function(){
+    var env=new THREE.Scene();
+    function light(c,w,h,x,y,z,rx,ry){
+      var m=new THREE.Mesh(new THREE.PlaneGeometry(w,h), new THREE.MeshBasicMaterial({color:c}));
+      m.position.set(x,y,z); m.rotation.set(rx||0, ry||0, 0); env.add(m);
+    }
+    env.background=new THREE.Color(0x0a1416);
+    light(0xffffff, 8,8, 0,7,0, Math.PI/2);
+    light(0x8fd8d2, 6,8, -6,2,2, 0, Math.PI/2);
+    light(0x6d8b90, 6,8, 6,2,-2, 0, -Math.PI/2);
+    var pm=new THREE.PMREMGenerator(renderer); pm.compileEquirectangularShader();
+    scene.environment=pm.fromScene(env, .05).texture;
+  })();
+
+  scene.add(new THREE.HemisphereLight(0xcfe7e4, 0x0b1416, .55));
+  var key=new THREE.DirectionalLight(0xffffff,.9); key.position.set(3,6,5); scene.add(key);
+  var rim=new THREE.PointLight(0x46b8af,14,9); rim.position.set(-1.6,2.2,-1.4); scene.add(rim);
+  var ringLight=new THREE.PointLight(0x9fe9e2,9,4.5); ringLight.position.set(0,.25,0); scene.add(ringLight);
+
+  function tex(w,h,fn){
+    var c=document.createElement('canvas'); c.width=w; c.height=h; fn(c.getContext('2d'),w,h);
+    var t=new THREE.CanvasTexture(c); t.anisotropy=4; return t;
+  }
+  var device=new THREE.Group(); scene.add(device);
+  var partBase=new THREE.Group(), partGlass=new THREE.Group(), partCap=new THREE.Group();
+  device.add(partBase, partGlass, partCap);
+
+  // ---- speaker base with the perforated grille from the photographs
+  var grille=tex(1024,256,function(g,w,h){
+    g.fillStyle='#4d5356'; g.fillRect(0,0,w,h);
+    g.fillStyle='#22282a';
+    for(var y=8;y<h;y+=15){
+      for(var x=(y/15%2)*7+6;x<w;x+=14){ g.beginPath(); g.arc(x,y,3.1,0,6.283); g.fill(); }
+    }
+  });
+  grille.wrapS=THREE.RepeatWrapping; grille.repeat.set(3,1); grille.encoding=THREE.sRGBEncoding;
+  var baseProfile=[];
+  [[0,-1.02],[.62,-1.02],[.86,-.96],[1.0,-.82],[1.06,-.58],[1.06,-.06],[0,-.06]].forEach(function(p){ baseProfile.push(new THREE.Vector2(p[0],p[1])); });
+  var base=new THREE.Mesh(new THREE.LatheGeometry(baseProfile,72), new THREE.MeshStandardMaterial({map:grille, roughness:.78, metalness:.15}));
+  partBase.add(base);
+  partBase.add(new THREE.Mesh(new THREE.TorusGeometry(1.055,.035,12,80), new THREE.MeshStandardMaterial({color:0x9aa0a2, roughness:.35, metalness:.6})).translateY(-.06));
+  partBase.children[partBase.children.length-1].rotation.x=Math.PI/2;
+  var platform=new THREE.Mesh(new THREE.CylinderGeometry(.95,.95,.07,64), new THREE.MeshStandardMaterial({color:0x0b1012, roughness:.22, metalness:.5}));
+  platform.position.y=-.035; partBase.add(platform);
+  var ledMat=new THREE.MeshBasicMaterial({color:0xbff3ee});
+  var led=new THREE.Mesh(new THREE.TorusGeometry(.83,.016,10,96), ledMat);
+  led.rotation.x=Math.PI/2; led.position.y=.012; partBase.add(led);
+  var glowTex=tex(256,256,function(g,w){
+    var gr=g.createRadialGradient(w/2,w/2,w*0.26,w/2,w/2,w*0.5);
+    gr.addColorStop(0,'rgba(120,230,220,.55)'); gr.addColorStop(1,'rgba(120,230,220,0)');
+    g.fillStyle=gr; g.fillRect(0,0,w,w);
+  });
+  var glowDisc=new THREE.Mesh(new THREE.PlaneGeometry(2.3,2.3), new THREE.MeshBasicMaterial({map:glowTex, transparent:true, blending:THREE.AdditiveBlending, depthWrite:false}));
+  glowDisc.rotation.x=-Math.PI/2; glowDisc.position.y=.02; partBase.add(glowDisc);
+
+  // ---- the display panel behind the figure, as in the photographs
+  var panelTex=tex(256,512,function(g,w,h){
+    var gr=g.createLinearGradient(0,0,0,h);
+    gr.addColorStop(0,'#0d1f22'); gr.addColorStop(.55,'#12292c'); gr.addColorStop(1,'#08141600');
+    g.fillStyle=gr; g.fillRect(0,0,w,h);
+    g.fillStyle='rgba(70,184,175,.05)';
+    for(var y=0;y<h;y+=4) g.fillRect(0,y,w,1.4);
+  });
+  var backPanel=new THREE.Mesh(new THREE.PlaneGeometry(1.5,2.5), new THREE.MeshBasicMaterial({map:panelTex, transparent:true, opacity:.9}));
+  backPanel.position.set(0,1.5,-.45); partGlass.add(backPanel);
+
+  // ---- transparent enclosure
+  var glassGeo=new THREE.CylinderGeometry(1.03,1.03,2.95,72,1,true);
+  var glass=new THREE.Mesh(glassGeo, new THREE.MeshPhysicalMaterial({
+    color:0xd6e8e6, metalness:0, roughness:.06, transparent:true, opacity:.14,
+    side:THREE.DoubleSide, depthWrite:false, clearcoat:1, clearcoatRoughness:.05, envMapIntensity:1.4
+  }));
+  glass.position.y=1.48; glass.renderOrder=6; partGlass.add(glass);
+  var fresnel=new THREE.Mesh(glassGeo.clone(), new THREE.ShaderMaterial({
+    transparent:true, depthWrite:false, side:THREE.DoubleSide, blending:THREE.AdditiveBlending,
+    uniforms:{c:{value:new THREE.Color(0x9fdcd6)}, k:{value:.55}},
+    vertexShader:'varying vec3 vN; varying vec3 vV; void main(){ vec4 mv=modelViewMatrix*vec4(position,1.); vN=normalize(normalMatrix*normal); vV=normalize(-mv.xyz); gl_Position=projectionMatrix*mv; }',
+    fragmentShader:'uniform vec3 c; uniform float k; varying vec3 vN; varying vec3 vV; void main(){ float f=pow(1.-abs(dot(normalize(vN),normalize(vV))),2.6); gl_FragColor=vec4(c, f*k+0.02); }'
+  }));
+  fresnel.position.y=1.48; fresnel.renderOrder=7; partGlass.add(fresnel);
+
+  // ---- top cap with camera and microphones
+  var capProfile=[];
+  [[0,3.62],[.42,3.60],[.74,3.50],[.96,3.30],[1.06,3.08],[1.06,2.94],[0,2.94]].forEach(function(p){ capProfile.push(new THREE.Vector2(p[0],p[1])); });
+  var cap=new THREE.Mesh(new THREE.LatheGeometry(capProfile,72), new THREE.MeshStandardMaterial({color:0x6f7679, roughness:.42, metalness:.55}));
+  partCap.add(cap);
+  var camEye=new THREE.Mesh(new THREE.SphereGeometry(.075,24,16), new THREE.MeshStandardMaterial({color:0x070c0d, roughness:.12, metalness:.4}));
+  camEye.position.set(0,3.44,.62); partCap.add(camEye);
+  var camGlint=new THREE.Mesh(new THREE.SphereGeometry(.022,12,10), new THREE.MeshBasicMaterial({color:0x7fd6ce}));
+  camGlint.position.set(.02,3.46,.68); partCap.add(camGlint);
+  [-.62,-.48,.48,.62].forEach(function(x){
+    var m=new THREE.Mesh(new THREE.CircleGeometry(.022,12), new THREE.MeshBasicMaterial({color:0x1a2224}));
+    m.position.set(x,3.16,.72); m.rotation.x=-.5; partCap.add(m);
+  });
+
+  // ---- the robot
+  var robot=new THREE.Group(); robot.position.y=.42; partGlass.add(robot);
+  var shell=new THREE.MeshStandardMaterial({color:0xeef3f2, roughness:.36, metalness:.06});
+  var dark=new THREE.MeshStandardMaterial({color:0x0c1416, roughness:.18, metalness:.45});
+  var grey=new THREE.MeshStandardMaterial({color:0x9fa8a9, roughness:.4, metalness:.5});
+  var glowMat=function(c){ return new THREE.MeshBasicMaterial({color:c}); };
+  var tealC=new THREE.Color(0x5fe0d6), redC=new THREE.Color(0xff6a5e);
+
+  var torso=new THREE.Mesh(new THREE.SphereGeometry(.36,40,28), shell);
+  torso.scale.set(1,1.12,.92); torso.position.y=.82; robot.add(torso);
+  var belt=new THREE.Mesh(new THREE.TorusGeometry(.33,.026,12,48), grey);
+  belt.rotation.x=Math.PI/2; belt.position.y=.68; robot.add(belt);
+  var chestTex=tex(256,160,function(g,w,h){
+    g.fillStyle='#0c1416'; g.fillRect(0,0,w,h);
+    g.strokeStyle='#5fe0d6'; g.lineWidth=7; g.lineJoin='round'; g.beginPath();
+    g.moveTo(16,h/2); g.lineTo(70,h/2); g.lineTo(86,h/2-40); g.lineTo(112,h/2+46); g.lineTo(134,h/2-14); g.lineTo(150,h/2); g.lineTo(w-16,h/2);
+    g.stroke();
+  });
+  var chest=new THREE.Mesh(new THREE.PlaneGeometry(.34,.21), new THREE.MeshBasicMaterial({map:chestTex}));
+  chest.position.set(0,.92,.33); robot.add(chest);
+  var thruster=new THREE.Mesh(new THREE.CylinderGeometry(.16,.24,.2,28), grey);
+  thruster.position.y=.36; robot.add(thruster);
+  var thrusterGlow=new THREE.Mesh(new THREE.PlaneGeometry(1.1,1.1), new THREE.MeshBasicMaterial({map:glowTex, transparent:true, blending:THREE.AdditiveBlending, depthWrite:false}));
+  thrusterGlow.rotation.x=-Math.PI/2; thrusterGlow.position.y=.24; robot.add(thrusterGlow);
+
+  var head=new THREE.Group(); head.position.y=1.5; robot.add(head);
+  var skull=new THREE.Mesh(new THREE.SphereGeometry(.34,40,28), shell);
+  skull.scale.set(1.12,.96,1); head.add(skull);
+  var visor=new THREE.Mesh(new THREE.SphereGeometry(.31,40,28), dark);
+  visor.scale.set(1.08,.66,.9); visor.position.set(0,.01,.09); head.add(visor);
+  var eyeMat=glowMat(tealC.clone());
+  var eyes=[-.105,.105].map(function(x){
+    var e=new THREE.Mesh(new THREE.SphereGeometry(.05,20,14), eyeMat);
+    e.scale.set(1,1.25,.35); e.position.set(x,.03,.33); head.add(e); return e;
+  });
+  var mouthMat=glowMat(tealC.clone());
+  var mouth=[-2,-1,0,1,2].map(function(i){
+    var m=new THREE.Mesh(new THREE.BoxGeometry(.022,.07,.012), mouthMat);
+    m.position.set(i*.035,-.12,.30); m.scale.y=.2; head.add(m); return m;
+  });
+  [-1,1].forEach(function(s){
+    var ear=new THREE.Mesh(new THREE.CylinderGeometry(.075,.075,.07,20), grey);
+    ear.rotation.z=Math.PI/2; ear.position.set(s*.4,0,0); head.add(ear);
+    var ring=new THREE.Mesh(new THREE.TorusGeometry(.05,.012,8,24), glowMat(tealC.clone()));
+    ring.rotation.y=Math.PI/2; ring.position.set(s*.44,0,0); head.add(ring);
+  });
+  var antenna=new THREE.Mesh(new THREE.CylinderGeometry(.014,.014,.2,10), grey);
+  antenna.position.set(0,.4,0); head.add(antenna);
+  var tipMat=glowMat(tealC.clone());
+  var tip=new THREE.Mesh(new THREE.SphereGeometry(.045,16,12), tipMat);
+  tip.position.set(0,.52,0); head.add(tip);
+
+  function arm(side){
+    var g=new THREE.Group(); g.position.set(side*.4,1.03,0); robot.add(g);
+    var sh=new THREE.Mesh(new THREE.SphereGeometry(.1,20,16), grey); g.add(sh);
+    var up=new THREE.Mesh(new THREE.CylinderGeometry(.055,.05,.3,16), shell); up.position.y=-.17; g.add(up);
+    var fore=new THREE.Group(); fore.position.y=-.32; g.add(fore);
+    var f=new THREE.Mesh(new THREE.CylinderGeometry(.05,.045,.26,16), shell); f.position.y=-.14; fore.add(f);
+    var hand=new THREE.Mesh(new THREE.SphereGeometry(.075,18,14), shell); hand.position.y=-.29; fore.add(hand);
+    return {root:g, fore:fore};
+  }
+  var armL=arm(-1), armR=arm(1);
+
+  // hologram cone + motes
+  var coneMat=new THREE.ShaderMaterial({
+    transparent:true, depthWrite:false, side:THREE.DoubleSide, blending:THREE.AdditiveBlending,
+    uniforms:{c:{value:new THREE.Color(0x46b8af)}, k:{value:.16}},
+    vertexShader:'varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }',
+    fragmentShader:'uniform vec3 c; uniform float k; varying vec2 vUv; void main(){ gl_FragColor=vec4(c, pow(1.-vUv.y,1.8)*k); }'
+  });
+  var cone=new THREE.Mesh(new THREE.CylinderGeometry(.42,.9,2.1,40,1,true), coneMat);
+  cone.position.y=1.05; partGlass.add(cone);
+  var moteTex=tex(64,64,function(g,w){
+    var gr=g.createRadialGradient(w/2,w/2,0,w/2,w/2,w/2);
+    gr.addColorStop(0,'rgba(190,245,240,1)'); gr.addColorStop(1,'rgba(190,245,240,0)');
+    g.fillStyle=gr; g.fillRect(0,0,w,w);
+  });
+  var MOTES=110, mPos=new Float32Array(MOTES*3), mSpd=new Float32Array(MOTES), mr=rng(3);
+  for(var i=0;i<MOTES;i++){
+    var a=mr()*6.283, rad=.15+mr()*.78;
+    mPos[i*3]=Math.cos(a)*rad; mPos[i*3+1]=mr()*2.7; mPos[i*3+2]=Math.sin(a)*rad;
+    mSpd[i]=.1+mr()*.25;
+  }
+  var mGeo=new THREE.BufferGeometry(); mGeo.setAttribute('position', new THREE.BufferAttribute(mPos,3));
+  var motes=new THREE.Points(mGeo, new THREE.PointsMaterial({size:.05, map:moteTex, transparent:true, opacity:.75, depthWrite:false, blending:THREE.AdditiveBlending}));
+  partGlass.add(motes);
+
+  // contact shadow
+  var shadow=new THREE.Mesh(new THREE.PlaneGeometry(4.4,4.4), new THREE.MeshBasicMaterial({map:tex(256,256,function(g,w){
+    var gr=g.createRadialGradient(w/2,w/2,w*.1,w/2,w/2,w*.5);
+    gr.addColorStop(0,'rgba(0,0,0,.55)'); gr.addColorStop(1,'rgba(0,0,0,0)');
+    g.fillStyle=gr; g.fillRect(0,0,w,w);
+  }), transparent:true, depthWrite:false}));
+  shadow.rotation.x=-Math.PI/2; shadow.position.y=-1.03; scene.add(shadow);
+
+  // exploded-view labels
+  var labelDefs=[
+    {t:'Camera · microphone array', obj:partCap, off:new THREE.Vector3(0,3.3,.7)},
+    {t:'Transparent enclosure', obj:partGlass, off:new THREE.Vector3(1.05,2.5,0)},
+    {t:'Display and projection', obj:partGlass, off:new THREE.Vector3(-1.0,1.6,0)},
+    {t:'Light ring', obj:partBase, off:new THREE.Vector3(.95,.05,.3)},
+    {t:'Speaker · on-board compute', obj:partBase, off:new THREE.Vector3(-.9,-.6,.3)}
+  ];
+  labelDefs.forEach(function(l){
+    l.el=document.createElement('div'); l.el.className='lbl3d'; l.el.textContent=l.t;
+    $('stage').appendChild(l.el);
+  });
+
+  var exploded=0, explodeTarget=0;
+  $('btnExplode').addEventListener('click', function(){
+    var on=this.getAttribute('aria-pressed')!=='true';
+    this.setAttribute('aria-pressed', on); explodeTarget=on?1:0;
+  });
+  var waveUntil=0;
+  $('btnActivate').addEventListener('click', function(){
+    waveUntil=performance.now()/1000+3.2;
+    if(window.ResQReplay) window.ResQReplay();
+    document.querySelector('.console').scrollIntoView({block:'nearest'});
+  });
+
+  // drag to turn
+  var rotY=0, rotV=0, dragging=false, lastX=0, pointer={x:0,y:0};
+  canvas.addEventListener('pointerdown', function(e){ dragging=true; lastX=e.clientX; canvas.setPointerCapture(e.pointerId); });
+  canvas.addEventListener('pointerup', function(e){ dragging=false; try{ canvas.releasePointerCapture(e.pointerId); }catch(err){} });
+  canvas.addEventListener('pointerleave', function(){ dragging=false; });
+  canvas.addEventListener('pointermove', function(e){
+    var r=canvas.getBoundingClientRect();
+    pointer.x=((e.clientX-r.left)/r.width)*2-1;
+    pointer.y=((e.clientY-r.top)/r.height)*2-1;
+    if(dragging){ rotV+=(e.clientX-lastX)*.006; lastX=e.clientX; }
+  });
+
+  function resize(){
+    var r=canvas.getBoundingClientRect();
+    if(!r.width) return;
+    renderer.setSize(r.width, r.height, false);
+    camera.aspect=r.width/r.height; camera.updateProjectionMatrix();
+  }
+  if('ResizeObserver' in window) new ResizeObserver(resize).observe(canvas); else window.addEventListener('resize', resize);
+  resize();
+
+  var visible=true;
+  if('IntersectionObserver' in window) new IntersectionObserver(function(es){ visible=es[0].isIntersecting; },{threshold:.02}).observe(canvas);
+
+  var badge=$('devBadge'), badgeTxt=$('devState'), lastBadge='';
+  var tmp=new THREE.Vector3();
+  var blinkAt=2.2;
+  function tick(now){
+    requestAnimationFrame(tick);
+    if(!visible || document.hidden) return;
+    var t=now/1000;
+    var st=window.ResQState||{};
+    // device rotation
+    rotY+=rotV; rotV*=.92;
+    if(!dragging && !reduced) rotY+=Math.sin(t*.22)*.0016;
+    device.rotation.y=rotY;
+    // exploded
+    exploded += (explodeTarget-exploded)*.09;
+    partCap.position.y=exploded*.95;
+    partGlass.position.y=exploded*.3;
+    partBase.position.y=-exploded*.55;
+    // robot life
+    var fl=reduced?0:Math.sin(t*1.5)*.05;
+    robot.position.y=.42+fl;
+    robot.rotation.y=Math.sin(t*.5)*.08 - pointer.x*.15;
+    head.rotation.y=-pointer.x*.35 - rotY*.25;
+    head.rotation.x=pointer.y*.16;
+    // blink
+    var blink=1;
+    if(t>blinkAt){ if(t<blinkAt+.13) blink=.12; else blinkAt=t+2.4+Math.random()*2.6; }
+    eyes.forEach(function(e){ e.scale.y=1.25*blink; });
+    // speaking
+    var sp=st.speaking;
+    mouth.forEach(function(m,i){
+      var target = sp ? .25+Math.abs(Math.sin(t*13+i*1.7))*.95 : .18;
+      m.scale.y += (target-m.scale.y)*.35;
+    });
+    // alert colours
+    var target = st.alert ? redC : tealC;
+    eyeMat.color.lerp(target,.08); mouthMat.color.lerp(target,.08); tipMat.color.lerp(target,.08);
+    ledMat.color.lerp(st.alert?redC:new THREE.Color(0xbff3ee),.08);
+    ringLight.color.lerp(st.alert?redC:new THREE.Color(0x9fe9e2),.08);
+    ringLight.intensity = 7+Math.sin(t*(st.alert?7:1.6))*(st.alert?4:1.4);
+    tip.scale.setScalar(1+Math.sin(t*(st.alert?8:2.4))*.16);
+    coneMat.uniforms.k.value = .1+(st.active?.09:0)+Math.sin(t*1.4)*.015;
+    // arms: idle, wave on activate, palm-out when a hold lands
+    var waving = t<waveUntil;
+    var rTarget = st.alert ? -1.75 : (waving ? -2.5+Math.sin(t*9)*.28 : .07+Math.sin(t*1.2)*.05);
+    var rFore = st.alert ? -1.15 : (waving ? -.25 : .12);
+    armR.root.rotation.z += (rTarget-armR.root.rotation.z)*.12;
+    armR.fore.rotation.z += (rFore-armR.fore.rotation.z)*.12;
+    armL.root.rotation.z += ((-.07-Math.sin(t*1.2)*.05)-armL.root.rotation.z)*.1;
+    // motes
+    if(!reduced){
+      var p=mGeo.attributes.position;
+      for(var i=0;i<MOTES;i++){
+        var y=p.getY(i)+mSpd[i]*.016;
+        if(y>2.75) y=0;
+        p.setY(i,y);
+      }
+      p.needsUpdate=true;
+    }
+    // labels
+    labelDefs.forEach(function(l){
+      var v=tmp.copy(l.off); l.obj.localToWorld(v); v.project(camera);
+      var r=canvas.getBoundingClientRect();
+      l.el.style.left=((v.x*.5+.5)*r.width)+'px';
+      l.el.style.top=((-v.y*.5+.5)*r.height)+'px';
+      l.el.style.opacity=exploded>.25?Math.min(1,(exploded-.25)/.5):0;
+    });
+    // badge
+    var bs = st.alert?'guidance corrected' : (sp?'speaking':(st.active?'session active':'standby'));
+    if(bs!==lastBadge){
+      badgeTxt.textContent=bs; lastBadge=bs;
+      badge.className='stage-badge'+(st.alert?' alert':(sp?' speaking':''));
+    }
+    renderer.render(scene,camera);
+    hideLoader();
+  }
+  requestAnimationFrame(tick);
+  setTimeout(hideLoader, 6000);
+})();
+})();
+</script>
+
+</body></html>
