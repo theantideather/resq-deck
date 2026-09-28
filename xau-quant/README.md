@@ -2,7 +2,21 @@
 
 A research and trading toolkit built for one market: gold. It has gold's own drivers (dollar, real yields, positioning, sessions, the LBMA fix, US data days), costs charged the way a broker charges them, and validation that tells you when a backtest is luck. An AI analyst desk explains the market and can cut risk, but never add it.
 
-The market research behind it, covering products, open source bots, drivers and data sources, is in [`docs/RESEARCH.md`](docs/RESEARCH.md).
+The market research behind it, covering products, open source bots, drivers and data sources, is in [`docs/RESEARCH.md`](docs/RESEARCH.md). To run it on TradingView (Pine Script, MCP with Claude Code, alert webhooks), see [`docs/TRADINGVIEW.md`](docs/TRADINGVIEW.md).
+
+## Dashboard
+
+```bash
+pip install -e .
+python -m aurum.web          # open http://127.0.0.1:8765
+```
+
+The dashboard has a live TradingView chart of OANDA:XAUUSD and the desk brief (tick **Claude** to add the strategist when `ANTHROPIC_API_KEY` is set). It shows each backtest with price and trade markers, equity and drawdown charts, the validation verdict with the cost stress table, a strategy league table, the trade list, the Pine Script to copy, and the TradingView alert log. It uses TradingView's open source Lightweight Charts, bundled so it works offline. The server uses only the standard library.
+
+## TradingView
+
+- `tradingview/aurum_gold.pine`: Pine Script v6 port of the four strategies, with news filter, desk table, swap estimate and JSON alerts.
+- `python -m aurum.mcp_server`: aurum as an MCP server. `.mcp.json` registers it alongside [tradingview-mcp](https://github.com/tradesdontlie/tradingview-mcp), so Claude Code can load, compile and test the strategy on your TradingView chart and run the desk on your chart's bars.
 
 ## Quick start
 
@@ -13,7 +27,7 @@ python -m aurum compare              # league table of all strategies
 python -m aurum backtest --strategy macro_reversion --trials 4 --out reports
 python -m aurum ml --horizon 24 --k-atr 1.5 --out reports
 python -m aurum brief                # today's desk view
-pytest                               # 21 tests
+pytest                               # 28 tests
 ```
 
 Everything defaults to a **synthetic gold market**, so it runs offline. For real data:
@@ -47,6 +61,9 @@ python -m aurum brief --source yahoo --headlines headlines.txt
 | `validation.py` | Probabilistic and deflated Sharpe, trade bootstrap drawdowns, cost stress at 1x/1.5x/2x/3x, and a verdict |
 | `agents.py` | Macro, positioning, technical and event analysts, plus a Claude strategist (structured JSON output, adaptive thinking, refusal fallback) and a risk manager that can only shrink or veto |
 | `report.py` | Self-contained HTML tear sheet |
+| `service.py` | JSON entry points shared by the dashboard and the MCP server |
+| `web/` | Dashboard server (standard library) and single-page UI |
+| `mcp_server.py` | MCP server: backtests, desk, TradingView bars, Pine source, alert log |
 
 ## Results on synthetic data, and why they're negative
 
@@ -78,6 +95,6 @@ Numbers on real data will differ. Run `--source yahoo` or `--source csv` before 
 
 ## Roadmap
 
-Live execution (MT5 bridge, OANDA v20), paper-trading mode, Dukascopy tick data, GLD holdings and WGC central bank data, CPI/PCE calendar, Kronos candle embeddings, meta-labeling, combinatorial purged CV, a news ingestion agent, a web dashboard with Telegram alerts. See `docs/RESEARCH.md`, section 4.
+Live execution (MT5 bridge, OANDA v20) behind paper trading, Dukascopy tick data, GLD holdings and WGC central bank data, CPI/PCE calendar, Kronos candle embeddings, meta-labeling, combinatorial purged CV, a news ingestion agent, a web dashboard with Telegram alerts. See `docs/RESEARCH.md`, section 4.
 
 Research software. Not investment advice.

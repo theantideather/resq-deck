@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "aurum"
-version = "0.1.0"
+version = "0.2.0"
 description = "AI quant research and trading toolkit for gold (XAUUSD)"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -17,13 +17,19 @@ dependencies = [
 [project.optional-dependencies]
 data = ["yfinance>=0.2.40"]
 llm = ["anthropic>=1.0"]
+mcp = ["mcp>=1.9"]
 dev = ["pytest>=8"]
 
 [project.scripts]
 aurum = "aurum.cli:main"
+aurum-web = "aurum.web.server:main"
+aurum-mcp = "aurum.mcp_server:main"
 
 [tool.setuptools]
-packages = ["aurum"]
+packages = ["aurum", "aurum.web"]
+
+[tool.setuptools.package-data]
+"aurum.web" = ["index.html", "static/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

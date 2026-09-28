@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>aurum · Gold Desk</title>
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #0f0f0e;
+  --panel: #171716;
+  --panel-2: #1f1f1d;
+  --rule: #2c2b28;
+  --text: #f2efe6;
+  --text-2: #c3c2b7;
+  --muted: #8d8b82;
+  --gold: #e0b252;
+  --gold-ink: #1a1405;
+  --up: #199e70;
+  --down: #e66767;
+  --bull: #3987e5;
+  --warn: #c98500;
+  --focus: #e0b252;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    color-scheme: light;
+    --bg: #f6f4ef; --panel: #fcfcfb; --panel-2: #f0efec; --rule: #e1ded6;
+    --text: #0b0b0b; --text-2: #52514e; --muted: #75736c;
+    --gold: #9a6b00; --gold-ink: #ffffff; --up: #1baf7a; --down: #e34948; --bull: #2a78d6; --warn: #b07400;
+  }
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f6f4ef; --panel: #fcfcfb; --panel-2: #f0efec; --rule: #e1ded6;
+  --text: #0b0b0b; --text-2: #52514e; --muted: #75736c;
+  --gold: #9a6b00; --gold-ink: #ffffff; --up: #1baf7a; --down: #e34948; --bull: #2a78d6; --warn: #b07400;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; background: var(--bg); color: var(--text); }
+body { font: 14px/1.45 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+.num, table { font-variant-numeric: tabular-nums; }
+a { color: var(--gold); }
+header {
+  position: sticky; top: 0; z-index: 5; background: color-mix(in srgb, var(--bg) 92%, transparent);
+  backdrop-filter: blur(6px); border-bottom: 1px solid var(--rule);
+}
+.bar { max-width: 1440px; margin: 0 auto; padding: 10px 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.brand { display: flex; align-items: baseline; gap: 8px; margin-right: 8px; }
+.brand b { font-size: 18px; letter-spacing: .02em; color: var(--gold); }
+.brand span { color: var(--muted); font-size: 12px; }
+.controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; flex: 1; }
+label.f { display: flex; flex-direction: column; font-size: 11px; color: var(--muted); gap: 2px; }
+select, input { background: var(--panel-2); color: var(--text); border: 1px solid var(--rule); border-radius: 6px; padding: 6px 8px; font: inherit; }
+input[type=number] { width: 70px; } input[type=date] { width: 140px; }
+button { font: inherit; border-radius: 6px; padding: 7px 14px; border: 1px solid var(--rule); background: var(--panel-2); color: var(--text); cursor: pointer; }
+button.primary { background: var(--gold); color: var(--gold-ink); border-color: var(--gold); font-weight: 600; }
+button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+#status { color: var(--muted); font-size: 12px; min-width: 120px; }
+main { max-width: 1440px; margin: 0 auto; padding: 16px; display: grid; gap: 16px; }
+.grid-top { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 16px; }
+.panel { background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; padding: 14px; min-width: 0; }
+.panel h2 { margin: 0 0 10px; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.panel h2 small { text-transform: none; letter-spacing: 0; font-weight: 400; }
+#tv { height: 520px; border-radius: 8px; overflow: hidden; position: relative; background: var(--panel-2); }
+#tv::before { content: "Loading TradingView… If this stays empty, tradingview.com is blocked on this network."; position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center; color: var(--muted); font-size: 13px; }
+#tv > * { position: relative; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; }
+.tile { background: var(--panel-2); border-radius: 8px; padding: 10px 12px; }
+.tile .k { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }
+.tile .v { font-size: 20px; font-weight: 600; margin-top: 2px; }
+.chart { height: 340px; }
+.chart.sm { height: 180px; }
+.legend { font-size: 12px; color: var(--text-2); min-height: 18px; margin: 4px 0; }
+.two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+th { color: var(--muted); font-weight: 500; font-size: 12px; }
+tbody tr:hover { background: var(--panel-2); }
+tr.sel td { color: var(--gold); }
+.scroll { overflow: auto; max-height: 360px; }
+.verdict { padding: 10px 12px; border-radius: 8px; background: var(--panel-2); border-left: 4px solid var(--muted); margin-bottom: 10px; }
+.verdict.pass { border-color: var(--up); } .verdict.fail { border-color: var(--down); } .verdict.warn { border-color: var(--warn); }
+.verdict b { display: block; margin-bottom: 2px; }
+.kv { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; font-size: 13px; }
+.kv span:nth-child(odd) { color: var(--text-2); }
+.pos { color: var(--up); } .neg { color: var(--down); }
+.signal { display: flex; align-items: center; gap: 10px; margin: 6px 0 12px; }
+.signal .big { font-size: 28px; font-weight: 700; }
+.meter { position: relative; height: 8px; background: var(--panel-2); border-radius: 4px; flex: 1; }
+.meter i { position: absolute; top: 0; bottom: 0; border-radius: 4px; }
+.meter::after { content: ""; position: absolute; left: 50%; top: -3px; bottom: -3px; width: 1px; background: var(--muted); }
+.view { padding: 8px 0; border-top: 1px solid var(--rule); }
+.view .h { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+.view .h b { text-transform: capitalize; }
+.view ul { margin: 4px 0 0; padding-left: 18px; color: var(--text-2); font-size: 12px; }
+.notes { font-size: 12px; color: var(--text-2); margin: 8px 0 0; padding-left: 18px; }
+pre.code { background: var(--panel-2); border-radius: 8px; padding: 12px; max-height: 320px; overflow: auto; font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; margin: 0; }
+ol.steps { padding-left: 20px; margin: 0 0 10px; color: var(--text-2); }
+ol.steps code, p code { background: var(--panel-2); padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+.muted { color: var(--muted); }
+.err { color: var(--down); }
+.tabs { display: flex; gap: 4px; }
+.tabs button { padding: 4px 10px; font-size: 12px; }
+.tabs button[aria-selected=true] { border-color: var(--gold); color: var(--gold); }
+footer { max-width: 1440px; margin: 0 auto; padding: 8px 16px 32px; color: var(--muted); font-size: 12px; }
+@media (max-width: 1100px) { .grid-top, .two { grid-template-columns: minmax(0, 1fr); } #tv { height: 420px; } }
+@media (max-width: 600px) { header { position: static; } .chart { height: 260px; } .tile .v { font-size: 17px; } #tv { height: 360px; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <div class="brand"><b>aurum</b><span>XAUUSD gold desk</span></div>
+    <div class="controls">
+      <label class="f">Data
+        <select id="source">
+          <option value="synthetic">Synthetic (offline)</option>
+          <option value="yahoo">Yahoo + FRED + CFTC</option>
+          <option value="csv">CSV / MT5 export</option>
+        </select>
+      </label>
+      <label class="f" id="csvWrap" hidden>CSV path<input id="csv" placeholder="/path/XAUUSD_H1.csv"></label>
+      <label class="f">From<input type="date" id="start" value="2019-01-01"></label>
+      <label class="f">To<input type="date" id="end" value="2024-12-31"></label>
+      <label class="f">Strategy<select id="strategy"></select></label>
+      <label class="f" title="How many variants you tried; feeds the deflated Sharpe">Trials<input type="number" id="trials" value="4" min="1"></label>
+      <button class="primary" id="run">Run backtest</button>
+      <span id="status" role="status" aria-live="polite"></span>
+    </div>
+    <button id="theme" aria-label="Toggle light and dark theme">◐</button>
+  </div>
+</header>
+
+<main>
+  <section class="grid-top">
+    <div class="panel">
+      <h2>Live chart <small class="muted">TradingView · OANDA:XAUUSD</small></h2>
+      <div id="tv"></div>
+    </div>
+    <div class="panel" id="desk">
+      <h2>Desk brief
+        <span style="display:flex;gap:6px;align-items:center">
+          <label style="font-size:12px;text-transform:none;letter-spacing:0;display:flex;gap:4px;align-items:center"><input type="checkbox" id="llm"> Claude</label>
+          <button id="briefBtn">Refresh</button>
+        </span>
+      </h2>
+      <div id="deskBody" class="muted">Loading…</div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Backtest <small id="btTitle" class="muted"></small></h2>
+    <div class="tiles" id="tiles"></div>
+  </section>
+
+  <section class="panel">
+    <h2>Price and trades <small class="muted" id="tfNote"></small></h2>
+    <div class="legend">Hollow candles close up, filled close down. ▲ long entry, ▼ short entry.</div>
+    <div id="priceChart" class="chart"></div>
+  </section>
+
+  <section class="two">
+    <div class="panel">
+      <h2>Equity <small class="muted">USD</small></h2>
+      <div class="legend" id="eqLegend"></div>
+      <div id="eqChart" class="chart sm"></div>
+      <h2 style="margin-top:14px">Drawdown <small class="muted">%</small></h2>
+      <div id="ddChart" class="chart sm"></div>
+    </div>
+    <div class="panel">
+      <h2>Validation</h2>
+      <div id="validation" class="muted">Run a backtest.</div>
+    </div>
+  </section>
+
+  <section class="two">
+    <div class="panel">
+      <h2>Strategy league <button id="compareBtn">Compare all</button></h2>
+      <div class="scroll"><table id="league"><thead><tr>
+        <th scope="col">Strategy</th><th scope="col">Return</th><th scope="col">Sharpe</th><th scope="col">Max DD</th>
+        <th scope="col">Trades</th><th scope="col">Win</th><th scope="col">PF</th><th scope="col">Swap</th>
+      </tr></thead><tbody><tr><td colspan="8" class="muted">Press Compare all.</td></tr></tbody></table></div>
+    </div>
+    <div class="panel">
+      <h2>Trades <small class="muted" id="tradeCount"></small></h2>
+      <div class="scroll"><table id="trades"><thead><tr>
+        <th scope="col">Entry (UTC)</th><th scope="col">Side</th><th scope="col">Lots</th><th scope="col">Entry</th>
+        <th scope="col">Exit</th><th scope="col">Reason</th><th scope="col">P&amp;L</th><th scope="col">R</th>
+      </tr></thead><tbody></tbody></table></div>
+    </div>
+  </section>
+
+  <section class="two">
+    <div class="panel">
+      <h2>Run it on TradingView
+        <span class="tabs" role="tablist">
+          <button role="tab" aria-selected="true" data-tab="mcp">With MCP</button>
+          <button role="tab" aria-selected="false" data-tab="manual">By hand</button>
+        </span>
+      </h2>
+      <div data-pane="mcp">
+        <ol class="steps">
+          <li>Start TradingView Desktop with <code>--remote-debugging-port=9222</code>.</li>
+          <li>Open Claude Code in <code>xau-quant/</code>. <code>.mcp.json</code> connects both the <code>tradingview</code> and <code>aurum</code> servers.</li>
+          <li>Ask: <em>“Load the aurum Pine strategy onto OANDA:XAUUSD 1h, compile it, and screenshot the Strategy Tester.”</em></li>
+          <li>Ask: <em>“Pull 1500 hourly bars from my chart and run the aurum desk on them.”</em></li>
+        </ol>
+      </div>
+      <div data-pane="manual" hidden>
+        <ol class="steps">
+          <li>TradingView → Pine Editor → New → Strategy, then paste the code below.</li>
+          <li>Add to chart on <code>OANDA:XAUUSD</code>, 1 hour, and pick a mode in the settings.</li>
+          <li>Open the Strategy Tester. TradingView doesn't charge swap; the desk table shows an estimate.</li>
+        </ol>
+      </div>
+      <div style="display:flex;gap:8px;margin:8px 0"><button id="copyPine">Copy Pine Script</button><span id="copyMsg" class="muted" role="status"></span></div>
+      <pre class="code" id="pine">Loading…</pre>
+    </div>
+    <div class="panel">
+      <h2>TradingView alerts <small class="muted">webhook log, refreshes every 15 s</small></h2>
+      <p class="muted" style="margin-top:0">Webhook URL (through a tunnel on port 443): <code id="hookUrl"></code></p>
+      <div class="scroll"><table id="alerts"><thead><tr>
+        <th scope="col">Received (UTC)</th><th scope="col">Action</th><th scope="col">Qty oz</th><th scope="col">Price</th><th scope="col">Mode</th><th scope="col">Regime</th>
+      </tr></thead><tbody><tr><td colspan="6" class="muted">No alerts yet.</td></tr></tbody></table></div>
+    </div>
+  </section>
+</main>
+<footer>Research software. Not investment advice. Simulated and past results do not predict future returns.</footer>
+
+<script src="/static/lightweight-charts.standalone.production.js"></script>
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+const pct = (x, d = 1) => x == null ? "–" : (x * 100).toFixed(d) + "%";
+const num = (x, d = 2) => x == null ? "–" : Number(x).toLocaleString(undefined, { minimumFractionDigits: d, maximumFractionDigits: d });
+const usd = (x) => x == null ? "–" : (x < 0 ? "-$" : "$") + Math.abs(Math.round(x)).toLocaleString();
+const signCls = (x) => x > 0 ? "pos" : x < 0 ? "neg" : "";
+function el(tag, props = {}, ...kids) {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(props)) {
+    if (k === "class") n.className = v; else if (k === "text") n.textContent = v; else n.setAttribute(k, v);
+  }
+  for (const k of kids) if (k != null) n.append(k);
+  return n;
+}
+function params() {
+  const p = new URLSearchParams({ source: $("source").value, start: $("start").value, end: $("end").value });
+  if ($("source").value === "csv") p.set("csv", $("csv").value);
+  return p;
+}
+async function api(path) {
+  const r = await fetch(path);
+  const j = await r.json();
+  if (!r.ok) throw new Error(j.error || r.statusText);
+  return j;
+}
+function status(msg, err = false) { $("status").textContent = msg; $("status").className = err ? "err" : ""; }
+
+// ---- theme ----------------------------------------------------------------
+function currentTheme() {
+  const t = document.documentElement.dataset.theme;
+  return t || (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+}
+try { const t = localStorage.getItem("aurum-theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+$("theme").onclick = () => {
+  const next = currentTheme() === "dark" ? "light" : "dark";
+  document.documentElement.dataset.theme = next;
+  try { localStorage.setItem("aurum-theme", next); } catch (e) {}
+  restyleCharts(); mountTradingView();
+};
+
+// ---- TradingView live widget ---------------------------------------------
+function mountTradingView() {
+  const host = $("tv");
+  host.replaceChildren();
+  const inner = el("div", { class: "tradingview-widget-container__widget", style: "height:100%;width:100%" });
+  const s = document.createElement("script");
+  s.src = "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
+  s.async = true;
+  s.textContent = JSON.stringify({
+    autosize: true, symbol: "OANDA:XAUUSD", interval: "60", timezone: "Etc/UTC",
+    theme: currentTheme(), style: "1", locale: "en", allow_symbol_change: true,
+    studies: ["STD;ATR", "STD;RSI"], support_host: "https://www.tradingview.com",
+  });
+  const wrap = el("div", { class: "tradingview-widget-container", style: "height:100%;width:100%" }, inner, s);
+  host.append(wrap);
+}
+
+// ---- charts ---------------------------------------------------------------
+const LW = window.LightweightCharts;
+const charts = {};
+function baseOpts() {
+  return {
+    autoSize: true,
+    layout: { background: { type: "solid", color: css("--panel") }, textColor: css("--muted"), fontSize: 11, attributionLogo: false },
+    grid: { vertLines: { color: "transparent" }, horzLines: { color: css("--rule") } },
+    rightPriceScale: { borderColor: css("--rule") },
+    timeScale: { borderColor: css("--rule"), timeVisible: true },
+    crosshair: { mode: 1 },
+  };
+}
+function makeCharts() {
+  if (!LW) { status("Chart library failed to load (offline?)", true); return; }
+  charts.price = LW.createChart($("priceChart"), baseOpts());
+  charts.candles = charts.price.addSeries(LW.CandlestickSeries, {});
+  charts.markers = LW.createSeriesMarkers(charts.candles, []);
+  charts.eq = LW.createChart($("eqChart"), baseOpts());
+  charts.eqLine = charts.eq.addSeries(LW.LineSeries, { lineWidth: 2, priceLineVisible: false });
+  charts.dd = LW.createChart($("ddChart"), baseOpts());
+  charts.ddArea = charts.dd.addSeries(LW.AreaSeries, { lineWidth: 2, priceLineVisible: false });
+  restyleCharts();
+  // Keep equity and drawdown scrolled together.
+  let syncing = false;
+  const link = (a, b) => a.timeScale().subscribeVisibleLogicalRangeChange((r) => {
+    if (syncing || !r) return; syncing = true; b.timeScale().setVisibleLogicalRange(r); syncing = false;
+  });
+  link(charts.eq, charts.dd); link(charts.dd, charts.eq);
+  charts.eq.subscribeCrosshairMove((p) => {
+    const d = p && p.seriesData && p.seriesData.get(charts.eqLine);
+    $("eqLegend").textContent = d ? `${new Date(p.time * 1000).toISOString().slice(0, 10)}  ${usd(d.value)}` : $("eqLegend").dataset.def || "";
+  });
+}
+function restyleCharts() {
+  if (!charts.price) return;
+  for (const c of [charts.price, charts.eq, charts.dd]) c.applyOptions(baseOpts());
+  const up = css("--up"), down = css("--down"), gold = css("--gold");
+  // Hollow up / filled down, so direction does not rely on red vs green alone.
+  charts.candles.applyOptions({ upColor: "rgba(0,0,0,0)", downColor: down, borderUpColor: up, borderDownColor: down, wickUpColor: up, wickDownColor: down });
+  charts.eqLine.applyOptions({ color: gold });
+  charts.ddArea.applyOptions({ lineColor: down, topColor: down + "10", bottomColor: down + "55", invertFilledArea: false });
+  if (charts.lastTrades) setMarkers(charts.lastTrades, charts.lastCandles);
+}
+function setMarkers(trades, candles) {
+  charts.lastTrades = trades; charts.lastCandles = candles;
+  const times = candles.map((c) => c.time);
+  const snap = (t) => { let lo = 0, hi = times.length - 1; while (lo < hi) { const m = (lo + hi + 1) >> 1; if (times[m] <= t) lo = m; else hi = m - 1; } return times[lo]; };
+  const shown = trades.slice(-400);
+  const ms = shown.map((t) => ({
+    time: snap(t.entry_time), position: t.side > 0 ? "belowBar" : "aboveBar",
+    shape: t.side > 0 ? "arrowUp" : "arrowDown", color: t.side > 0 ? css("--bull") : css("--warn"), size: 0.6,
+  })).sort((a, b) => a.time - b.time);
+  charts.markers.setMarkers(ms);
+}
+
+// ---- backtest -------------------------------------------------------------
+function tile(k, v, cls = "") { return el("div", { class: "tile" }, el("div", { class: "k", text: k }), el("div", { class: "v num " + cls, text: v })); }
+async function runBacktest() {
+  const p = params(); p.set("strategy", $("strategy").value); p.set("trials", $("trials").value);
+  status("Running backtest…");
+  $("run").disabled = true;
+  try {
+    const r = await api("/api/backtest?" + p);
+    const s = r.stats;
+    $("btTitle").textContent = `${r.strategy} · ${r.description} · ${r.source}`;
+    $("tiles").replaceChildren(
+      tile("Net return", pct(s.total_return), signCls(s.total_return)), tile("CAGR", pct(s.cagr), signCls(s.cagr)),
+      tile("Sharpe", num(s.sharpe), signCls(s.sharpe)), tile("Max drawdown", pct(s.max_drawdown), "neg"),
+      tile("Trades", String(s.trades)), tile("Win rate", pct(s.win_rate, 0)),
+      tile("Profit factor", num(s.profit_factor)), tile("Costs", usd(-s.costs), "neg"), tile("Swap", usd(s.swap), signCls(s.swap)),
+    );
+    if (charts.price) {
+      charts.candles.setData(r.candles);
+      setMarkers(r.trades, r.candles);
+      charts.price.timeScale().fitContent();
+      charts.eqLine.setData(r.equity); charts.eq.timeScale().fitContent();
+      charts.ddArea.setData(r.drawdown); charts.dd.timeScale().fitContent();
+      const last = r.equity[r.equity.length - 1];
+      $("eqLegend").dataset.def = last ? `Final ${usd(last.value)}` : "";
+      $("eqLegend").textContent = $("eqLegend").dataset.def;
+    }
+    $("tfNote").textContent = `${r.candle_timeframe} candles · ${r.trades.length > 400 ? "last 400 of " : ""}${r.trades.length} trades`;
+    renderValidation(r.validation);
+    renderTrades(r.trades);
+    status(`Done · ${r.trades.length} trades`);
+  } catch (e) { status(e.message, true); }
+  finally { $("run").disabled = false; }
+}
+function renderValidation(v) {
+  const box = $("validation");
+  if (!v) { box.textContent = "No validation."; return; }
+  const cls = v.verdict.startsWith("passes") ? "pass" : v.verdict.startsWith("fails") ? "fail" : "warn";
+  const icon = cls === "pass" ? "✓" : cls === "fail" ? "✕" : "!";
+  const b = v.bootstrap || {};
+  const kv = el("div", { class: "kv num" });
+  const add = (k, val, c = "") => kv.append(el("span", { text: k }), el("span", { class: c, text: val }));
+  add("P(Sharpe > 0)", pct(v.psr));
+  add(`Deflated Sharpe (${v.n_trials} trials)`, pct(v.dsr));
+  add("Max DD, median resample", pct(b.max_dd_median));
+  add("Max DD, 1-in-20 resample", pct(b.max_dd_p95), "neg");
+  add("P(losing money)", pct(b.prob_loss));
+  const t = el("table", {}, el("thead", {}, el("tr", {}, ...["Costs", "Return", "Sharpe", "Max DD", "PF"].map((h) => el("th", { scope: "col", text: h })))));
+  const tb = el("tbody");
+  for (const row of v.cost_stress) tb.append(el("tr", {},
+    el("td", { text: row.cost_x + "×" }), el("td", { class: signCls(row.return), text: pct(row.return) }),
+    el("td", { text: num(row.sharpe) }), el("td", { text: pct(row.max_dd) }), el("td", { text: num(row.profit_factor) })));
+  t.append(tb);
+  box.className = "";
+  box.replaceChildren(
+    el("div", { class: "verdict " + cls }, el("b", { text: `${icon} ${cls === "pass" ? "Passes" : cls === "fail" ? "Fails" : "Inconclusive"}` }), el("span", { text: v.verdict })),
+    kv, el("h2", { style: "margin-top:14px", text: "Cost stress" }), t);
+}
+function renderTrades(trades) {
+  $("tradeCount").textContent = `${trades.length} total, newest first`;
+  const tb = $("trades").querySelector("tbody");
+  tb.replaceChildren(...trades.slice(-300).reverse().map((t) => el("tr", {},
+    el("td", { text: new Date(t.entry_time * 1000).toISOString().slice(0, 16).replace("T", " ") }),
+    el("td", { class: t.side > 0 ? "pos" : "neg", text: t.side > 0 ? "▲ long" : "▼ short" }),
+    el("td", { text: num(t.lots) }), el("td", { text: num(t.entry) }), el("td", { text: num(t.exit) }),
+    el("td", { text: t.reason }), el("td", { class: signCls(t.pnl), text: usd(t.pnl) }), el("td", { text: num(t.r) }))));
+}
+
+// ---- compare --------------------------------------------------------------
+async function compare() {
+  status("Comparing strategies…");
+  try {
+    const r = await api("/api/compare?" + params());
+    const tb = $("league").querySelector("tbody");
+    const rows = [...r.results].sort((a, b) => b.sharpe - a.sharpe);
+    tb.replaceChildren(...rows.map((x) => {
+      const tr = el("tr", { class: x.strategy === $("strategy").value ? "sel" : "", title: "Click to backtest", style: "cursor:pointer" },
+        el("td", { text: x.strategy }), el("td", { class: signCls(x.total_return), text: pct(x.total_return) }),
+        el("td", { text: num(x.sharpe) }), el("td", { text: pct(x.max_drawdown) }), el("td", { text: String(x.trades) }),
+        el("td", { text: pct(x.win_rate, 0) }), el("td", { text: num(x.profit_factor) }), el("td", { class: signCls(x.swap), text: usd(x.swap) }));
+      tr.onclick = () => { $("strategy").value = x.strategy; runBacktest(); };
+      return tr;
+    }));
+    $("trials").value = rows.length;
+    status(`Compared ${rows.length} strategies; trials set to ${rows.length}`);
+  } catch (e) { status(e.message, true); }
+}
+
+// ---- desk -----------------------------------------------------------------
+function meter(bias) {
+  const m = el("div", { class: "meter", role: "img", "aria-label": `bias ${bias.toFixed(2)}` });
+  const w = Math.min(Math.abs(bias), 1) * 50;
+  const i = el("i"); i.style.background = bias >= 0 ? css("--bull") : css("--warn");
+  i.style.left = bias >= 0 ? "50%" : (50 - w) + "%"; i.style.width = w + "%";
+  m.append(i); return m;
+}
+async function brief() {
+  const box = $("deskBody");
+  box.textContent = "Reading the market…";
+  const p = params(); p.set("llm", $("llm").checked ? "1" : "0");
+  try {
+    const r = await api("/api/brief?" + p);
+    const s = r.snapshot, d = r.decision;
+    const dir = (x) => x > 0 ? "LONG" : x < 0 ? "SHORT" : "FLAT";
+    const head = el("div", {},
+      el("div", { class: "muted", text: `${s.time_utc.slice(0, 16).replace("T", " ")} UTC · ${s.price.toLocaleString()} · regime ${s.regime || "n/a"}` }),
+      el("div", { class: "signal" },
+        el("span", { class: "big " + signCls(d.final_signal), text: dir(d.final_signal) }),
+        el("span", { class: "num", text: `size ${Math.abs(d.final_signal).toFixed(2)} (quant ${d.quant_signal >= 0 ? "+" : ""}${d.quant_signal.toFixed(2)})` })));
+    const views = d.views.map((v) => el("div", { class: "view" },
+      el("div", { class: "h" }, el("b", { text: v.analyst }),
+        el("span", { class: "num muted", text: `bias ${v.bias >= 0 ? "+" : ""}${v.bias.toFixed(2)} · conf ${v.confidence.toFixed(2)}${v.veto ? " · VETO" : ""}` })),
+      meter(v.bias),
+      el("ul", {}, ...v.reasons.slice(0, 5).map((x) => el("li", { text: x })))));
+    const notes = d.notes.length ? el("ul", { class: "notes" }, ...d.notes.map((n) => el("li", { text: n }))) : null;
+    const ev = el("div", { class: "muted", style: "font-size:12px;margin-top:8px", text: "Next events: " + (s.upcoming_events.join(", ") || "none in calendar") });
+    const llmNote = d.views.some((v) => v.analyst === "strategist") ? null
+      : el("div", { class: "muted", style: "font-size:12px;margin-top:6px", text: $("llm").checked ? "Claude strategist unavailable: set ANTHROPIC_API_KEY for the server." : "" });
+    box.className = "";
+    box.replaceChildren(head, ...views, notes || "", ev, llmNote || "");
+  } catch (e) { box.textContent = e.message; box.className = "err"; }
+}
+
+// ---- TradingView panel ----------------------------------------------------
+async function loadPine() {
+  try { const r = await fetch("/api/pine"); $("pine").textContent = await r.text(); } catch (e) { $("pine").textContent = e.message; }
+}
+$("copyPine").onclick = async () => {
+  try { await navigator.clipboard.writeText($("pine").textContent); $("copyMsg").textContent = "Copied"; }
+  catch (e) { $("copyMsg").textContent = "Select the code and copy it by hand"; }
+};
+for (const b of document.querySelectorAll("[data-tab]")) b.onclick = () => {
+  for (const x of document.querySelectorAll("[data-tab]")) x.setAttribute("aria-selected", String(x === b));
+  for (const p of document.querySelectorAll("[data-pane]")) p.hidden = p.dataset.pane !== b.dataset.tab;
+};
+$("hookUrl").textContent = "https://<your-tunnel>/webhook/tradingview?token=<AURUM_WEBHOOK_TOKEN>";
+async function loadAlerts() {
+  try {
+    const a = await api("/api/alerts?limit=50");
+    if (!a.length) return;
+    $("alerts").querySelector("tbody").replaceChildren(...a.reverse().map((x) => el("tr", {},
+      el("td", { text: String(x.received_utc || "").slice(0, 19).replace("T", " ") }),
+      el("td", { class: x.action === "buy" ? "pos" : x.action === "sell" ? "neg" : "", text: String(x.action ?? x.message ?? "") }),
+      el("td", { text: String(x.qty_oz ?? "") }), el("td", { text: String(x.price ?? "") }),
+      el("td", { text: String(x.mode ?? "") }), el("td", { text: String(x.regime ?? "") }))));
+  } catch (e) {}
+}
+
+// ---- boot -----------------------------------------------------------------
+$("source").onchange = () => { $("csvWrap").hidden = $("source").value !== "csv"; };
+$("run").onclick = runBacktest;
+$("compareBtn").onclick = compare;
+$("briefBtn").onclick = brief;
+(async () => {
+  mountTradingView();
+  makeCharts();
+  try {
+    const st = await api("/api/strategies");
+    $("strategy").replaceChildren(...st.map((s) => el("option", { value: s.name, text: s.name.replaceAll("_", " ") })));
+    $("strategy").value = "macro_reversion";
+  } catch (e) { status(e.message, true); }
+  loadPine(); loadAlerts(); setInterval(loadAlerts, 15000);
+  await runBacktest();
+  brief();
+})();
+</script>
+</body>
+</html>

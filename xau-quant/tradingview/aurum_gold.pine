@@ -1,0 +1,279 @@
+// This Pine Script® code is subject to the terms of the Mozilla Public License 2.0
+// aurum · Gold Desk — XAUUSD strategies from the aurum research toolkit.
+//
+// Chart: OANDA:XAUUSD (or any XAUUSD CFD), 1 hour. Quantities are in troy
+// ounces, so 100 = one standard lot.
+//
+// Modes
+//   London breakout   Asian range (Tokyo 09:00-15:00) broken in the first
+//                     three hours of London, flat by 16:00 New York
+//   Trend             1 to 5 month time series momentum with a hysteresis band
+//   Macro reversion   Fade gaps from a rolling DXY + US real yield fair value,
+//                     coefficients lagged one bar so no bar is scored by a fit
+//                     that included it
+//   Ensemble          Regime weighted blend (volatility percentile stands in
+//                     for the Python HMM)
+//
+// Costs: commission per ounce includes half the typical spread plus the
+// broker commission; slippage is set in ticks. TradingView does not charge
+// overnight swap, so the script estimates it and shows it in the table.
+// Macro series use the previous day's value (DXY) and two days back (FRED real
+// yield), matching when they are actually published. Nothing repaints.
+//
+// Alerts: create one alert on this strategy with "alert() function calls only"
+// and set its webhook to https://<your tunnel>/webhook/tradingview?token=<token>.
+// TradingView only posts to ports 80 and 443, so expose `python -m aurum.web`
+// through a tunnel (cloudflared, ngrok) rather than port 8765 directly.
+//
+// Research software. Not investment advice.
+
+//@version=6
+strategy("aurum · Gold Desk", shorttitle = "aurum", overlay = true,
+     initial_capital = 100000, currency = currency.USD,
+     default_qty_type = strategy.fixed, default_qty_value = 1,
+     commission_type = strategy.commission.cash_per_contract, commission_value = 0.135,
+     slippage = 5, pyramiding = 0, margin_long = 1, margin_short = 1,
+     max_bars_back = 5000)
+
+// ─── Inputs ────────────────────────────────────────────────────────────────
+mode        = input.string("Ensemble", "Strategy", options = ["London breakout", "Trend", "Macro reversion", "Ensemble"])
+riskPct     = input.float(1.0, "Risk per trade, % equity", minval = 0.05, maxval = 5, step = 0.05)
+newsFilter  = input.bool(true, "Flat around NFP and FOMC")
+dxySym      = input.symbol("TVC:DXY", "Dollar index")
+rySym       = input.symbol("FRED:DFII10", "US 10y real yield")
+fvWindow    = input.int(2000, "Fair value window, bars", minval = 200)
+fvEnter     = input.float(1.75, "Fair value z to enter", step = 0.05)
+fvExit      = input.float(0.25, "Fair value z to exit", step = 0.05)
+trendFastD  = input.int(20, "Trend fast, days", minval = 2)
+trendSlowD  = input.int(100, "Trend slow, days", minval = 5)
+bufferAtr   = input.float(0.1, "Breakout buffer, ATR", step = 0.05)
+swapLongOz  = input.float(-0.45, "Swap long, USD per oz per night", step = 0.01)
+swapShortOz = input.float(0.08, "Swap short, USD per oz per night", step = 0.01)
+showTable   = input.bool(true, "Show desk table")
+
+// Built in risk limits, mirroring the Python backtester.
+strategy.risk.max_intraday_loss(3, strategy.percent_of_equity)
+strategy.risk.max_drawdown(25, strategy.percent_of_equity)
+
+// ─── Common series ─────────────────────────────────────────────────────────
+atr14      = ta.atr(14)
+barsPerDay = math.max(1, math.round(86400 / timeframe.in_seconds()))
+logRet     = math.log(close / close[1])
+
+// ─── Clock: sessions and events ────────────────────────────────────────────
+inAsia      = not na(time(timeframe.period, "0900-1500", "Asia/Tokyo"))
+inLondonWin = not na(time(timeframe.period, "0800-1100", "Europe/London"))
+nyHour      = hour(time, "America/New_York")
+nyExitTime  = nyHour >= 16 and nyHour < 17
+asiaStart   = inAsia and not inAsia[1]
+
+nyYear  = year(time, "America/New_York")
+nyMonth = month(time, "America/New_York")
+nyDay   = dayofmonth(time, "America/New_York")
+ymd     = nyYear * 10000 + nyMonth * 100 + nyDay
+
+var array<int> FOMC = array.from(
+     20250129, 20250319, 20250507, 20250618, 20250730, 20250917, 20251029, 20251210,
+     20260128, 20260318, 20260429, 20260617, 20260729, 20260916, 20261028, 20261209)
+
+isNfpDay  = dayofweek(time, "America/New_York") == dayofweek.friday and nyDay <= 7
+isFomcDay = array.includes(FOMC, ymd)
+nfpTime   = timestamp("America/New_York", nyYear, nyMonth, nyDay, 8, 30)
+fomcTime  = timestamp("America/New_York", nyYear, nyMonth, nyDay, 14, 0)
+nearNfp   = isNfpDay and time_close > nfpTime - 30 * 60000 and time < nfpTime + 15 * 60000
+nearFomc  = isFomcDay and time_close > fomcTime - 30 * 60000 and time < fomcTime + 15 * 60000
+newsRisk  = newsFilter and (nearNfp or nearFomc)
+
+// ─── London breakout ───────────────────────────────────────────────────────
+var float asiaHigh = na
+var float asiaLow  = na
+var bool  firedToday = false
+var int   lbSide = 0
+if asiaStart
+    asiaHigh   := high
+    asiaLow    := low
+    firedToday := false
+    lbSide     := 0
+else if inAsia
+    asiaHigh := math.max(nz(asiaHigh, high), high)
+    asiaLow  := math.min(nz(asiaLow, low), low)
+
+rangeOk = not na(asiaHigh) and (asiaHigh - asiaLow) / atr14 <= 6
+if inLondonWin and not firedToday and rangeOk and not inAsia
+    if close > asiaHigh + bufferAtr * atr14
+        lbSide := 1
+        firedToday := true
+    else if close < asiaLow - bufferAtr * atr14
+        lbSide := -1
+        firedToday := true
+if nyExitTime or nyHour >= 17 or nyHour < 3
+    lbSide := 0
+lbSig = float(lbSide)
+
+// ─── Trend ─────────────────────────────────────────────────────────────────
+fastLen  = trendFastD * barsPerDay
+slowLen  = trendSlowD * barsPerDay
+emaFast  = ta.ema(close, fastLen)
+emaSlow  = ta.ema(close, slowLen)
+diffVol  = ta.stdev(ta.change(close), slowLen)
+strength = (emaFast - emaSlow) / (diffVol * math.sqrt(fastLen))
+var int trSide = 0
+if not na(strength)
+    if trSide == 0
+        trSide := strength > 0.5 ? 1 : strength < -0.5 ? -1 : 0
+    else if math.abs(strength) < 0.1
+        trSide := 0
+trSig = trSide * math.min(math.max(math.abs(nz(strength)) / 2, 0.25), 1.0)
+
+// ─── Macro fair value (rolling OLS of log gold on log DXY and real yield) ──
+dxy = request.security(dxySym, "D", close[1], lookahead = barmerge.lookahead_on, ignore_invalid_symbol = true)
+ry  = request.security(rySym, "D", close[2], lookahead = barmerge.lookahead_on, ignore_invalid_symbol = true)
+y   = math.log(close)
+x1  = math.log(dxy)
+hasRy = not na(ry)
+x2  = hasRy ? ry : 0.0
+
+my   = ta.sma(y, fvWindow)
+m1   = ta.sma(x1, fvWindow)
+m2   = ta.sma(x2, fvWindow)
+c11  = ta.sma(x1 * x1, fvWindow) - m1 * m1
+c22  = ta.sma(x2 * x2, fvWindow) - m2 * m2
+c12  = ta.sma(x1 * x2, fvWindow) - m1 * m2
+c1y  = ta.sma(x1 * y, fvWindow) - m1 * my
+c2y  = ta.sma(x2 * y, fvWindow) - m2 * my
+det  = c11 * c22 - c12 * c12
+twoVar = hasRy and det > 1e-12
+b1   = twoVar ? (c1y * c22 - c2y * c12) / det : c1y / c11
+b2   = twoVar ? (c2y * c11 - c1y * c12) / det : 0.0
+a0   = my - b1 * m1 - b2 * m2
+// Coefficients from the previous bar: the fit never includes the bar it scores.
+fair = a0[1] + b1[1] * x1 + b2[1] * x2
+gap  = y - fair
+halfWin = int(fvWindow / 2)          // v6: int / int is a float, lengths must be int
+gapZ = (gap - ta.sma(gap, halfWin)) / ta.stdev(gap, halfWin)
+dxyMove  = x1 - x1[5 * barsPerDay]
+dxyMoveZ = dxyMove / ta.stdev(dxyMove, fvWindow)
+var int mrSide = 0
+if not na(gapZ)
+    if mrSide == 0
+        mrSide := gapZ > fvEnter ? -1 : gapZ < -fvEnter ? 1 : 0
+    else if math.abs(gapZ) < fvExit
+        mrSide := 0
+// Do not fade gold while the dollar is moving hard the same way.
+mrSig = (mrSide > 0 and nz(dxyMoveZ) > 2) or (mrSide < 0 and nz(dxyMoveZ) < -2) ? 0.0 : float(mrSide)
+
+// ─── Regime (volatility percentile) and ensemble ───────────────────────────
+rv      = ta.stdev(logRet, 24)
+rvRank  = ta.percentrank(rv, 2000)
+regime  = na(rvRank) ? "normal" : rvRank < 33 ? "calm" : rvRank > 66 ? "stressed" : "normal"
+wLb = regime == "calm" ? 0.3 : regime == "normal" ? 0.3 : 0.0
+wTr = regime == "calm" ? 0.3 : regime == "normal" ? 0.5 : 0.7
+wMr = regime == "calm" ? 0.4 : regime == "normal" ? 0.2 : 0.0
+ensRaw = wLb * lbSig + wTr * trSig + wMr * mrSig
+ensSig = math.abs(ensRaw) >= 0.15 ? ensRaw : 0.0
+
+// ─── Pick the mode ─────────────────────────────────────────────────────────
+float signal = switch mode
+    "London breakout" => lbSig
+    "Trend"           => trSig
+    "Macro reversion" => mrSig
+    => ensSig
+if newsRisk and mode != "Trend"
+    signal := 0.0
+
+stopAtr = switch mode
+    "London breakout" => 1.5
+    "Trend"           => 25.0
+    => 5.0
+targetAtr = mode == "London breakout" ? 3.0 : na
+maxBars   = mode == "London breakout" ? 12 : mode == "Macro reversion" ? 240 : 0
+
+// ─── Orders ────────────────────────────────────────────────────────────────
+want = signal > 0 ? 1 : signal < 0 ? -1 : 0
+side = strategy.position_size > 0 ? 1 : strategy.position_size < 0 ? -1 : 0
+
+var int   lockedSide = 0
+var float stopPx = na
+var float targetPx = na
+var int   entryBar = na
+var bool  closedBySignal = false
+
+// A stop or target exit locks that side until the signal changes.
+if strategy.closedtrades > strategy.closedtrades[1] and not closedBySignal[1]
+    lockedSide := strategy.closedtrades.size(strategy.closedtrades - 1) > 0 ? 1 : -1
+closedBySignal := false
+if lockedSide != 0 and want != lockedSide
+    lockedSide := 0
+
+alertJson(string action, int s, float qty) =>
+    '{"source":"aurum-pine","symbol":"' + syminfo.tickerid + '","mode":"' + mode + '","action":"' + action +
+     '","side":' + str.tostring(s) + ',"qty_oz":' + str.tostring(qty, "#.##") + ',"conviction":' +
+     str.tostring(math.abs(signal), "#.###") + ',"price":' + str.tostring(close, "#.##") +
+     ',"regime":"' + regime + '","fv_gap_z":' + str.tostring(nz(gapZ), "#.###") + ',"time":' + str.tostring(time_close) + '}'
+
+// Size a new entry: risk riskPct of equity to an ATR stop, scaled by conviction.
+stopDist = stopAtr * atr14
+qtyOz    = na(atr14) ? 0.0 : math.floor(strategy.equity * riskPct / 100 * math.abs(signal) / stopDist)
+canEnter = want != 0 and want != side and want != lockedSide and qtyOz >= 1
+
+if canEnter
+    // strategy.entry reverses an opposite position by itself, so no close_all first.
+    stopPx   := close - want * stopDist
+    targetPx := na(targetAtr) ? na : close + want * targetAtr * atr14
+    entryBar := bar_index + 1
+    closedBySignal := side != 0
+    strategy.entry(want > 0 ? "Long" : "Short", want > 0 ? strategy.long : strategy.short, qty = qtyOz)
+    alert(alertJson(want > 0 ? "buy" : "sell", want, qtyOz), alert.freq_once_per_bar_close)
+else if side != 0 and want != side
+    strategy.close_all(comment = "signal")
+    closedBySignal := true
+    alert(alertJson("close", 0, 0), alert.freq_once_per_bar_close)
+
+if strategy.position_size != 0
+    strategy.exit("risk", stop = stopPx, limit = targetPx, comment_loss = "stop", comment_profit = "target")
+    if maxBars > 0 and not na(entryBar) and bar_index - entryBar >= maxBars
+        strategy.close_all(comment = "time")
+
+// ─── Swap estimate (TradingView does not charge it) ────────────────────────
+var float swapUsd = 0.0
+newTradingDay = ta.change(time_tradingday) != 0
+if newTradingDay and strategy.position_size[1] != 0
+    // time_tradingday is 00:00 UTC of the trading day, so read its weekday in UTC.
+    wasWednesday = dayofweek(time_tradingday[1], "UTC") == dayofweek.wednesday
+    nights = wasWednesday ? 3 : 1
+    rate = strategy.position_size[1] > 0 ? swapLongOz : swapShortOz
+    swapUsd += math.abs(strategy.position_size[1]) * rate * nights
+
+// ─── Plots ─────────────────────────────────────────────────────────────────
+plot(inAsia or inLondonWin ? asiaHigh : na, "Asia high", color = color.new(color.orange, 20), style = plot.style_linebr)
+plot(inAsia or inLondonWin ? asiaLow  : na, "Asia low",  color = color.new(color.orange, 20), style = plot.style_linebr)
+plot(math.exp(fair), "Macro fair value", color = color.new(color.teal, 30), linewidth = 2)
+bgcolor(regime == "stressed" ? color.new(color.red, 92) : na, title = "Stressed regime")
+bgcolor(newsRisk ? color.new(color.purple, 85) : na, title = "News window")
+
+// ─── Desk table ────────────────────────────────────────────────────────────
+var table desk = table.new(position.top_right, 2, 11, bgcolor = color.new(color.black, 20), border_width = 1)
+fmtSig(float v) => v > 0 ? "▲ " + str.tostring(v, "#.##") : v < 0 ? "▼ " + str.tostring(v, "#.##") : "flat"
+if showTable and barstate.islast
+    table.cell(desk, 0, 0, "aurum", text_color = color.yellow)
+    table.cell(desk, 1, 0, mode, text_color = color.yellow)
+    table.cell(desk, 0, 1, "Regime", text_color = color.silver)
+    table.cell(desk, 1, 1, regime, text_color = regime == "stressed" ? color.red : color.white)
+    table.cell(desk, 0, 2, "London breakout", text_color = color.silver)
+    table.cell(desk, 1, 2, fmtSig(lbSig), text_color = color.white)
+    table.cell(desk, 0, 3, "Trend", text_color = color.silver)
+    table.cell(desk, 1, 3, fmtSig(trSig), text_color = color.white)
+    table.cell(desk, 0, 4, "Macro reversion", text_color = color.silver)
+    table.cell(desk, 1, 4, fmtSig(mrSig), text_color = color.white)
+    table.cell(desk, 0, 5, "Ensemble", text_color = color.silver)
+    table.cell(desk, 1, 5, fmtSig(ensSig), text_color = color.white)
+    table.cell(desk, 0, 6, "Fair value gap z", text_color = color.silver)
+    table.cell(desk, 1, 6, str.tostring(gapZ, "#.##"), text_color = color.white)
+    table.cell(desk, 0, 7, "DXY 5d", text_color = color.silver)
+    table.cell(desk, 1, 7, str.tostring(dxyMove * 100, "#.##") + "%", text_color = color.white)
+    table.cell(desk, 0, 8, "Real yield", text_color = color.silver)
+    table.cell(desk, 1, 8, hasRy ? str.tostring(ry, "#.##") + "%" : "n/a", text_color = color.white)
+    table.cell(desk, 0, 9, "News window", text_color = color.silver)
+    table.cell(desk, 1, 9, newsRisk ? "YES, flat" : "no", text_color = newsRisk ? color.fuchsia : color.white)
+    table.cell(desk, 0, 10, "Est. swap paid", text_color = color.silver)
+    table.cell(desk, 1, 10, str.tostring(swapUsd, "#,###"), text_color = swapUsd < 0 ? color.red : color.lime)

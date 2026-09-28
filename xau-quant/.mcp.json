@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "aurum": {
+      "command": "python3",
+      "args": ["-m", "aurum.mcp_server"]
+    },
+    "tradingview": {
+      "command": "node",
+      "args": ["${TRADINGVIEW_MCP_DIR:-../../tradingview-mcp}/src/server.js"]
+    }
+  }
+}
