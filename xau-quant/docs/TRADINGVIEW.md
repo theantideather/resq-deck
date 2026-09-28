@@ -27,27 +27,51 @@ How the Pine port differs from the Python engine:
 
 This uses [tradesdontlie/tradingview-mcp](https://github.com/tradesdontlie/tradingview-mcp) (MIT). It talks to TradingView Desktop through the Chrome DevTools Protocol, using undocumented internals that may break when TradingView updates. It's for personal workflow automation only; check that your use fits TradingView's terms.
 
+### One command
+
+You need TradingView Desktop, Node 18+, Python 3.10+, git and Claude Code (`npm install -g @anthropic-ai/claude-code`).
+
 ```bash
-# 1. TradingView MCP, cloned next to this repo
-git clone https://github.com/tradesdontlie/tradingview-mcp.git
-cd tradingview-mcp && npm install && cd -
-
-# 2. aurum with the MCP extra
 cd resq-deck/xau-quant
-pip install -e ".[mcp,llm,data]"
+./scripts/setup_tradingview.sh                 # macOS / Linux
+# Windows: powershell -ExecutionPolicy Bypass -File scripts\setup_tradingview.ps1
+```
 
-# 3. Start TradingView Desktop with the debug port
-#    macOS:  /Applications/TradingView.app/Contents/MacOS/TradingView --remote-debugging-port=9222
-#    Windows: "%LOCALAPPDATA%\TradingView\TradingView.exe" --remote-debugging-port=9222
-#    (or use the launch scripts in tradingview-mcp/scripts)
+The script:
 
-# 4. Open Claude Code in xau-quant/. The .mcp.json here registers both servers.
-#    If tradingview-mcp isn't at ../../tradingview-mcp, point to it:
-export TRADINGVIEW_MCP_DIR=/path/to/tradingview-mcp
+1. Clones tradingview-mcp into `~/tradingview-mcp` (or `$TRADINGVIEW_MCP_DIR`) and installs it.
+2. Creates `.venv` with aurum and its MCP, LLM and data extras.
+3. Compiles `aurum_gold.pine` on TradingView's server.
+4. Registers both MCP servers with Claude Code for this folder.
+5. Starts the dashboard.
+6. Restarts TradingView Desktop with the debug port, after asking, because it quits TradingView first.
+7. Opens Claude Code with the run playbook, [`.claude/commands/tradingview-run.md`](../.claude/commands/tradingview-run.md).
+
+That playbook:
+
+- compiles the strategy and fixes any errors in the repo
+- loads it on OANDA:XAUUSD 1h and reads the Strategy Tester for each mode
+- compares the results with aurum's own backtest
+- runs the desk on your chart's bars
+- writes `reports/tradingview_run.md`
+
+It never places orders or creates alerts unless you ask. Run it again any time with `/tradingview-run` inside Claude Code.
+
+Options: `--yes` (don't ask before restarting TradingView), `--remote` (start `claude remote-control` so you can drive it from the Claude app on your phone), `--no-launch`, `--no-claude`, `--no-web`.
+
+### By hand
+
+```bash
+git clone https://github.com/tradesdontlie/tradingview-mcp.git ~/tradingview-mcp
+(cd ~/tradingview-mcp && npm install)
+python3 -m venv .venv && .venv/bin/pip install -e ".[mcp,llm,data]"
+claude mcp add -s local aurum -- "$PWD/.venv/bin/python" -m aurum.mcp_server
+claude mcp add -s local tradingview -- node ~/tradingview-mcp/src/server.js
+~/tradingview-mcp/scripts/launch_tv_debug_mac.sh     # or _linux.sh / launch_tv_debug.bat
 claude
 ```
 
-Approve both servers when Claude Code asks, then try:
+Other things to ask Claude once both servers are connected:
 
 - *"Check TradingView is connected, then load the aurum Pine strategy onto OANDA:XAUUSD 1h, compile it, fix any errors, and screenshot the Strategy Tester."*
   Claude calls `get_pine_strategy` (aurum), then `pine_new`, `pine_set_source`, `pine_smart_compile`, `pine_get_errors`, `chart_set_symbol`, `chart_set_timeframe`, `ui_open_panel` and `capture_screenshot` (TradingView).

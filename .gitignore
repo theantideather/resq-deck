@@ -3,3 +3,5 @@ __pycache__/
 .pytest_cache/
 *.egg-info/
 xau-quant/reports/
+.venv/
+xau-quant/.venv/

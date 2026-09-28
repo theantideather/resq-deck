@@ -16,7 +16,8 @@ The dashboard has a live TradingView chart of OANDA:XAUUSD and the desk brief (t
 ## TradingView
 
 - `tradingview/aurum_gold.pine`: Pine Script v6 port of the four strategies, with news filter, desk table, swap estimate and JSON alerts.
-- `python -m aurum.mcp_server`: aurum as an MCP server. `.mcp.json` registers it alongside [tradingview-mcp](https://github.com/tradesdontlie/tradingview-mcp), so Claude Code can load, compile and test the strategy on your TradingView chart and run the desk on your chart's bars.
+- `python -m aurum.mcp_server`: aurum as an MCP server, to run next to [tradingview-mcp](https://github.com/tradesdontlie/tradingview-mcp), so Claude Code can load, compile and test the strategy on your TradingView chart and run the desk on your chart's bars.
+- **One command sets all of it up on your computer**: `./scripts/setup_tradingview.sh` (macOS/Linux) or `powershell -ExecutionPolicy Bypass -File scripts\setup_tradingview.ps1` (Windows). See [`docs/TRADINGVIEW.md`](docs/TRADINGVIEW.md).
 
 ## Quick start
 

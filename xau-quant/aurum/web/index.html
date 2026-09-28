@@ -203,10 +203,10 @@ footer { max-width: 1440px; margin: 0 auto; padding: 8px 16px 32px; color: var(-
       </h2>
       <div data-pane="mcp">
         <ol class="steps">
-          <li>Start TradingView Desktop with <code>--remote-debugging-port=9222</code>.</li>
-          <li>Open Claude Code in <code>xau-quant/</code>. <code>.mcp.json</code> connects both the <code>tradingview</code> and <code>aurum</code> servers.</li>
-          <li>Ask: <em>“Load the aurum Pine strategy onto OANDA:XAUUSD 1h, compile it, and screenshot the Strategy Tester.”</em></li>
-          <li>Ask: <em>“Pull 1500 hourly bars from my chart and run the aurum desk on them.”</em></li>
+          <li>In <code>xau-quant/</code>, run <code>./scripts/setup_tradingview.sh</code> (Windows: <code>scripts\setup_tradingview.ps1</code>).</li>
+          <li>It installs the TradingView MCP, registers it and aurum with Claude Code, restarts TradingView Desktop in debug mode (it asks first), and opens Claude Code with the run playbook.</li>
+          <li>Claude compiles the strategy, loads it on OANDA:XAUUSD 1h, reads the Strategy Tester for every mode, compares with aurum, and writes <code>reports/tradingview_run.md</code>.</li>
+          <li>Later, run <code>claude</code> in <code>xau-quant/</code> and type <code>/tradingview-run</code> to repeat it.</li>
         </ol>
       </div>
       <div data-pane="manual" hidden>
