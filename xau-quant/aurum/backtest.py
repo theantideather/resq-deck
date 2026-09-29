@@ -103,6 +103,24 @@ class BacktestResult:
         return "\n".join(lines)
 
 
+def risk_lots(equity: float, conviction: float, atr_value: float, price: float,
+              cfg: BacktestConfig) -> tuple[float, float]:
+    """Lots for a new entry and the stop distance used to size it.
+
+    Risks `risk_per_trade * conviction` of equity between entry and an ATR
+    stop, capped by margin and rounded down to the broker's lot step. Without
+    a stop, sizes as if the stop were 2 ATR away. The backtester and the live
+    runner both call this, so they size identically.
+    """
+    ins = cfg.instrument
+    stop_dist = (cfg.stop_atr or 2.0) * atr_value
+    if not np.isfinite(stop_dist) or stop_dist <= 0 or conviction <= 0:
+        return 0.0, float(stop_dist)
+    lots = equity * cfg.risk_per_trade * conviction / (stop_dist * ins.contract_size_oz)
+    max_lots = equity * cfg.max_margin_utilisation / ins.margin_required(1.0, price)
+    return ins.round_lots(min(lots, max_lots)), float(stop_dist)
+
+
 def run_backtest(
     md: MarketData,
     signal: pd.Series,
@@ -172,13 +190,7 @@ def run_backtest(
             if trade is not None and want != trade.side:
                 close_trade(i, o[i], "signal")
             if trade is None and want != 0 and want != locked_side and np.isfinite(a[i - 1]):
-                # Without a stop, size as if the stop were 2 ATR away.
-                stop_dist = (cfg.stop_atr or 2.0) * a[i - 1]
-                eq_now = cash
-                risk_usd = eq_now * cfg.risk_per_trade * abs(sig[i - 1])
-                lots = risk_usd / (stop_dist * oz)
-                max_lots = eq_now * cfg.max_margin_utilisation / ins.margin_required(1.0, o[i])
-                lots = ins.round_lots(min(lots, max_lots))
+                lots, stop_dist = risk_lots(cash, abs(sig[i - 1]), a[i - 1], o[i], cfg)
                 if lots > 0:
                     stop = o[i] - want * cfg.stop_atr * a[i - 1] if cfg.stop_atr else None
                     target = o[i] + want * cfg.target_atr * a[i - 1] if cfg.target_atr else None

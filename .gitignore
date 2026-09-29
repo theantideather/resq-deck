@@ -5,3 +5,5 @@ __pycache__/
 xau-quant/reports/
 .venv/
 xau-quant/.venv/
+.env
+xau-quant/.env

@@ -37,7 +37,11 @@ Typical workflows when a TradingView MCP (tradesdontlie/tradingview-mcp) is also
 3. Research: compare_strategies, then backtest_strategy with n_trials set to the
    number of variants tried, and report the deflated Sharpe and the verdict honestly.
 
-Never place real orders from these results without the user's explicit instruction."""
+4. Paper trading: paper_run_cycle (feed yahoo, or oanda for OANDA prices), paper_account, and
+   review_paper_trades once there are closed trades. Also optimize_strategy, gold_news.
+
+Never place real orders from these results without the user's explicit instruction. These tools
+only ever trade the paper account; real accounts are driven from the command line runner."""
 
 mcp = _Server("aurum", instructions=INSTRUCTIONS)
 
@@ -106,6 +110,49 @@ def get_pine_strategy() -> str:
 def recent_tradingview_alerts(limit: int = 20) -> list[dict]:
     """Latest TradingView webhook alerts received by the aurum web server."""
     return service.recent_alerts(limit)
+
+
+@mcp.tool()
+def paper_account() -> dict:
+    """Paper account: equity, balance, open position, last 50 closed trades and the runner journal."""
+    return service.paper_status()
+
+
+@mcp.tool()
+def paper_run_cycle(strategy: str = "ensemble", feed: str = "yahoo", csv_path: str | None = None,
+                    use_desk: bool = True, use_llm: bool = False) -> dict:
+    """Run one trading cycle on the PAPER account (never a real broker).
+
+    feed: yahoo (GC=F hourly), oanda (OANDA prices, no orders sent there), csv, or replay (offline synthetic demo).
+    Returns the journal record: signal, desk decision, guard notes and any paper orders.
+    """
+    return service.paper_cycle(strategy, feed, csv_path, use_desk, use_llm)
+
+
+@mcp.tool()
+def optimize_strategy(strategy: str = "london_breakout", train_days: int = 365, test_days: int = 91,
+                      source: str = "synthetic", start: str = "2019-01-01", end: str = "2024-12-31",
+                      seed: int = 7, csv_path: str | None = None) -> dict:
+    """Walk forward optimisation over the strategy's parameter grid.
+
+    Reports only out of sample results plus overfitting diagnostics: deflated Sharpe with the
+    real trial count, probability of backtest overfitting (CSCV) and White's reality check.
+    """
+    r = service.optimize(strategy, train_days, test_days, **_mkw(source, start, end, seed, csv_path))
+    r.pop("oos_equity", None)
+    return r
+
+
+@mcp.tool()
+def review_paper_trades(use_llm: bool = True) -> dict:
+    """Post-trade review of the paper account; with ANTHROPIC_API_KEY, Claude adds lessons (saved as advisory memory)."""
+    return service.review_paper(use_llm)
+
+
+@mcp.tool()
+def gold_news(limit: int = 20) -> list[dict]:
+    """Recent gold relevant headlines from the configured RSS feeds (AURUM_NEWS_FEEDS)."""
+    return service.news(limit)
 
 
 def main() -> None:

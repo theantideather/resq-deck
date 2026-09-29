@@ -8,7 +8,15 @@ Standard library only. Serves the single page UI and a small JSON API:
     GET  /api/brief?llm=0|1&source=...
     GET  /api/pine                      Pine Script source (text/plain)
     GET  /api/alerts?limit=50
+    GET  /api/paper                     paper account, position, trades, journal
+    GET  /api/news                      gold headlines
+    GET  /api/optimize?strategy=&train=&test=   walk forward optimisation report
+    POST /api/paper/cycle               {"strategy", "feed", "desk", "llm"}: one runner cycle
+    POST /api/paper/reset
+    POST /api/review                    {"llm": bool}: post-trade review of the paper account
     POST /api/analyze                   {"bars": [...], "headlines": [...]}
+
+POST /api/* calls need the header X-Aurum: 1 (the dashboard sends it).
     POST /webhook/tradingview?token=    TradingView alert webhook
 
 If AURUM_WEBHOOK_TOKEN is set, webhooks must carry it as ?token= or a
@@ -102,6 +110,14 @@ class Handler(BaseHTTPRequestHandler):
                 self._send(200, service.pine_source(), "text/plain")
             elif path == "/api/alerts":
                 self._send(200, service.recent_alerts(int(q.get("limit", 50))))
+            elif path == "/api/paper":
+                self._send(200, service.paper_status())
+            elif path == "/api/news":
+                self._send(200, service.news(int(q.get("limit", 30))))
+            elif path == "/api/optimize":
+                self._send(200, service.optimize(q.get("strategy", "london_breakout"),
+                                                 train_days=int(q.get("train", 365)), test_days=int(q.get("test", 91)),
+                                                 **_market_kwargs(q)))
             else:
                 self._send(404, {"error": "not found"})
         except Exception as e:
@@ -118,7 +134,20 @@ class Handler(BaseHTTPRequestHandler):
                 if expected and not hmac.compare_digest(given, expected):
                     self._send(401, {"error": "bad token"})
                     return
-                self._send(200, {"ok": True, "alert": service.record_alert(body)})
+                alert = service.record_alert(body)
+                self._send(200, {"ok": True, "alert": alert, "execution": service.execute_alert(body)})
+            elif path.startswith("/api/") and self.headers.get("X-Aurum") != "1":
+                # Custom header: a cross site form post cannot set it, so other
+                # pages open in the browser cannot trade the paper account.
+                self._send(403, {"error": "missing X-Aurum header"})
+            elif path == "/api/paper/cycle":
+                self._send(200, service.paper_cycle(body.get("strategy", "ensemble"), body.get("feed", "replay"),
+                                                    body.get("csv") or None, bool(body.get("desk", True)),
+                                                    bool(body.get("llm", False))))
+            elif path == "/api/paper/reset":
+                self._send(200, service.paper_reset())
+            elif path == "/api/review":
+                self._send(200, service.review_paper(use_llm=bool(body.get("llm", False))))
             elif path == "/api/analyze":
                 self._send(200, service.analyze_bars(body.get("bars", []), use_llm=bool(body.get("llm")),
                                                      headlines=body.get("headlines")))

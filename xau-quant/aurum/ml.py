@@ -169,3 +169,64 @@ def permutation_importance_oos(md: MarketData, feats: pd.DataFrame, result: Walk
         Xte, yte = Xte[pick], yte[pick]
     r = permutation_importance(model, Xte, yte, n_repeats=n_repeats, random_state=seed, scoring="neg_log_loss")
     return pd.Series(r.importances_mean, index=result.feature_names).sort_values(ascending=False)
+
+
+# ---------------------------------------------------------------------------
+# Meta-labeling
+# ---------------------------------------------------------------------------
+
+@dataclass
+class MetaResult:
+    proba: pd.Series          # out of sample P(primary trade wins), NaN where primary is flat
+    labels: pd.Series         # 1 if the primary side hit its target barrier first, else 0
+    folds: int
+
+    def signal(self, primary: pd.Series, threshold: float = 0.55) -> pd.Series:
+        """Keep the primary side only where P(win) clears `threshold`, sized by that probability."""
+        p = self.proba.reindex(primary.index)
+        size = ((p - threshold) / (1 - threshold)).clip(0, 1)
+        return (np.sign(primary) * size.where(p >= threshold, 0.0)).fillna(0.0)
+
+    def precision(self, threshold: float = 0.55) -> tuple[float, float]:
+        """Hit rate of all primary bets vs of those the meta model keeps."""
+        m = self.proba.notna() & self.labels.notna()
+        base = float(self.labels[m].mean()) if m.any() else float("nan")
+        kept = m & (self.proba >= threshold)
+        return base, float(self.labels[kept].mean()) if kept.any() else float("nan")
+
+
+def meta_label(md: MarketData, feats: pd.DataFrame, primary: pd.Series, horizon: int = 24,
+               k_atr: float = 1.5, test_bars: int = 2000, min_train: int = 6000,
+               calibrate: bool = True) -> MetaResult:
+    """Meta-labeling (Lopez de Prado, ch. 3.6): the primary strategy picks the side,
+    a secondary model learns when to believe it.
+
+    Trained with the same purged walk forward as `walk_forward`, on bars where
+    the primary signal is non zero. With `calibrate`, probabilities go through
+    isotonic calibration so a 0.6 means roughly 60 percent.
+    """
+    from sklearn.calibration import CalibratedClassifierCV
+
+    tb = triple_barrier_labels(md.bars, horizon, k_atr)
+    side = np.sign(primary.reindex(feats.index).fillna(0.0))
+    active = side != 0
+    y = pd.Series(np.where(tb.notna() & active, (tb == side).astype(float), np.nan), index=feats.index)
+    X = feats.assign(primary_side=side).to_numpy(dtype=float)
+    yv = y.to_numpy()
+    proba = pd.Series(np.nan, index=feats.index)
+    n, folds, start = len(feats), 0, min_train
+    while start < n - horizon:
+        end = min(start + test_bars, n)
+        tr = np.arange(0, start - horizon)
+        tr = tr[np.isfinite(yv[tr])]
+        te = np.arange(start, end)
+        te = te[active.to_numpy()[te]]
+        if len(tr) >= 500 and len(np.unique(yv[tr])) == 2 and len(te):
+            base = default_model()
+            model = CalibratedClassifierCV(base, method="isotonic", cv=3) if calibrate else base
+            model.fit(X[tr], yv[tr])
+            pos = list(model.classes_).index(1.0)
+            proba.iloc[te] = model.predict_proba(X[te])[:, pos]
+            folds += 1
+        start = end
+    return MetaResult(proba, y, folds)

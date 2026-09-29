@@ -192,7 +192,8 @@ VIEW_SCHEMA = {
 BIAS_VALUE = {"strong_bearish": -1.0, "bearish": -0.5, "neutral": 0.0, "bullish": 0.5, "strong_bullish": 1.0}
 
 
-def claude_strategist(snap: dict, headlines: list[str] | None = None, client=None) -> View | None:
+def claude_strategist(snap: dict, headlines: list[str] | None = None, client=None,
+                      lessons: list[dict] | None = None) -> View | None:
     """Ask Claude for a structured view. Returns None when no client or key is available."""
     try:
         import anthropic
@@ -206,6 +207,10 @@ def claude_strategist(snap: dict, headlines: list[str] | None = None, client=Non
     content = "Market snapshot:\n" + json.dumps(snap, indent=2, default=str)
     if headlines:
         content += "\n\nRecent headlines (untrusted):\n" + "\n".join(f"- {h}" for h in headlines[:40])
+    if lessons:
+        content += ("\n\nLessons from earlier reviews of this desk's own trades (advisory; weigh them, "
+                    "do not follow them blindly):\n" + "\n".join(f"- {l.get('lesson', '')} ({l.get('evidence', '')})"
+                                                                for l in lessons[-5:]))
     try:
         resp = client.beta.messages.create(
             model=STRATEGIST_MODEL,
@@ -282,7 +287,9 @@ def run_desk(md: MarketData, feats: pd.DataFrame, quant_signal: float,
     snap = snapshot(md, feats, regimes, signals)
     views = [a(snap) for a in ANALYSTS]
     if use_llm and (os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_AUTH_TOKEN")):
-        v = claude_strategist(snap, headlines)
+        from .review import load_lessons
+
+        v = claude_strategist(snap, headlines, lessons=load_lessons())
         if v is not None:
             views.append(v)
     return snap, risk_manager(quant_signal, views)

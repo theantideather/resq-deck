@@ -104,19 +104,19 @@ aurum's `macro_fair_value` is a tradeable, walk-forward version of the GRAM idea
 
 What an AI quant product for gold should be, and what is already built in this repo:
 
-| Layer | Built | Next |
+| Layer | Built | Still open |
 |---|---|---|
 | Instrument specs (XAUUSD CFD, GC, MGC) | yes | per-broker profiles |
-| Data: synthetic, Yahoo, FRED, CFTC, CSV/MT5 | yes | Dukascopy ticks, GLD holdings, WGC central bank data, CPI/PCE calendar |
-| Gold feature library (42 features) | yes | Kronos embeddings, options skew (GVZ) |
+| Data: synthetic, Yahoo, FRED, CFTC, CSV/MT5, OANDA candles, your own daily series and event CSVs | yes | Dukascopy ticks |
+| Gold feature library (42 + your own series) | yes | Kronos embeddings, options skew (GVZ) |
 | Causal HMM regimes | yes | regime-conditional sizing study |
-| Strategies: London breakout, trend, macro reversion, regime ensemble | yes | Asian mean reversion, fix fade, NFP straddle |
-| ML: triple barrier, purged walk-forward, gradient boosting | yes | meta-labeling, LightGBM/XGBoost, probability calibration |
+| Strategies: London breakout, trend, macro reversion, Asian reversion, fix fade, regime ensemble | yes | NFP straddle |
+| ML: triple barrier, purged walk-forward, gradient boosting, meta-labeling, isotonic calibration | yes | LightGBM/XGBoost option |
 | Backtester: spread, slippage, commission, swap, gaps, stops, daily limit, kill switch | yes | tick-level fills, partial exits, trailing stops |
-| Validation: PSR, DSR, bootstrap, cost stress | yes | combinatorial purged CV (CPCV), White's reality check |
-| AI desk: 4 rule-based analysts, Claude strategist, risk manager | yes | news RSS ingestion, post-trade review agent with memory |
-| HTML tear sheet, CLI | yes | web dashboard, Telegram alerts |
-| Live execution | no | MT5 bridge (Windows), OANDA v20 REST, paper-trading mode first |
+| Validation: PSR, DSR, bootstrap, cost stress, walk-forward optimisation, PBO (CSCV), White's reality check | yes | combinatorial purged CV for the ML model |
+| AI desk: 4 analysts, Claude strategist, risk manager, news ingestion, post-trade review with lessons memory | yes | |
+| Execution: paper broker, OANDA v20, MT5, runner with guards, journal, Telegram/webhook alerts | yes | trailing stops, partial exits |
+| Interfaces: CLI, web dashboard, MCP server, Pine Script port, TradingView webhooks, Docker | yes | session strategies in the Pine port |
 
 ## 5. Positioning
 

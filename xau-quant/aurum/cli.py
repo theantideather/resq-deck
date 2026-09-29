@@ -5,6 +5,12 @@
     ml         walk forward gradient boosting model, validated the same way
     brief      today's desk: snapshot, analyst views, Claude strategist (if
                ANTHROPIC_API_KEY is set) and the risk manager's final size
+    run        the trading loop on the paper account, OANDA or MT5
+    paper      paper account status or reset
+    optimize   walk forward optimisation with overfitting diagnostics
+    meta       meta-labeling of a strategy's trades
+    review     post-trade review of the paper account (Claude lessons optional)
+    news       gold relevant headlines
 """
 
 from __future__ import annotations
@@ -129,6 +135,113 @@ def cmd_brief(args) -> None:
         print("\n(Claude strategist skipped: set ANTHROPIC_API_KEY to add it.)")
 
 
+def cmd_run(args) -> None:
+    from . import service
+    from .execution import make_broker
+    from .runner import Runner, RunnerConfig
+
+    if args.broker == "paper":
+        broker = service.paper_broker(args.feed, args.csv)
+    else:
+        broker = make_broker(args.broker)
+    kw = {"now": broker.feed.now} if args.broker == "paper" and args.feed == "replay" else {}
+    headlines = None
+    if args.llm:
+        from .news import fetch_headlines, headline_texts
+        headlines = lambda: headline_texts(fetch_headlines())
+    cfg = RunnerConfig(strategy=args.strategy, granularity=args.granularity, use_desk=not args.no_desk,
+                       use_llm=args.llm, max_lots=args.max_lots, allow_live=args.allow_live,
+                       with_macro=not args.no_macro and not (args.broker == "paper" and args.feed == "replay"))
+    runner = Runner(broker, cfg, headlines=headlines, **kw)
+    if args.once or args.cycles:
+        for _ in range(args.cycles or 1):
+            rec = runner.cycle()
+            if args.broker == "paper" and args.feed == "replay":
+                broker.feed.advance()
+            print(json.dumps({k: rec.get(k) for k in ("last_bar", "action", "price", "quant_signal", "desk_signal",
+                                                      "orders", "position", "notes")}, default=str))
+    else:
+        runner.loop()
+
+
+def cmd_paper(args) -> None:
+    from . import service
+
+    if args.action == "reset":
+        print(service.paper_reset())
+        return
+    st = service.paper_status(journal_limit=10)
+    if not st["exists"]:
+        print("No paper account yet. Start one with: python -m aurum run --broker paper --once")
+        return
+    pos = st["position"]
+    print(f"Equity {st['equity']:,.2f}  balance {st['balance']:,.2f}  closed trades {st['n_trades']}")
+    print("Position: " + (f"{'LONG' if pos['side'] > 0 else 'SHORT'} {pos['lots']} lots @ {pos['entry_price']:.2f}, "
+                          f"stop {pos['stop']}" if pos else "flat"))
+    for t in st["trades"][-10:]:
+        print(f"  {str(t['opened_utc'])[:16]}  {'L' if t['side'] > 0 else 'S'} {t['lots']:<5} "
+              f"{t['entry_price']:.2f} -> {t['exit_price']:.2f}  {t['reason']:<7} {t['net_pnl']:>10,.2f}")
+
+
+def cmd_optimize(args) -> None:
+    from . import service
+
+    r = service.optimize(args.strategy, train_days=args.train_days, test_days=args.test_days,
+                         source=args.source, start=args.start, end=args.end, seed=args.seed, csv_path=args.csv)
+    print(f"\nWalk forward optimisation: {r['strategy']}, {r['n_trials']} parameter combinations")
+    print(pd.DataFrame(r["windows"]).to_string(index=False))
+    fmt = lambda x, f: "n/a" if x is None else format(x, f)
+    print(f"\nOut of sample Sharpe   {fmt(r['oos_sharpe'], '.2f')}")
+    print(f"Out of sample return   {fmt(r['oos_total_return'], '.1%')}")
+    print(f"Deflated Sharpe        {fmt(r['oos_dsr'], '.1%')}  ({r['n_trials']} trials)")
+    if r["pbo"]:
+        print(f"Overfit probability    {r['pbo']['pbo']:.1%}  (CSCV, {r['pbo']['n_combinations']} splits)")
+    if r["reality_check"]:
+        print(f"Reality check p-value  {r['reality_check']['p_value']:.3f}  (best of {r['reality_check']['n_strategies']})")
+
+
+def cmd_meta(args) -> None:
+    from .ml import meta_label
+
+    md = _market(args)
+    feats = build_features(md)
+    strat = STRATEGIES[args.strategy]
+    primary = strat.signal(md, feats)
+    res = meta_label(md, feats, primary, horizon=args.horizon, k_atr=args.k_atr)
+    base, kept = res.precision(args.threshold)
+    print(f"[aurum] meta-labeling {args.strategy}: {res.folds} folds")
+    print(f"Hit rate of all primary bets   {base:.1%}")
+    print(f"Hit rate of bets the model keeps {kept:.1%}  (threshold {args.threshold})")
+    for label, sig in (("primary", primary), ("meta filtered", res.signal(primary, args.threshold))):
+        st = run_backtest(md, sig, strat.config).stats
+        print(f"{label:<14} return {st['total_return']:>7.1%}  sharpe {st['sharpe']:>5.2f}  "
+              f"max dd {st['max_drawdown']:>7.1%}  trades {st['trades']}")
+
+
+def cmd_review(args) -> None:
+    from . import service
+
+    r = service.review_paper(use_llm=not args.no_llm)
+    s = r["stats"]
+    if not s.get("trades"):
+        print("No closed paper trades to review yet.")
+        return
+    print(f"{s['trades']} trades, net {s['net_pnl']:,.2f}, win rate {s['win_rate']:.0%}, costs {s['costs']:,.2f}, swap {s['swap']:,.2f}")
+    for o in r["observations"]:
+        print(f"  - {o}")
+    if r["claude"]:
+        print("\nClaude: " + r["claude"]["summary"])
+        for l in r["claude"]["lessons"]:
+            print(f"  * {l['lesson']}\n    evidence: {l['evidence']}\n    test: {l['suggested_change']}")
+
+
+def cmd_news(args) -> None:
+    from .news import fetch_headlines, headline_texts
+
+    items = fetch_headlines(limit=args.limit)
+    print("\n".join(headline_texts(items)) or "No relevant headlines (or feeds unreachable).")
+
+
 def main(argv: list[str] | None = None) -> None:
     p = argparse.ArgumentParser(prog="aurum", description="AI quant research for gold (XAUUSD)")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -155,6 +268,48 @@ def main(argv: list[str] | None = None) -> None:
     sp.add_argument("--headlines", help="text file, one headline per line, passed to the strategist")
     sp.add_argument("--no-llm", action="store_true")
     sp.add_argument("--json", action="store_true")
+
+    sp = sub.add_parser("run", help="trading loop on paper, OANDA or MT5")
+    sp.set_defaults(fn=cmd_run)
+    sp.add_argument("--broker", default="paper", choices=["paper", "oanda", "mt5"])
+    sp.add_argument("--feed", default="yahoo", choices=["yahoo", "csv", "oanda", "replay"],
+                    help="bars for the paper broker (replay = offline synthetic demo)")
+    sp.add_argument("--csv")
+    sp.add_argument("--strategy", default="ensemble", choices=list(STRATEGIES))
+    sp.add_argument("--granularity", default="H1")
+    sp.add_argument("--once", action="store_true", help="one cycle and exit (for cron)")
+    sp.add_argument("--cycles", type=int, default=0, help="run N cycles back to back and exit")
+    sp.add_argument("--no-desk", action="store_true")
+    sp.add_argument("--no-macro", action="store_true")
+    sp.add_argument("--llm", action="store_true", help="Claude strategist with live headlines")
+    sp.add_argument("--max-lots", type=float, default=2.0)
+    sp.add_argument("--allow-live", action="store_true",
+                    help="permit a real money account (also needs AURUM_LIVE_ACK)")
+
+    sp = sub.add_parser("paper", help="paper account status or reset")
+    sp.set_defaults(fn=cmd_paper)
+    sp.add_argument("action", nargs="?", default="status", choices=["status", "reset"])
+
+    sp = sub.add_parser("optimize", help="walk forward optimisation with PBO and reality check")
+    common(sp); sp.set_defaults(fn=cmd_optimize)
+    sp.add_argument("--strategy", default="london_breakout")
+    sp.add_argument("--train-days", type=int, default=365)
+    sp.add_argument("--test-days", type=int, default=91)
+
+    sp = sub.add_parser("meta", help="meta-label a strategy's trades")
+    common(sp); sp.set_defaults(fn=cmd_meta)
+    sp.add_argument("--strategy", default="london_breakout", choices=list(STRATEGIES))
+    sp.add_argument("--horizon", type=int, default=24)
+    sp.add_argument("--k-atr", type=float, default=1.5)
+    sp.add_argument("--threshold", type=float, default=0.55)
+
+    sp = sub.add_parser("review", help="post-trade review of the paper account")
+    sp.set_defaults(fn=cmd_review)
+    sp.add_argument("--no-llm", action="store_true")
+
+    sp = sub.add_parser("news", help="gold relevant headlines")
+    sp.set_defaults(fn=cmd_news)
+    sp.add_argument("--limit", type=int, default=30)
 
     args = p.parse_args(argv)
     args.fn(args)

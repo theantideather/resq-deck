@@ -1,0 +1,24 @@
+# Dashboard plus a paper trading runner on Yahoo gold prices.
+#   cp .env.example .env   # fill in what you use
+#   docker compose up -d
+# The dashboard is published on 127.0.0.1 only. To receive TradingView
+# webhooks, put a tunnel (cloudflared, ngrok) in front of it and set
+# AURUM_WEBHOOK_TOKEN.
+services:
+  web:
+    build: .
+    env_file: .env
+    ports: ["127.0.0.1:8765:8765"]
+    volumes: ["aurum-data:/data"]
+    restart: unless-stopped
+
+  runner:
+    build: .
+    env_file: .env
+    # Paper by default. For OANDA practice: --broker oanda (and OANDA_* in .env).
+    command: ["python", "-m", "aurum", "run", "--broker", "paper", "--feed", "yahoo", "--strategy", "ensemble"]
+    volumes: ["aurum-data:/data"]
+    restart: unless-stopped
+
+volumes:
+  aurum-data:

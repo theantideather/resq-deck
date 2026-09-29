@@ -11,7 +11,14 @@ pip install -e .
 python -m aurum.web          # open http://127.0.0.1:8765
 ```
 
-The dashboard has a live TradingView chart of OANDA:XAUUSD and the desk brief (tick **Claude** to add the strategist when `ANTHROPIC_API_KEY` is set). It shows each backtest with price and trade markers, equity and drawdown charts, the validation verdict with the cost stress table, a strategy league table, the trade list, the Pine Script to copy, and the TradingView alert log. It uses TradingView's open source Lightweight Charts, bundled so it works offline. The server uses only the standard library.
+The dashboard has a live TradingView chart of OANDA:XAUUSD and the desk brief (tick **Claude** to add the strategist when `ANTHROPIC_API_KEY` is set). It shows:
+
+- each backtest with price and trade markers, equity and drawdown charts, and the validation verdict with the cost stress table
+- the strategy league table and the trade list
+- **paper trading** (run cycles, see the account, the journal and closed trades)
+- the **walk-forward optimiser** with overfitting diagnostics
+- **headlines** and the **post-trade review**
+- the Pine Script to copy, and the TradingView alert log It uses TradingView's open source Lightweight Charts, bundled so it works offline. The server uses only the standard library.
 
 ## TradingView
 
@@ -28,7 +35,7 @@ python -m aurum compare              # league table of all strategies
 python -m aurum backtest --strategy macro_reversion --trials 4 --out reports
 python -m aurum ml --horizon 24 --k-atr 1.5 --out reports
 python -m aurum brief                # today's desk view
-pytest                               # 28 tests
+pytest                               # 56 tests
 ```
 
 Everything defaults to a **synthetic gold market**, so it runs offline. For real data:
@@ -47,6 +54,58 @@ export ANTHROPIC_API_KEY=...
 python -m aurum brief --source yahoo --headlines headlines.txt
 ```
 
+## Trading: paper, OANDA, MetaTrader 5
+
+A single runner drives every account type. At each bar close it pulls completed bars, builds the same features as the backtest, and computes the strategy signal. It then runs the desk and applies the guards, reconciles the position, journals the decision and notifies you. A test checks that, on the same bars, the runner makes exactly the same trades as the backtester.
+
+```bash
+python -m aurum run --broker paper --feed yahoo                 # paper account on GC=F hourly, loops forever
+python -m aurum run --broker paper --feed replay --cycles 200   # offline dry run on synthetic history
+python -m aurum run --broker oanda --once                       # OANDA practice account, one cycle (cron it hourly)
+python -m aurum run --broker mt5                                # MetaTrader 5 terminal (Windows)
+python -m aurum paper                                           # paper account status; `paper reset` to start over
+python -m aurum review                                          # post-trade review, Claude lessons if keyed
+```
+
+| Guard | What it does |
+|---|---|
+| Real money lock | A live OANDA or real MT5 account is refused unless you pass `--allow-live` **and** set `AURUM_LIVE_ACK` to the exact sentence in `runner.py`. Practice and demo accounts need neither |
+| Daily loss limit | Flat for the rest of the trading day after a 3% loss from the day's start |
+| Drawdown kill switch | Stops trading after a 20% fall from peak equity, until you delete the state file on purpose |
+| Max lots | A hard cap on position size (default 2 lots) |
+| Stale data | Skips the cycle when the last bar is too old (market closed, feed down) |
+| Re-entry lock and time stop | Same rules as the backtester |
+
+Brokers: the **paper** broker uses the backtester's cost model (spread, slippage, commission, swap with the Wednesday triple, gap fills) and keeps its state in `~/.aurum`. **OANDA** uses the v20 REST API (`OANDA_TOKEN`, `OANDA_ACCOUNT_ID`, `OANDA_ENV=practice`). **MT5** uses the `MetaTrader5` package and a running terminal. Notifications go to Telegram (`TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`) and/or a Discord or Slack webhook (`AURUM_NOTIFY_WEBHOOK`). With `AURUM_WEBHOOK_EXECUTE=paper`, TradingView alerts trade the paper account. See [`docs/LIVE.md`](docs/LIVE.md) before connecting a real account.
+
+## Research tools
+
+```bash
+python -m aurum optimize --strategy london_breakout   # walk-forward optimisation
+python -m aurum meta --strategy london_breakout       # meta-labeling
+python -m aurum news                                  # gold headlines for the strategist
+```
+
+- **Walk-forward optimisation.** Picks parameters on each trailing year and trades them the next quarter. It reports only the out-of-sample result, with the deflated Sharpe computed from the real number of variants tried.
+- **Probability of backtest overfitting (CSCV).** How often the in-sample winner lands in the bottom half out of sample. Near 50% means the parameter search is picking noise.
+- **White's reality check** (stationary bootstrap). Is the best of N strategies better than zero, once you account for having looked at N?
+- **Meta-labeling.** A calibrated second model learns when to believe a strategy's trades. On the synthetic breakout it lifts the hit rate from 48% to 58% and cuts the loss from -21% to -0.2%. That helps, but it still isn't a profitable strategy, and the tools say so.
+
+## Docker
+
+```bash
+cp .env.example .env        # fill in the keys you use
+docker compose up -d        # dashboard on 127.0.0.1:8765 plus a paper runner on Yahoo prices
+```
+
+The image runs as a non-root user and keeps state in a volume. The dashboard is published on localhost only; put a tunnel in front of it for TradingView webhooks and set `AURUM_WEBHOOK_TOKEN`.
+
+## Your own data
+
+- `AURUM_EXTRA_SERIES="cb_buying=/data/cb.csv@30D;gld=/data/gld.csv@1D"` adds any daily series (central bank purchases, ETF holdings) as `x_<name>` macro columns. Each is joined after its publication lag and becomes a z-scored feature.
+- `AURUM_EVENTS_CSV=/data/events.csv` (columns `timestamp,event`) adds CPI, PCE or any other releases to the news filter and event features.
+- `AURUM_NEWS_FEEDS` sets the RSS or Atom feeds for headlines.
+
 ## What's inside
 
 | Module | What it does |
@@ -56,15 +115,19 @@ python -m aurum brief --source yahoo --headlines headlines.txt
 | `data.py` | Yahoo, FRED, CFTC and CSV/MT5 loaders. Each macro series joins intraday bars only **after its publication time**. Includes the synthetic market |
 | `features.py` | 42 features: returns, vol, ATR, RSI, trend distance, efficiency ratio, Asian range, fix proximity, event proximity, DXY beta and residual, real yield changes, VIX, gold/silver ratio, COT z-score, walk-forward macro fair value gap |
 | `regime.py` | Gaussian HMM in numpy with a **causal** forward filter (calm / normal / stressed) |
-| `strategies.py` | London breakout of the Asian range, 1 to 5 month trend, macro fair value reversion, regime-weighted ensemble. Flat into NFP/FOMC |
-| `ml.py` | Triple-barrier labels, purged walk-forward, gradient boosting, out-of-sample permutation importance |
+| `strategies.py` | London breakout of the Asian range, 1 to 5 month trend, macro fair value reversion, Asian session reversion, London PM fix fade, regime-weighted ensemble. Flat into NFP/FOMC |
+| `ml.py` | Triple-barrier labels, purged walk-forward, gradient boosting, out-of-sample permutation importance, meta-labeling with isotonic calibration |
+| `research.py` | Walk-forward optimisation, probability of backtest overfitting (CSCV), White's reality check, parameter grids |
+| `execution/` | Broker interface, paper broker, OANDA v20 and MT5 adapters |
+| `runner.py` | Bar-close trading loop with guards, journal and notifications |
+| `news.py`, `review.py`, `notify.py` | Headline ingestion, post-trade review with Claude lessons, Telegram and webhook alerts |
 | `backtest.py` | Bar by bar engine: next-bar-open fills, ATR stops and targets, gap fills, news spreads, swap, daily loss limit, drawdown kill switch, lot rounding, margin cap |
 | `validation.py` | Probabilistic and deflated Sharpe, trade bootstrap drawdowns, cost stress at 1x/1.5x/2x/3x, and a verdict |
 | `agents.py` | Macro, positioning, technical and event analysts, plus a Claude strategist (structured JSON output, adaptive thinking, refusal fallback) and a risk manager that can only shrink or veto |
 | `report.py` | Self-contained HTML tear sheet |
 | `service.py` | JSON entry points shared by the dashboard and the MCP server |
 | `web/` | Dashboard server (standard library) and single-page UI |
-| `mcp_server.py` | MCP server: backtests, desk, TradingView bars, Pine source, alert log |
+| `mcp_server.py` | MCP server with 12 tools: backtests, optimiser, desk, TradingView bars, Pine source, paper trading, review, news, alert log |
 
 ## Results on synthetic data, and why they're negative
 
@@ -75,9 +138,11 @@ python -m aurum brief --source yahoo --headlines headlines.txt
 | london_breakout | -21.0% | -0.61 | -25.2% | 503 |
 | trend | -1.4% | -0.70 | -1.8% | 13 |
 | macro_reversion | +1.6% | 0.09 | -6.9% | 137 |
+| asian_reversion | -7.7% | -1.15 | -7.9% | 202 |
+| fix_fade | -14.7% | -0.35 | -25.0% | 1116 |
 | ensemble | -11.3% | -0.77 | -13.7% | 1021 |
 
-The synthetic market is there to prove the plumbing works, not to find an edge. It has no breakout structure in it, and its one-week mean reversion works against trend. The validation layer correctly calls every one of these a failure. The tests also prove the ML pipeline finds a real edge when one exists (a planted signal reaches a 65%+ hit rate) and finds nothing in noise (about 50%).
+The synthetic market is there to prove the plumbing works, not to find an edge. It has no breakout, Asian-session or fix structure in it, and its one-week mean reversion works against trend. The validation layer correctly calls every one of these a failure. The tests also prove the ML pipeline finds a real edge when one exists (a planted signal reaches a 65%+ hit rate) and finds nothing in noise (about 50%).
 
 Two things the synthetic runs already show about real gold trading:
 
@@ -93,9 +158,10 @@ Numbers on real data will differ. Run `--source yahoo` or `--source csv` before 
 3. Every fill pays spread and slippage, every lot pays commission, and every night pays swap.
 4. Report how many variants you tried (`--trials`). The deflated Sharpe uses it.
 5. The LLM can reduce risk and never increase it.
+6. Live trading makes the same decisions as the backtest (tested trade for trade), and real money needs two explicit opt-ins.
 
-## Roadmap
+## Still to do
 
-Live execution (MT5 bridge, OANDA v20) behind paper trading, Dukascopy tick data, GLD holdings and WGC central bank data, CPI/PCE calendar, Kronos candle embeddings, meta-labeling, combinatorial purged CV, a news ingestion agent, a web dashboard with Telegram alerts. See `docs/RESEARCH.md`, section 4.
+Run everything on real data (Yahoo, your broker's CSV, OANDA prices), and TradingView (see `docs/TRADINGVIEW.md`). Also open: Dukascopy tick data, Kronos candle embeddings as features, and bringing the two new session strategies into the Pine port.
 
 Research software. Not investment advice.

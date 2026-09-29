@@ -22,7 +22,18 @@ from .features import build_features
 from .regime import detect_regimes
 from .strategies import STRATEGIES, ensemble
 
-PINE_PATH = Path(__file__).resolve().parent.parent / "tradingview" / "aurum_gold.pine"
+def _find_pine() -> Path:
+    """The Pine file lives in the repo's tradingview/ folder, not inside the package."""
+    candidates = [os.environ.get("AURUM_PINE_PATH", ""),
+                  Path(__file__).resolve().parent.parent / "tradingview" / "aurum_gold.pine",
+                  Path.cwd() / "tradingview" / "aurum_gold.pine"]
+    for c in candidates:
+        if c and Path(c).is_file():
+            return Path(c)
+    return Path(candidates[1])
+
+
+PINE_PATH = _find_pine()
 _lock = threading.Lock()
 
 
@@ -177,12 +188,16 @@ def analyze_bars(rows: list[dict], use_llm: bool = False, headlines: list[str] |
 
 
 def pine_source() -> str:
+    if not PINE_PATH.is_file():
+        raise FileNotFoundError("tradingview/aurum_gold.pine not found; run from the xau-quant folder "
+                                "or set AURUM_PINE_PATH")
     return PINE_PATH.read_text()
 
 
 # TradingView webhook alerts, appended as JSON lines so the web server and
 # the MCP server (separate processes) see the same log.
-ALERT_LOG = Path(os.environ.get("AURUM_ALERT_LOG", Path.home() / ".aurum" / "alerts.jsonl"))
+ALERT_LOG = Path(os.environ.get("AURUM_ALERT_LOG",
+                               Path(os.environ.get("AURUM_HOME", Path.home() / ".aurum")) / "alerts.jsonl"))
 
 
 def record_alert(payload: dict) -> dict:
@@ -208,3 +223,188 @@ def recent_alerts(limit: int = 50) -> list[dict]:
         except json.JSONDecodeError:
             continue
     return out
+
+
+# ---------------------------------------------------------------------------
+# Paper trading, research, news, review
+# ---------------------------------------------------------------------------
+
+def _home() -> Path:
+    return Path(os.environ.get("AURUM_HOME", Path.home() / ".aurum"))
+
+
+class _SyntheticReplay:
+    """Offline feed for demos: walks the synthetic market one bar per cycle, position kept on disk."""
+
+    def __init__(self):
+        from .data import synthetic_market
+
+        self.md = synthetic_market(start="2023-01-01", end="2024-12-31", seed=21)
+        self.path = _home() / "replay_pos.json"
+        self.pos = 3000
+        if self.path.exists():
+            import json
+            self.pos = json.loads(self.path.read_text()).get("pos", 3000)
+
+    def advance(self) -> None:
+        import json
+        self.pos = min(self.pos + 1, len(self.md.bars))
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.path.write_text(json.dumps({"pos": self.pos}))
+
+    def __call__(self, count: int) -> pd.DataFrame:
+        return self.md.bars.iloc[max(0, self.pos - count): self.pos]
+
+    def now(self) -> pd.Timestamp:
+        return self.md.bars.index[self.pos - 1] + pd.Timedelta(minutes=61)
+
+
+_replay: _SyntheticReplay | None = None
+
+
+def paper_feed(kind: str = "yahoo", csv_path: str | None = None):
+    """Bars for the paper broker: yahoo (GC=F hourly), csv, oanda (real prices, no orders) or replay (offline demo)."""
+    global _replay
+    if kind == "replay":
+        if _replay is None:
+            _replay = _SyntheticReplay()
+        return _replay
+    if kind == "yahoo":
+        from .data import YAHOO, load_yahoo
+        return lambda count: load_yahoo(YAHOO["gold"], "1h", "729d").tail(count)
+    if kind == "csv":
+        from .data import load_csv
+        if not csv_path:
+            raise ValueError("csv feed needs csv_path")
+        return lambda count: load_csv(csv_path).tail(count)
+    if kind == "oanda":
+        from .execution.oanda import OandaBroker
+        ob = OandaBroker()
+        return lambda count: ob.candles(count)
+    raise ValueError("feed must be yahoo, csv, oanda or replay")
+
+
+def paper_broker(feed: str = "yahoo", csv_path: str | None = None):
+    from .execution import PaperBroker
+    return PaperBroker(paper_feed(feed, csv_path), _home() / "paper_account.json")
+
+
+def paper_status(journal_limit: int = 30) -> dict:
+    import json
+    from .runner import read_journal
+
+    path = _home() / "paper_account.json"
+    state = json.loads(path.read_text()) if path.exists() else None
+    out = {"exists": state is not None, "journal": read_journal(_home() / "journal.jsonl", journal_limit)}
+    if state:
+        pos = state.get("position")
+        price = state.get("last_price")
+        open_pnl = pos["side"] * (price - pos["entry_price"]) * pos["lots"] * 100 if pos and price else 0.0
+        out.update({"balance": state["balance"], "initial": state.get("initial"), "equity": state["balance"] + open_pnl,
+                    "open_pnl": open_pnl, "position": pos, "last_price": price, "last_bar": state.get("last_bar"),
+                    "trades": state["trades"][-50:], "n_trades": len(state["trades"])})
+    return _clean(out)
+
+
+def paper_cycle(strategy: str = "ensemble", feed: str = "replay", csv_path: str | None = None,
+                use_desk: bool = True, use_llm: bool = False) -> dict:
+    """One runner cycle against the paper account."""
+    from .runner import Runner, RunnerConfig
+
+    broker = paper_broker(feed, csv_path)
+    kw = {}
+    if feed == "replay":
+        kw["now"] = broker.feed.now
+    cfg = RunnerConfig(strategy=strategy, bars=3000, with_macro=feed != "replay", use_desk=use_desk,
+                       use_llm=use_llm, journal_path=_home() / "journal.jsonl", state_path=_home() / "runner_state.json")
+    headlines = None
+    if use_llm:
+        from .news import fetch_headlines, headline_texts
+        headlines = lambda: headline_texts(fetch_headlines())
+    rec = Runner(broker, cfg, headlines=headlines, **kw).cycle()
+    if feed == "replay":
+        broker.feed.advance()
+    return _clean(rec)
+
+
+def paper_reset(initial_equity: float = 100_000.0) -> dict:
+    for name in ("paper_account.json", "runner_state.json", "replay_pos.json", "journal.jsonl"):
+        p = _home() / name
+        if p.exists():
+            p.unlink()
+    global _replay
+    _replay = None
+    return {"ok": True, "initial_equity": initial_equity}
+
+
+def optimize(strategy: str = "london_breakout", train_days: int = 365, test_days: int = 91,
+             grid: dict | None = None, **mkw) -> dict:
+    from .research import GRIDS, pbo_cscv, reality_check, walk_forward_optimize
+    from .validation import deflated_sharpe, probabilistic_sharpe
+
+    if strategy not in GRIDS and not grid:
+        raise ValueError(f"no parameter grid for {strategy}; choose from {list(GRIDS)}")
+    md, feats = market(**mkw)
+    strat = STRATEGIES[strategy]
+    res = walk_forward_optimize(md, feats, strat.signal, grid or GRIDS[strategy], strat.config,
+                                train_days=train_days, test_days=test_days)
+    R = res.returns_matrix
+    pbo = pbo_cscv(R.to_numpy()) if R.shape[1] >= 2 else {}
+    rc = reality_check(R.to_numpy(), n_boot=500) if R.shape[1] >= 2 else {}
+    oos = res.oos_returns
+    return _clean({
+        "strategy": strategy, "n_trials": res.n_trials, "grid": grid or GRIDS[strategy],
+        "oos_sharpe": res.sharpe(), "oos_total_return": float(res.oos_equity.iloc[-1] - 1) if len(oos) else None,
+        "oos_psr": probabilistic_sharpe(oos) if len(oos) > 10 else None,
+        "oos_dsr": deflated_sharpe(oos, res.n_trials) if len(oos) > 10 else None,
+        "pbo": pbo, "reality_check": rc,
+        "windows": res.chosen.astype(str).to_dict("records"),
+        "oos_equity": [{"time": int(pd.Timestamp(t).timestamp()), "value": round(float(v), 5)}
+                       for t, v in res.oos_equity.items()],
+        "in_sample_sharpes": {str(i): float(R[c].mean() / R[c].std() * np.sqrt(252)) if R[c].std() > 0 else 0.0
+                              for i, c in enumerate(R.columns)},
+    })
+
+
+def news(limit: int = 30) -> list[dict]:
+    from .news import fetch_headlines
+    return _clean([{**i, "published": i["published"].isoformat() if i["published"] is not None else None}
+                   for i in fetch_headlines(limit=limit)])
+
+
+def review_paper(use_llm: bool = True) -> dict:
+    import json
+    from .review import review
+
+    path = _home() / "paper_account.json"
+    trades = json.loads(path.read_text())["trades"] if path.exists() else []
+    return _clean(review(trades, use_llm=use_llm, lessons_path=_home() / "lessons.json"))
+
+
+def execute_alert(payload: dict) -> dict | None:
+    """With AURUM_WEBHOOK_EXECUTE=paper, a TradingView alert trades the paper account.
+
+    buy / sell open (reversing if needed) at the alert price with the alert's
+    qty_oz; close flattens. Nothing else is ever executed from a webhook.
+    """
+    if os.environ.get("AURUM_WEBHOOK_EXECUTE", "").lower() != "paper":
+        return None
+    action = str(payload.get("action", "")).lower()
+    price = payload.get("price")
+    if action not in ("buy", "sell", "close") or not isinstance(price, (int, float)):
+        return {"executed": False, "reason": "needs action buy/sell/close and a numeric price"}
+    from .execution import PaperBroker
+
+    b = PaperBroker(lambda n: pd.DataFrame(), _home() / "paper_account.json")  # prices come from the alert
+    b.set_price(float(price), pd.Timestamp.now(tz="UTC").isoformat())
+    results = []
+    pos = b.position()
+    want = {"buy": 1, "sell": -1, "close": 0}[action]
+    if pos and pos.side != want:
+        results.append(b.close(f"tv {action}").to_dict())
+    if want and (pos is None or pos.side != want):
+        lots = b.instrument.round_lots(float(payload.get("qty_oz", 0)) / b.instrument.contract_size_oz)
+        stop = payload.get("stop")
+        results.append(b.open(want, lots, float(stop) if isinstance(stop, (int, float)) else None, None,
+                              f"tv {payload.get('mode', '')}").to_dict())
+    return {"executed": True, "orders": results}

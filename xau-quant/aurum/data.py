@@ -22,6 +22,7 @@ Real sources (need network and, for Yahoo, `pip install yfinance`):
 from __future__ import annotations
 
 import io
+import os
 import urllib.parse
 import urllib.request
 import json
@@ -333,7 +334,50 @@ def load_market(
     else:
         raise ValueError(f"unknown source {source!r}")
 
-    idx = bars.index
+    return market_from_bars(bars, with_macro=with_macro, source=source)
+
+
+def load_series_csv(path: str) -> pd.Series:
+    """A daily series from a two column CSV (date, value), e.g. central bank
+    gold purchases or GLD tonnes exported from their publishers."""
+    df = pd.read_csv(path)
+    s = pd.to_numeric(df.iloc[:, 1], errors="coerce")
+    s.index = pd.to_datetime(df.iloc[:, 0])
+    return s.dropna().sort_index()
+
+
+def extra_series_spec(spec: str | None = None) -> list[tuple[str, str, str]]:
+    """Parse AURUM_EXTRA_SERIES: "name=path.csv@lag;name2=path2.csv@lag2".
+
+    Each becomes macro column x_<name>, joined `lag` after its date (default 1D).
+    """
+    spec = spec if spec is not None else os.environ.get("AURUM_EXTRA_SERIES", "")
+    out = []
+    for part in filter(None, (p.strip() for p in spec.split(";"))):
+        name, rest = part.split("=", 1)
+        path, _, lag = rest.partition("@")
+        out.append((name.strip(), path.strip(), lag.strip() or "1D"))
+    return out
+
+
+def events_with_extras(start: int, end: int) -> pd.DataFrame:
+    """The built in NFP/FOMC calendar plus AURUM_EVENTS_CSV (timestamp,event), e.g. CPI dates."""
+    extra = None
+    path = os.environ.get("AURUM_EVENTS_CSV")
+    if path and os.path.exists(path):
+        extra = pd.read_csv(path)
+    return cal.event_calendar(start, end, extra)
+
+
+def market_from_bars(bars: pd.DataFrame, with_macro: bool = True, source: str = "bars",
+                     quiet: bool = False) -> MarketData:
+    """Wrap OHLCV bars with macro context aligned to their publication times.
+
+    Used by load_market and by the live runner, so live features are built
+    exactly the way the backtest built them.
+    """
+    idx = cal.ensure_utc(pd.DatetimeIndex(bars.index))
+    bars = bars.set_axis(idx)
     macro = pd.DataFrame(index=idx)
     if with_macro:
         loaders = {
@@ -344,10 +388,13 @@ def load_market(
             "breakeven": lambda: align_to_bars(load_fred("T10YIE"), idx, "46h"),
             "cot_mm_net": lambda: align_to_bars(load_cot_gold()["mm_net"], idx, "3D21h"),
         }
+        for name, path, lag in extra_series_spec():
+            loaders[f"x_{name}"] = (lambda p=path, g=lag: align_to_bars(load_series_csv(p), idx, g))
         for name, fn in loaders.items():
             try:
                 macro[name] = fn()
             except Exception as e:  # keep going with what we have
-                print(f"[aurum] macro series {name} unavailable: {e}")
-    events = cal.event_calendar(idx[0].year, idx[-1].year)
+                if not quiet:
+                    print(f"[aurum] macro series {name} unavailable: {e}")
+    events = events_with_extras(idx[0].year, idx[-1].year + 1)
     return MarketData(bars, macro, events, source=source)

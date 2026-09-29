@@ -201,6 +201,12 @@ def build_features(md: MarketData, fair_window: int = 2000) -> pd.DataFrame:
         bars_per_week = max(1, round(24 / md.freq_hours)) * 5
         f["cot_mm_z"] = zscore(m["cot_mm_net"], bars_per_week * 104, min_periods=bars_per_week * 26)
 
+    # User supplied daily series (AURUM_EXTRA_SERIES): 20 day change, z-scored.
+    bpd = max(1, round(24 / md.freq_hours))
+    for col in [c for c in m.columns if c.startswith("x_")]:
+        if m[col].notna().any():
+            f[f"{col}_chg_z"] = zscore(m[col].diff(20 * bpd), 250 * bpd, min_periods=60 * bpd)
+
     fv = macro_fair_value(md, window=fair_window)
     f["fv_gap"] = fv["gap"]
     f["fv_gap_z"] = fv["gap_z"]

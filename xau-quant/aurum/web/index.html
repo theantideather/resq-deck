@@ -193,6 +193,66 @@ footer { max-width: 1440px; margin: 0 auto; padding: 8px 16px 32px; color: var(-
     </div>
   </section>
 
+  <section class="panel" id="paperPanel">
+    <h2>Paper trading
+      <span style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;text-transform:none;letter-spacing:0;font-weight:400">
+        <label class="f" style="flex-direction:row;align-items:center;gap:4px">Feed
+          <select id="feed">
+            <option value="replay">Replay (offline demo)</option>
+            <option value="yahoo">Yahoo GC=F</option>
+            <option value="oanda">OANDA prices</option>
+            <option value="csv">CSV (path above)</option>
+          </select></label>
+        <label style="font-size:12px;display:flex;gap:4px;align-items:center"><input type="checkbox" id="paperDesk" checked> Desk</label>
+        <label style="font-size:12px;display:flex;gap:4px;align-items:center"><input type="checkbox" id="paperLlm"> Claude</label>
+        <button id="cycle1">Run 1 cycle</button>
+        <button id="cycle24">Run 24</button>
+        <button id="paperReset">Reset</button>
+      </span>
+    </h2>
+    <p class="muted" style="margin:0 0 10px">Uses the strategy picked above. The same runner drives OANDA and MT5 accounts from the command line: <code>python -m aurum run --broker oanda</code>.</p>
+    <div class="tiles" id="paperTiles"></div>
+    <div class="two" style="margin-top:12px">
+      <div><h2>Journal <small class="muted">newest first</small></h2>
+        <div class="scroll"><table id="journal"><thead><tr>
+          <th scope="col">Bar (UTC)</th><th scope="col">Action</th><th scope="col">Price</th><th scope="col">Quant → desk</th><th scope="col">Notes</th>
+        </tr></thead><tbody></tbody></table></div></div>
+      <div><h2>Closed paper trades</h2>
+        <div class="scroll"><table id="paperTrades"><thead><tr>
+          <th scope="col">Opened</th><th scope="col">Side</th><th scope="col">Lots</th><th scope="col">Entry</th><th scope="col">Exit</th><th scope="col">Reason</th><th scope="col">Net</th>
+        </tr></thead><tbody></tbody></table></div></div>
+    </div>
+  </section>
+
+  <section class="two">
+    <div class="panel">
+      <h2>Walk-forward optimiser <button id="wfoBtn">Optimise strategy</button></h2>
+      <p class="muted" style="margin-top:0">Chooses parameters on each trailing year and trades them the next quarter. It reports only the out-of-sample result, judged against the number of variants tried.</p>
+      <div class="tiles" id="wfoTiles"></div>
+      <div id="wfoChart" class="chart sm" style="margin-top:10px"></div>
+      <div class="scroll" style="max-height:220px"><table id="wfoWindows"><thead></thead><tbody></tbody></table></div>
+    </div>
+    <div class="panel">
+      <h2>News and review
+        <span class="tabs" role="tablist">
+          <button role="tab" aria-selected="true" data-tab2="news">Headlines</button>
+          <button role="tab" aria-selected="false" data-tab2="review">Trade review</button>
+        </span>
+      </h2>
+      <div data-pane2="news">
+        <div style="display:flex;gap:8px;margin-bottom:8px"><button id="newsBtn">Load headlines</button><span id="newsMsg" class="muted" role="status"></span></div>
+        <ul id="newsList" class="notes" style="padding-left:18px;font-size:13px"></ul>
+      </div>
+      <div data-pane2="review" hidden>
+        <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center">
+          <button id="reviewBtn">Review paper trades</button>
+          <label style="font-size:12px;display:flex;gap:4px;align-items:center"><input type="checkbox" id="reviewLlm"> Claude lessons</label>
+        </div>
+        <div id="reviewBody" class="muted">Reviews the paper account's closed trades.</div>
+      </div>
+    </div>
+  </section>
+
   <section class="two">
     <div class="panel">
       <h2>Run it on TradingView
@@ -310,6 +370,8 @@ function makeCharts() {
   charts.markers = LW.createSeriesMarkers(charts.candles, []);
   charts.eq = LW.createChart($("eqChart"), baseOpts());
   charts.eqLine = charts.eq.addSeries(LW.LineSeries, { lineWidth: 2, priceLineVisible: false });
+  charts.wfo = LW.createChart($("wfoChart"), baseOpts());
+  charts.wfoLine = charts.wfo.addSeries(LW.LineSeries, { lineWidth: 2, priceLineVisible: false });
   charts.dd = LW.createChart($("ddChart"), baseOpts());
   charts.ddArea = charts.dd.addSeries(LW.AreaSeries, { lineWidth: 2, priceLineVisible: false });
   restyleCharts();
@@ -326,7 +388,8 @@ function makeCharts() {
 }
 function restyleCharts() {
   if (!charts.price) return;
-  for (const c of [charts.price, charts.eq, charts.dd]) c.applyOptions(baseOpts());
+  for (const c of [charts.price, charts.eq, charts.dd, charts.wfo]) c.applyOptions(baseOpts());
+  charts.wfoLine.applyOptions({ color: css("--gold") });
   const up = css("--up"), down = css("--down"), gold = css("--gold");
   // Hollow up / filled down, so direction does not rely on red vs green alone.
   charts.candles.applyOptions({ upColor: "rgba(0,0,0,0)", downColor: down, borderUpColor: up, borderDownColor: down, wickUpColor: up, wickDownColor: down });
@@ -493,6 +556,121 @@ async function loadAlerts() {
   } catch (e) {}
 }
 
+// ---- paper trading --------------------------------------------------------
+async function post(path, body = {}) {
+  const r = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json", "X-Aurum": "1" }, body: JSON.stringify(body) });
+  const j = await r.json();
+  if (!r.ok) throw new Error(j.error || r.statusText);
+  return j;
+}
+function renderPaper(p) {
+  if (!p.exists) {
+    $("paperTiles").replaceChildren(tile("Account", "none yet"));
+    $("journal").querySelector("tbody").replaceChildren();
+    $("paperTrades").querySelector("tbody").replaceChildren();
+    return;
+  }
+  const pos = p.position;
+  $("paperTiles").replaceChildren(
+    tile("Equity", usd(p.equity), signCls(p.equity - p.initial)), tile("Balance", usd(p.balance)),
+    tile("Open P&L", usd(p.open_pnl), signCls(p.open_pnl)), tile("Closed trades", String(p.n_trades)),
+    tile("Position", pos ? `${pos.side > 0 ? "▲ long" : "▼ short"} ${pos.lots}` : "flat", pos ? (pos.side > 0 ? "pos" : "neg") : ""),
+    tile("Entry / stop", pos ? `${num(pos.entry_price)} / ${pos.stop ? num(pos.stop) : "–"}` : "–"),
+    tile("Last price", num(p.last_price)),
+  );
+  $("journal").querySelector("tbody").replaceChildren(...[...p.journal].reverse().map((j) => el("tr", {},
+    el("td", { text: String(j.last_bar || j.time_utc || "").slice(0, 16).replace("T", " ") }),
+    el("td", { class: j.action === "trade" ? "pos" : "", text: j.action + (j.orders && j.orders.length ? ` (${j.orders.map((o) => o.action + (o.side > 0 ? "▲" : "▼")).join(", ")})` : "") }),
+    el("td", { text: num(j.price) }),
+    el("td", { class: "num", text: j.quant_signal == null ? "–" : `${j.quant_signal.toFixed(2)} → ${(j.desk_signal ?? 0).toFixed(2)}` }),
+    el("td", { class: "muted", style: "white-space:normal", text: [...(j.notes || []), ...(j.desk_notes || [])].join("; ") }))));
+  $("paperTrades").querySelector("tbody").replaceChildren(...[...p.trades].reverse().map((t) => el("tr", {},
+    el("td", { text: String(t.opened_utc || "").slice(0, 16).replace("T", " ") }),
+    el("td", { class: t.side > 0 ? "pos" : "neg", text: t.side > 0 ? "▲ long" : "▼ short" }),
+    el("td", { text: num(t.lots) }), el("td", { text: num(t.entry_price) }), el("td", { text: num(t.exit_price) }),
+    el("td", { text: t.reason }), el("td", { class: signCls(t.net_pnl), text: usd(t.net_pnl) }))));
+}
+async function loadPaper() { try { renderPaper(await api("/api/paper")); } catch (e) { status(e.message, true); } }
+async function cycles(n) {
+  const btns = [$("cycle1"), $("cycle24")]; btns.forEach((b) => (b.disabled = true));
+  try {
+    for (let i = 0; i < n; i++) {
+      status(`Paper cycle ${i + 1}/${n}…`);
+      const body = { strategy: $("strategy").value, feed: $("feed").value, desk: $("paperDesk").checked, llm: $("paperLlm").checked };
+      if ($("feed").value === "csv") body.csv = $("csv").value;
+      await post("/api/paper/cycle", body);
+      if (i % 4 === 3 || i === n - 1) await loadPaper();
+    }
+    status(`Ran ${n} paper cycle${n > 1 ? "s" : ""}`);
+  } catch (e) { status(e.message, true); }
+  finally { btns.forEach((b) => (b.disabled = false)); }
+}
+$("cycle1").onclick = () => cycles(1);
+$("cycle24").onclick = () => cycles(24);
+$("paperReset").onclick = async () => {
+  if (!confirm("Reset the paper account, journal and replay position?")) return;
+  try { await post("/api/paper/reset"); await loadPaper(); status("Paper account reset"); } catch (e) { status(e.message, true); }
+};
+
+// ---- optimiser -------------------------------------------------------------
+async function optimise() {
+  const p = params(); p.set("strategy", $("strategy").value);
+  status(`Optimising ${$("strategy").value}… this runs every parameter combination`);
+  $("wfoBtn").disabled = true;
+  try {
+    const r = await api("/api/optimize?" + p);
+    const pboV = r.pbo && r.pbo.pbo, rcV = r.reality_check && r.reality_check.p_value;
+    $("wfoTiles").replaceChildren(
+      tile("Variants tried", String(r.n_trials)), tile("OOS Sharpe", num(r.oos_sharpe), signCls(r.oos_sharpe)),
+      tile("OOS return", pct(r.oos_total_return), signCls(r.oos_total_return)),
+      tile("Deflated Sharpe", pct(r.oos_dsr)), tile("Overfit prob. (PBO)", pct(pboV), pboV >= 0.5 ? "neg" : ""),
+      tile("Reality check p", num(rcV, 3), rcV < 0.05 ? "pos" : ""));
+    if (charts.wfo) charts.wfoLine.setData(r.oos_equity), charts.wfo.timeScale().fitContent();
+    const keys = r.windows.length ? Object.keys(r.windows[0]) : [];
+    $("wfoWindows").querySelector("thead").replaceChildren(el("tr", {}, ...keys.map((k) => el("th", { scope: "col", text: k.replaceAll("_", " ") }))));
+    $("wfoWindows").querySelector("tbody").replaceChildren(...r.windows.map((w) => el("tr", {}, ...keys.map((k) => el("td", { text: String(w[k]).slice(0, 10) })))));
+    status(`Optimised ${r.strategy}: ${r.windows.length} windows`);
+  } catch (e) { status(e.message, true); }
+  finally { $("wfoBtn").disabled = false; }
+}
+$("wfoBtn").onclick = optimise;
+
+// ---- news and review ---------------------------------------------------------
+for (const b of document.querySelectorAll("[data-tab2]")) b.onclick = () => {
+  for (const x of document.querySelectorAll("[data-tab2]")) x.setAttribute("aria-selected", String(x === b));
+  for (const p of document.querySelectorAll("[data-pane2]")) p.hidden = p.dataset.pane2 !== b.dataset.tab2;
+};
+$("newsBtn").onclick = async () => {
+  $("newsMsg").textContent = "Fetching…";
+  try {
+    const items = await api("/api/news");
+    $("newsList").replaceChildren(...items.map((i) => {
+      const a = el("a", { href: /^https?:\/\//.test(i.link) ? i.link : "#", target: "_blank", rel: "noopener noreferrer", text: i.title });
+      return el("li", {}, a, el("span", { class: "muted", text: `  ${i.source} · ${String(i.published || "").slice(0, 16).replace("T", " ")}` }));
+    }));
+    $("newsMsg").textContent = items.length ? `${items.length} headlines` : "No relevant headlines (or feeds unreachable).";
+  } catch (e) { $("newsMsg").textContent = e.message; }
+};
+$("reviewBtn").onclick = async () => {
+  const box = $("reviewBody"); box.textContent = "Reviewing…";
+  try {
+    const r = await post("/api/review", { llm: $("reviewLlm").checked });
+    const s = r.stats;
+    const parts = [el("div", { class: "kv num" },
+      el("span", { text: "Trades" }), el("span", { text: String(s.trades) }),
+      el("span", { text: "Net P&L" }), el("span", { class: signCls(s.net_pnl), text: usd(s.net_pnl) }),
+      el("span", { text: "Win rate" }), el("span", { text: pct(s.win_rate, 0) }),
+      el("span", { text: "Costs / swap" }), el("span", { text: `${usd(-(s.costs || 0))} / ${usd(s.swap)}` })),
+      el("h2", { style: "margin-top:12px", text: "Observations" }),
+      el("ul", { class: "notes" }, ...r.observations.map((o) => el("li", { text: o })))];
+    if (r.claude) parts.push(el("h2", { style: "margin-top:12px", text: "Claude's lessons" }),
+      el("p", { text: r.claude.summary }),
+      el("ul", { class: "notes" }, ...r.claude.lessons.map((l) => el("li", { text: `${l.lesson}. Evidence: ${l.evidence}. Test: ${l.suggested_change}` }))));
+    else if ($("reviewLlm").checked) parts.push(el("p", { class: "muted", text: "Claude lessons need ANTHROPIC_API_KEY on the server and at least 5 trades." }));
+    box.className = ""; box.replaceChildren(...parts);
+  } catch (e) { box.textContent = e.message; box.className = "err"; }
+};
+
 // ---- boot -----------------------------------------------------------------
 $("source").onchange = () => { $("csvWrap").hidden = $("source").value !== "csv"; };
 $("run").onclick = runBacktest;
@@ -506,7 +684,7 @@ $("briefBtn").onclick = brief;
     $("strategy").replaceChildren(...st.map((s) => el("option", { value: s.name, text: s.name.replaceAll("_", " ") })));
     $("strategy").value = "macro_reversion";
   } catch (e) { status(e.message, true); }
-  loadPine(); loadAlerts(); setInterval(loadAlerts, 15000);
+  loadPine(); loadAlerts(); loadPaper(); setInterval(loadAlerts, 15000);
   await runBacktest();
   brief();
 })();

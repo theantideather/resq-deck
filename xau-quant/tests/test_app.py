@@ -119,3 +119,51 @@ def test_mcp_server_registers_tools():
 
     names = {t.name for t in anyio.run(mcp.list_tools)}
     assert {"backtest_strategy", "analyze_tradingview_bars", "get_pine_strategy", "desk_brief"} <= names
+
+
+def _post_json(url, body, headers=None):
+    req = urllib.request.Request(url, data=json.dumps(body).encode(), method="POST",
+                                 headers={"Content-Type": "application/json", **(headers or {})})
+    try:
+        with urllib.request.urlopen(req, timeout=120) as r:
+            return r.status, json.loads(r.read())
+    except urllib.error.HTTPError as e:
+        return e.code, json.loads(e.read())
+
+
+def test_paper_api_needs_header_and_runs_cycles(server, tmp_path, monkeypatch):
+    monkeypatch.setenv("AURUM_HOME", str(tmp_path / "home"))
+    service.paper_reset()
+    code, _ = _post_json(server + "/api/paper/cycle", {"feed": "replay"})
+    assert code == 403  # no X-Aurum header: a cross site post is refused
+    for _ in range(3):
+        code, rec = _post_json(server + "/api/paper/cycle", {"feed": "replay", "strategy": "london_breakout"},
+                               {"X-Aurum": "1"})
+        assert code == 200 and rec["action"] in ("hold", "trade", "skip")
+    code, raw = _get(server + "/api/paper")
+    st = json.loads(raw)
+    assert st["exists"] and len(st["journal"]) == 3
+    code, body = _post_json(server + "/api/review", {"llm": False}, {"X-Aurum": "1"})
+    assert code == 200 and "observations" in body
+
+
+def test_webhook_can_trade_paper_when_enabled(server, tmp_path, monkeypatch):
+    monkeypatch.setenv("AURUM_HOME", str(tmp_path / "home2"))
+    monkeypatch.setenv("AURUM_WEBHOOK_EXECUTE", "paper")
+    url = server + "/webhook/tradingview?token=s3cret"
+    code, body = _post(url, json.dumps({"action": "buy", "qty_oz": 50, "price": 2400.0, "mode": "Ensemble"}).encode())
+    assert code == 200 and body["execution"]["orders"][0]["ok"]
+    code, body = _post(url, json.dumps({"action": "sell", "qty_oz": 30, "price": 2410.0}).encode())
+    kinds = [(o["action"], o["side"]) for o in body["execution"]["orders"]]
+    assert kinds == [("close", 1), ("open", -1)]
+    st = service.paper_status()
+    assert st["position"]["side"] == -1 and st["position"]["lots"] == 0.3
+    assert st["trades"][0]["exit_price"] == 2410.0
+
+
+def test_webhook_does_not_trade_by_default(server, tmp_path, monkeypatch):
+    monkeypatch.setenv("AURUM_HOME", str(tmp_path / "home3"))
+    monkeypatch.delenv("AURUM_WEBHOOK_EXECUTE", raising=False)
+    code, body = _post(server + "/webhook/tradingview?token=s3cret",
+                       json.dumps({"action": "buy", "qty_oz": 50, "price": 2400.0}).encode())
+    assert code == 200 and body["execution"] is None

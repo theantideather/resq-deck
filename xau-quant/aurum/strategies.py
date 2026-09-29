@@ -12,7 +12,11 @@ and its magnitude is the conviction that scales risk. Zero means flat.
     macro_reversion   Fade gaps between gold and its dollar plus real yield fair
                       value (the GRAM idea from the World Gold Council, made
                       tradable with a walk forward fit).
-    ensemble          Blend of the above, weighted by the causal HMM regime.
+    asian_reversion   Fade stretches from the Asian session's running mean,
+                      in the thin, liquidity driven Tokyo hours.
+    fix_fade          Short into the London PM fix and cover after it.
+    ensemble          Blend of breakout, trend and macro reversion, weighted
+                      by the causal HMM regime.
 
 Each strategy also carries the backtest settings (stops, targets, time
 stops) that match how it is meant to trade.
@@ -119,6 +123,48 @@ def macro_reversion(md: MarketData, feats: pd.DataFrame, enter: float = 1.75, ex
     return flat_into_news(sig, md)
 
 
+def asian_reversion(md: MarketData, feats: pd.DataFrame, enter: float = 1.2, exit: float = 0.2,
+                    max_vol_ratio: float = 1.2) -> pd.Series:
+    """Fade stretches away from the Asian session's running mean, inside Asia only.
+
+    Asia is the thinnest, most mean reverting part of gold's day (liquidity
+    trading dominates Tokyo; Iwatsubo, Watkins and Xu). Stay out when short
+    term volatility is running hot, and be flat before London opens.
+    """
+    idx = md.bars.index
+    c = md.bars["close"]
+    sess = cal.session_flags(idx)
+    asia = sess["asia"].to_numpy()
+    day = np.asarray(cal.trading_day(idx))
+    mean = c.where(asia).groupby(day).transform(lambda s: s.expanding().mean())
+    a = feats["atr_pct"] * c
+    z = ((c - mean) / a).where(asia)
+    quiet = (feats["vol_ratio"] < max_vol_ratio).fillna(False)
+    side = hysteresis(z.where(quiet), enter, exit, fade=True)
+    side = side.where(asia, 0.0)
+    return flat_into_news(side.fillna(0.0), md)
+
+
+def fix_fade(md: MarketData, feats: pd.DataFrame, start_hour: float = 13.0, end_hour: float = 15.0,
+             trend_filter: bool = True) -> pd.Series:
+    """Short into the LBMA PM auction (15:00 London) and cover just after.
+
+    Gold has shown persistent weakness into the London PM fix (Caminschi and
+    Heaney, 2014, on pre-fix price leakage; the Asia bid / London offer
+    pattern). The decision on the 13:00 London bar trades at 14:00 and is
+    flat after the 15:00 bar. With trend_filter, it sits out strong uptrends,
+    where the fade is fighting the tape.
+    """
+    idx = md.bars.index
+    ld = idx.tz_convert(cal.LONDON)
+    h = ld.hour + ld.minute / 60
+    window = (h >= start_hour) & (h < end_hour)
+    sig = pd.Series(np.where(window, -1.0, 0.0), index=idx)
+    if trend_filter and "dist_ema200_atr" in feats:
+        sig = sig.where(~(feats["dist_ema200_atr"] > 8).fillna(False), 0.0)
+    return flat_into_news(sig, md)
+
+
 # Regime weights: which strategy to trust in which volatility state.
 REGIME_WEIGHTS = {
     "calm": {"london_breakout": 0.3, "trend": 0.3, "macro_reversion": 0.4},
@@ -172,6 +218,18 @@ STRATEGIES: dict[str, Strategy] = {
         BacktestConfig(stop_atr=5.0, max_bars_in_trade=240, risk_per_trade=0.0075),
     ),
 }
+STRATEGIES["asian_reversion"] = Strategy(
+    "asian_reversion",
+    "Fade stretches from the Asian session mean, flat before London",
+    asian_reversion,
+    BacktestConfig(stop_atr=1.5, max_bars_in_trade=6, risk_per_trade=0.004),
+)
+STRATEGIES["fix_fade"] = Strategy(
+    "fix_fade",
+    "Short into the London PM fix, cover after the auction",
+    fix_fade,
+    BacktestConfig(stop_atr=1.0, max_bars_in_trade=3, risk_per_trade=0.004),
+)
 STRATEGIES["ensemble"] = Strategy(
     "ensemble",
     "Regime weighted blend of breakout, trend and macro reversion",
