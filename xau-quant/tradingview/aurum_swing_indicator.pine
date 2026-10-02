@@ -93,17 +93,17 @@ fHalfTrend(int amp, float dev) =>
     lowMa = ta.sma(low, amp)
     prevTrend = trend
     if nextTrend == 1
-        maxLow := math.max(lowPrice, maxLow)
+        maxLow := math.max(nz(lowPrice, low), nz(maxLow, low))
         if highMa < maxLow and close < nz(low[1], low)
             trend := 1
             nextTrend := 0
-            minHigh := highPrice
+            minHigh := nz(highPrice, high)
     else
-        minHigh := math.min(highPrice, minHigh)
+        minHigh := math.min(nz(highPrice, high), nz(minHigh, high))
         if lowMa > minHigh and close > nz(high[1], high)
             trend := 0
             nextTrend := 1
-            maxLow := lowPrice
+            maxLow := nz(lowPrice, low)
     if trend == 0
         up := prevTrend != 0 ? nz(down, maxLow) : na(up) ? maxLow : math.max(maxLow, up)
     else

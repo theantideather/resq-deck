@@ -106,5 +106,6 @@ def test_pine_files_are_consistent():
         assert src.count("(") == src.count(")") and src.count("[") == src.count("]")
         assert "\t" not in src
         assert "Swing + 0.5 ATR, 7R target" in src and "fHalfTrend" in src
+        assert "nz(highPrice, high)" in src  # na on the first bars would freeze HalfTrend forever
     ind = (root / "aurum_swing_indicator.pine").read_text()
     assert "indicator(" in ind and "strategy." not in ind
