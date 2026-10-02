@@ -10,6 +10,8 @@ Standard library only. Serves the single page UI and a small JSON API:
     GET  /api/alerts?limit=50
     GET  /api/paper                     paper account, position, trades, journal
     GET  /api/news                      gold headlines
+    GET  /api/swing?strategy=           swing desk chart: candles, trailing line, EMAs, flips,
+                                        trades with stop/target, timeframe table, PO3, plan
     GET  /api/optimize?strategy=&train=&test=   walk forward optimisation report
     POST /api/paper/cycle               {"strategy", "feed", "desk", "llm"}: one runner cycle
     POST /api/paper/reset
@@ -112,6 +114,8 @@ class Handler(BaseHTTPRequestHandler):
                 self._send(200, service.recent_alerts(int(q.get("limit", 50))))
             elif path == "/api/paper":
                 self._send(200, service.paper_status())
+            elif path == "/api/swing":
+                self._send(200, service.swing_chart(q.get("strategy", "swing_halftrend_structure"), **_market_kwargs(q)))
             elif path == "/api/news":
                 self._send(200, service.news(int(q.get("limit", 30))))
             elif path == "/api/optimize":

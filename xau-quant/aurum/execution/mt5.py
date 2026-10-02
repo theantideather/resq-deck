@@ -109,6 +109,18 @@ class MT5Broker(Broker):
         return OrderResult(ok, "open", side, lots, float(getattr(res, "price", price)),
                            str(getattr(res, "order", "")), "" if ok else f"retcode {res.retcode}: {res.comment}")
 
+    def modify_stop(self, stop: float, comment: str = "") -> OrderResult:
+        ps = self._positions()
+        if not ps:
+            return OrderResult(False, "modify", 0, 0.0, message="no open position")
+        p = ps[0]
+        side = 1 if p.type == self.mt5.POSITION_TYPE_BUY else -1
+        res = self._send({"action": self.mt5.TRADE_ACTION_SLTP, "symbol": self.symbol, "position": p.ticket,
+                          "sl": float(stop), "tp": float(p.tp or 0.0), "magic": MAGIC})
+        ok = res.retcode == self.mt5.TRADE_RETCODE_DONE
+        return OrderResult(ok, "modify", side, float(p.volume), float(stop), str(p.ticket),
+                           comment if ok else f"retcode {res.retcode}: {res.comment}")
+
     def close(self, comment: str = "") -> OrderResult:
         ps = self._positions()
         if not ps:

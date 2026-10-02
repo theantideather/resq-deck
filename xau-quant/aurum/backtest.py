@@ -48,6 +48,10 @@ class BacktestConfig:
     max_margin_utilisation: float = 0.5
     event_spread_window: tuple[str, str] = ("30min", "30min")
     instrument: GoldInstrument = field(default_factory=lambda: XAUUSD)
+    # Swing trading stop rules (all optional):
+    stop_pct: float | None = None       # fixed stop, fraction of entry price (0.04 = 4%); overrides stop_atr
+    target_r: float | None = None       # take profit at this many R (multiples of the initial stop distance)
+    breakeven_r: float | None = None    # move the stop to entry once price has gone this many R in favour
 
 
 @dataclass
@@ -65,6 +69,8 @@ class Trade:
     costs: float = 0.0
     swap: float = 0.0
     risk_usd: float = 0.0
+    init_dist: float = 0.0
+    best: float = float("nan")
 
     @property
     def net_pnl(self) -> float:
@@ -104,7 +110,7 @@ class BacktestResult:
 
 
 def risk_lots(equity: float, conviction: float, atr_value: float, price: float,
-              cfg: BacktestConfig) -> tuple[float, float]:
+              cfg: BacktestConfig, stop_dist: float | None = None) -> tuple[float, float]:
     """Lots for a new entry and the stop distance used to size it.
 
     Risks `risk_per_trade * conviction` of equity between entry and an ATR
@@ -113,7 +119,8 @@ def risk_lots(equity: float, conviction: float, atr_value: float, price: float,
     runner both call this, so they size identically.
     """
     ins = cfg.instrument
-    stop_dist = (cfg.stop_atr or 2.0) * atr_value
+    if stop_dist is None:
+        stop_dist = initial_stop_distance(cfg, atr_value, price)
     if not np.isfinite(stop_dist) or stop_dist <= 0 or conviction <= 0:
         return 0.0, float(stop_dist)
     lots = equity * cfg.risk_per_trade * conviction / (stop_dist * ins.contract_size_oz)
@@ -121,17 +128,42 @@ def risk_lots(equity: float, conviction: float, atr_value: float, price: float,
     return ins.round_lots(min(lots, max_lots)), float(stop_dist)
 
 
+def initial_stop_distance(cfg: BacktestConfig, atr_value: float, price: float,
+                          line_dist: float | None = None) -> float:
+    """Distance from entry to the first stop: fixed %, else ATR multiple, else the
+    trailing line, else 2 ATR."""
+    if cfg.stop_pct:
+        return price * cfg.stop_pct
+    if cfg.stop_atr:
+        return cfg.stop_atr * atr_value
+    if line_dist is not None and np.isfinite(line_dist) and line_dist > 0:
+        return line_dist
+    return 2.0 * atr_value
+
+
 def run_backtest(
     md: MarketData,
     signal: pd.Series,
     config: BacktestConfig | None = None,
+    stop_line: pd.Series | None = None,
+    entry_stops: pd.DataFrame | None = None,
 ) -> BacktestResult:
+    """`stop_line` (optional) is a trailing level such as a Supertrend or HalfTrend
+    line. Its value at bar t-1 becomes the stop for bar t, ratcheting only in
+    the trade's favour; with no stop_pct or stop_atr it also sets the first stop.
+
+    `entry_stops` (optional) has columns long and short: absolute stop prices
+    known at each bar's close (e.g. swing low minus half an ATR). When given,
+    the first stop of a trade opened at bar t is taken from bar t-1."""
     cfg = config or BacktestConfig()
     ins = cfg.instrument
     bars = md.bars
     idx = bars.index
     n = len(bars)
     sig = signal.reindex(idx).fillna(0.0).clip(-1, 1).to_numpy()
+    line = stop_line.reindex(idx).to_numpy(dtype=float) if stop_line is not None else None
+    es_long = entry_stops["long"].reindex(idx).to_numpy(dtype=float) if entry_stops is not None else None
+    es_short = entry_stops["short"].reindex(idx).to_numpy(dtype=float) if entry_stops is not None else None
     o, h, l, c = (bars[k].to_numpy() for k in ("open", "high", "low", "close"))
     a = _atr(bars, cfg.atr_period).to_numpy()
     ev = cal.event_risk(idx, md.events, *cfg.event_spread_window).to_numpy()
@@ -190,17 +222,37 @@ def run_backtest(
             if trade is not None and want != trade.side:
                 close_trade(i, o[i], "signal")
             if trade is None and want != 0 and want != locked_side and np.isfinite(a[i - 1]):
-                lots, stop_dist = risk_lots(cash, abs(sig[i - 1]), a[i - 1], o[i], cfg)
+                line_dist = want * (o[i] - line[i - 1]) if line is not None else None
+                if es_long is not None:
+                    level = es_long[i - 1] if want > 0 else es_short[i - 1]
+                    sd = want * (o[i] - level)
+                    dist = sd if np.isfinite(sd) and sd > 0 else 2.0 * a[i - 1]
+                else:
+                    dist = initial_stop_distance(cfg, a[i - 1], o[i], line_dist)
+                lots, stop_dist = risk_lots(cash, abs(sig[i - 1]), a[i - 1], o[i], cfg, dist)
                 if lots > 0:
-                    stop = o[i] - want * cfg.stop_atr * a[i - 1] if cfg.stop_atr else None
-                    target = o[i] + want * cfg.target_atr * a[i - 1] if cfg.target_atr else None
-                    trade = Trade(idx[i], want, lots, o[i], stop, target, risk_usd=lots * stop_dist * oz)
+                    has_stop = bool(cfg.stop_pct or cfg.stop_atr or line is not None or es_long is not None)
+                    stop = o[i] - want * stop_dist if has_stop else None
+                    if cfg.target_r:
+                        target = o[i] + want * cfg.target_r * stop_dist
+                    else:
+                        target = o[i] + want * cfg.target_atr * a[i - 1] if cfg.target_atr else None
+                    trade = Trade(idx[i], want, lots, o[i], stop, target, risk_usd=lots * stop_dist * oz,
+                                  init_dist=stop_dist, best=o[i])
                     entry_cost = fill_cost(lots, i)
                     trade.costs += entry_cost
                     cash -= entry_cost
                     entry_bar = i
 
         # 3. Stops, targets and time stop inside this bar.
+        if trade is not None and i > entry_bar:
+            # Ratchet the stop with what was known at the previous close.
+            s = trade.side
+            trade.best = max(trade.best, h[i - 1]) if s > 0 else min(trade.best, l[i - 1])
+            if line is not None and np.isfinite(line[i - 1]) and trade.stop is not None:
+                trade.stop = max(trade.stop, line[i - 1]) if s > 0 else min(trade.stop, line[i - 1])
+            if cfg.breakeven_r and trade.stop is not None and s * (trade.best - trade.entry_price) >= cfg.breakeven_r * trade.init_dist:
+                trade.stop = max(trade.stop, trade.entry_price) if s > 0 else min(trade.stop, trade.entry_price)
         if trade is not None:
             s = trade.side
             hit_stop = trade.stop is not None and ((s > 0 and l[i] <= trade.stop) or (s < 0 and h[i] >= trade.stop))
@@ -246,10 +298,11 @@ def run_backtest(
 
 def trades_frame(trades: list[Trade]) -> pd.DataFrame:
     cols = ["entry_time", "exit_time", "side", "lots", "entry_price", "exit_price", "reason",
-            "gross_pnl", "costs", "swap", "net_pnl", "r_multiple"]
+            "gross_pnl", "costs", "swap", "net_pnl", "r_multiple", "initial_stop", "target"]
     rows = [
-        {**{k: getattr(t, k) for k in cols if k not in ("net_pnl", "r_multiple")},
-         "net_pnl": t.net_pnl, "r_multiple": t.r_multiple}
+        {**{k: getattr(t, k) for k in cols if k not in ("net_pnl", "r_multiple", "initial_stop")},
+         "net_pnl": t.net_pnl, "r_multiple": t.r_multiple,
+         "initial_stop": t.entry_price - t.side * t.init_dist if t.init_dist else t.stop}
         for t in trades
     ]
     return pd.DataFrame(rows, columns=cols)

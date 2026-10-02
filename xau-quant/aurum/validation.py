@@ -88,7 +88,8 @@ def bootstrap_trades(trades: pd.DataFrame, initial_equity: float, n_paths: int =
 
 
 def cost_stress(md: MarketData, signal: pd.Series, config: BacktestConfig,
-                multipliers: tuple[float, ...] = (1.0, 1.5, 2.0, 3.0)) -> pd.DataFrame:
+                multipliers: tuple[float, ...] = (1.0, 1.5, 2.0, 3.0),
+                stop_line: pd.Series | None = None) -> pd.DataFrame:
     rows = []
     ins = config.instrument
     for m in multipliers:
@@ -100,7 +101,7 @@ def cost_stress(md: MarketData, signal: pd.Series, config: BacktestConfig,
             swap_short_per_lot=ins.swap_short_per_lot if ins.swap_short_per_lot < 0 else ins.swap_short_per_lot / m,
         )
         cfg = BacktestConfig(**{**config.__dict__, "instrument": stressed})
-        st = run_backtest(md, signal, cfg).stats
+        st = run_backtest(md, signal, cfg, stop_line=stop_line).stats
         rows.append({"cost_x": m, "return": st["total_return"], "sharpe": st["sharpe"],
                      "max_dd": st["max_drawdown"], "profit_factor": st["profit_factor"]})
     return pd.DataFrame(rows).set_index("cost_x")
@@ -138,12 +139,12 @@ class Scorecard:
 
 
 def scorecard(md: MarketData, signal: pd.Series, result: BacktestResult, n_trials: int = 1,
-              stress: bool = True) -> Scorecard:
+              stress: bool = True, stop_line: pd.Series | None = None) -> Scorecard:
     daily = _daily_returns(result.equity)
     psr = probabilistic_sharpe(daily)
     dsr = deflated_sharpe(daily, n_trials)
     boot = bootstrap_trades(result.trades, result.config.initial_equity)
-    table = cost_stress(md, signal, result.config) if stress else None
+    table = cost_stress(md, signal, result.config, stop_line=stop_line) if stress else None
     survives = table is None or table.loc[1.5, "sharpe"] > 0.3
     if result.stats["trades"] < 30:
         verdict = "not enough trades to judge"

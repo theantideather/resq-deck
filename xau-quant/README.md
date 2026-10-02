@@ -35,7 +35,7 @@ python -m aurum compare              # league table of all strategies
 python -m aurum backtest --strategy macro_reversion --trials 4 --out reports
 python -m aurum ml --horizon 24 --k-atr 1.5 --out reports
 python -m aurum brief                # today's desk view
-pytest                               # 56 tests
+pytest                               # 65 tests
 ```
 
 Everything defaults to a **synthetic gold market**, so it runs offline. For real data:
@@ -53,6 +53,10 @@ pip install -e ".[llm]"
 export ANTHROPIC_API_KEY=...
 python -m aurum brief --source yahoo --headlines headlines.txt
 ```
+
+## Swing desk: a friend's BTC system, rebuilt for gold
+
+A trend-flip swing system identified from screenshots of a friend's BTC chart: HalfTrend 5 on 1D, EMA 200 regime, a multi-timeframe table, a PO3 candle, and stops at the swing high/low plus 0.5 ATR with a 7R target. It's rebuilt as Python strategies (`swing_*`), a TradingView indicator and strategy, and a dashboard panel, then backtested on ten years of real XAUUSD. Details and results: [`docs/SWING.md`](docs/SWING.md).
 
 ## Trading: paper, OANDA, MetaTrader 5
 

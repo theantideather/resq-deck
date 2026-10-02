@@ -26,7 +26,7 @@ from .backtest import BacktestConfig, run_backtest
 from .data import load_market
 from .features import build_features
 from .regime import detect_regimes
-from .strategies import STRATEGIES
+from .strategies import STRATEGIES, run_strategy
 
 
 def _market(args):
@@ -57,8 +57,7 @@ def cmd_compare(args) -> None:
     feats = build_features(md)
     rows = []
     for name, strat in STRATEGIES.items():
-        sig = strat.signal(md, feats)
-        st = run_backtest(md, sig, strat.config).stats
+        st = run_strategy(md, strat, feats)[0].stats
         rows.append({"strategy": name, "return": st["total_return"], "cagr": st["cagr"],
                      "sharpe": st["sharpe"], "max_dd": st["max_drawdown"], "trades": st["trades"],
                      "win": st["win_rate"], "pf": st["profit_factor"], "swap": st["swap"]})
@@ -75,13 +74,12 @@ def cmd_backtest(args) -> None:
     md = _market(args)
     feats = build_features(md)
     strat = STRATEGIES[args.strategy]
-    sig = strat.signal(md, feats)
-    res = run_backtest(md, sig, strat.config)
+    res, sig, m, line = run_strategy(md, strat, feats)
     print(f"\n{strat.name}: {strat.description}\n")
     print(res.summary())
-    card = scorecard(md, sig, res, n_trials=args.trials)
+    card = scorecard(m, sig, res, n_trials=args.trials, stop_line=line)
     print("\n" + card.text())
-    _save(args, strat.name, md, sig, res, card)
+    _save(args, strat.name, m, sig, res, card)
 
 
 def cmd_ml(args) -> None:

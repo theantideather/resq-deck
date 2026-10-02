@@ -20,7 +20,7 @@ from .backtest import BacktestConfig, run_backtest
 from .data import MarketData, load_market
 from .features import build_features
 from .regime import detect_regimes
-from .strategies import STRATEGIES, ensemble
+from .strategies import STRATEGIES, ensemble, run_strategy
 
 def _find_pine() -> Path:
     """The Pine file lives in the repo's tradingview/ folder, not inside the package."""
@@ -109,8 +109,9 @@ def _downsample_candles(bars: pd.DataFrame, max_points: int = 2500) -> tuple[lis
 
 
 def strategies() -> list[dict]:
-    return [{"name": s.name, "description": s.description,
-             "stop_atr": s.config.stop_atr, "target_atr": s.config.target_atr,
+    return [{"name": s.name, "description": s.description, "timeframe": s.timeframe,
+             "stop_atr": s.config.stop_atr, "target_atr": s.config.target_atr, "stop_pct": s.config.stop_pct,
+             "target_r": s.config.target_r, "trailing": s.stop_line is not None,
              "risk_per_trade": s.config.risk_per_trade} for s in STRATEGIES.values()]
 
 
@@ -118,7 +119,7 @@ def compare(**mkw) -> dict:
     md, feats = market(**mkw)
     rows = []
     for name, strat in STRATEGIES.items():
-        st = run_backtest(md, strat.signal(md, feats), strat.config).stats
+        st = run_strategy(md, strat, feats)[0].stats
         rows.append({"strategy": name, **{k: st[k] for k in (
             "total_return", "cagr", "sharpe", "max_drawdown", "trades", "win_rate", "profit_factor", "swap", "costs")}})
     return _clean({"source": md.source, "start": md.bars.index[0], "end": md.bars.index[-1],
@@ -136,11 +137,10 @@ def backtest(strategy: str = "ensemble", n_trials: int = 1, validate: bool = Tru
     cfg = strat.config
     if risk_per_trade:
         cfg = BacktestConfig(**{**cfg.__dict__, "risk_per_trade": risk_per_trade})
-    sig = strat.signal(md, feats)
-    res = run_backtest(md, sig, cfg)
+    res, sig, m, line = run_strategy(md, strat, feats, cfg)
     eq = res.equity.resample("1D").last().dropna()
     dd = eq / eq.cummax() - 1
-    candles, tf = _downsample_candles(md.bars)
+    candles, tf = _downsample_candles(m.bars)
     t = res.trades.copy()
     trades = [{
         "entry_time": int(r.entry_time.timestamp()), "exit_time": int(r.exit_time.timestamp()),
@@ -156,7 +156,7 @@ def backtest(strategy: str = "ensemble", n_trials: int = 1, validate: bool = Tru
         "trades": trades,
     }
     if validate:
-        card = scorecard(md, sig, res, n_trials=n_trials)
+        card = scorecard(m, sig, res, n_trials=n_trials, stop_line=line)
         out["validation"] = {
             "psr": card.psr, "dsr": card.dsr, "n_trials": n_trials, "bootstrap": card.bootstrap,
             "cost_stress": [{"cost_x": float(k), **v} for k, v in card.cost_table.to_dict("index").items()]
@@ -363,6 +363,64 @@ def optimize(strategy: str = "london_breakout", train_days: int = 365, test_days
                        for t, v in res.oos_equity.items()],
         "in_sample_sharpes": {str(i): float(R[c].mean() / R[c].std() * np.sqrt(252)) if R[c].std() > 0 else 0.0
                               for i, c in enumerate(R.columns)},
+    })
+
+
+def swing_chart(strategy: str = "swing_halftrend_structure", **mkw) -> dict:
+    """Everything needed to draw the friend's chart for a swing strategy: candles, trailing
+    line, EMAs, flip markers, trades with their stop and target, the timeframe table,
+    win rates, the PO3 candle and the plan for the current signal."""
+    from .indicators import mtf_directions, po3_candle, side_win_rates
+    from .swing import swing_components, swing_stops, trade_plan
+
+    strat = STRATEGIES.get(strategy)
+    if strat is None or strat.swing is None:
+        raise ValueError(f"{strategy!r} is not a swing strategy; choose from "
+                         f"{[n for n, x in STRATEGIES.items() if x.swing is not None]}")
+    md, feats = market(**mkw)
+    res, sig, m, line = run_strategy(md, strat, feats)
+    d = m.bars
+    comp = swing_components(d, strat.swing)
+    t = lambda ts: int(pd.Timestamp(ts).timestamp())
+    tail = d.index[-min(len(d), 1500)]
+    view = comp.loc[tail:]
+    candles = [{"time": t(i), "open": round(r.open, 2), "high": round(r.high, 2), "low": round(r.low, 2),
+                "close": round(r.close, 2)} for i, r in zip(d.loc[tail:].index, d.loc[tail:].itertuples())]
+    trail = [{"time": t(i), "value": round(v, 2), "color": "up" if dr > 0 else "down"}
+             for i, v, dr in zip(view.index, view["line"], view["dir"]) if np.isfinite(v)]
+    emas = {k: [{"time": t(i), "value": round(v, 2)} for i, v in view[k].dropna().items()]
+            for k in ("ema_regime", "ema_fast", "ema_mid") if k in view}
+    flips = view["dir"].diff().fillna(0)
+    markers = [{"time": t(i), "side": int(np.sign(v))} for i, v in flips[flips != 0].items()]
+    trades = [{"entry_time": t(r.entry_time), "exit_time": t(r.exit_time), "side": int(r.side),
+               "entry": r.entry_price, "exit": r.exit_price, "stop": r.initial_stop, "target": r.target,
+               "reason": r.reason, "pnl": r.net_pnl, "r": r.r_multiple}
+              for r in res.trades.itertuples() if r.entry_time >= tail]
+    intraday = len(md.bars) > len(d)
+    if intraday:
+        rules = {"60": "1h", "240": "4h", "1D": "1D", "1W": "1W"}
+        mt = mtf_directions(md.bars.tail(24 * 5 * 60), rules, strat.swing.engine, **strat.swing.engine_params)
+    else:
+        rules = {"1D": "1D", "3D": "3D", "1W": "1W"}
+        mt = mtf_directions(d, rules, strat.swing.engine, **strat.swing.engine_params)
+    last = mt.iloc[-1]
+    tfs = {k: (None if pd.isna(last[k]) else int(last[k])) for k in rules}
+    # The daily row is the strategy's own daily engine (broker trading day, full history).
+    tfs["1D"] = int(comp["dir"].iloc[-1])
+    table = {"timeframes": tfs, "aligned_up": sum(1 for v in tfs.values() if v == 1),
+             "aligned_down": sum(1 for v in tfs.values() if v == -1), **side_win_rates(res.trades)}
+    side = int(comp["dir"].iloc[-1])
+    stops = swing_stops(d) if strat.entry_stops else None
+    plan = trade_plan(d, side, res.config.initial_equity, strat.config, line if strat.stop_line else None, stops)
+    open_trade = trades[-1] if trades and trades[-1]["reason"] == "end" else None
+    return _clean({
+        "strategy": strategy, "description": strat.description, "timeframe": strat.timeframe,
+        "engine": strat.swing.engine, "engine_params": strat.swing.engine_params,
+        "candles": candles, "trail": trail, "emas": emas, "markers": markers, "trades": trades[-60:],
+        "table": table, "po3": {**po3_candle(md.bars if intraday else d, "1D"), "time": None},
+        "plan": plan, "open_trade": open_trade, "last_flip": markers[-1] if markers else None,
+        "stats": {k: res.stats[k] for k in ("total_return", "sharpe", "max_drawdown", "trades", "win_rate",
+                                             "profit_factor", "avg_r", "swap")},
     })
 
 

@@ -1,0 +1,351 @@
+// This Pine Script® code is subject to the terms of the Mozilla Public License 2.0
+// aurum · Swing Desk — a rebuild of a BTC swing trader's chart, set up for XAUUSD.
+//
+// What the original chart shows and how it maps here:
+//   stepped trailing line + ribbon + ▲/▼ flip labels  ->  flip engine (HalfTrend by default;
+//                                                        amplitude 5 matched 7 of 10 of his BTC
+//                                                        markers within 3 days; Supertrend,
+//                                                        Chandelier Exit and UT Bot selectable)
+//   slow black average                                 ->  EMA 200 regime line
+//   thin blue / purple lines near price                ->  EMA 20 / EMA 50
+//   Time Frame | Signal table, Aligned, Long/Short WR  ->  multi timeframe table, win rates of
+//                                                        this strategy's own closed trades
+//   "D CANDLE PO3" box with Range                      ->  current higher timeframe candle drawn
+//                                                        to the right of price
+//   position tool: stop 4.06%, target 7.15R            ->  stop mode "Swing + 0.5 ATR, 7R target":
+//                                                        stop beyond the 10 bar swing high/low plus
+//                                                        0.5 ATR (his BTC short of 28 Oct 2025: 10 day
+//                                                        high 116,381 + 0.46 ATR = his 118,028 stop),
+//                                                        target 7R; every trade is drawn as a
+//                                                        position tool box with the same labels
+//
+// On XAUUSD 1D, 2016 to 2026 (aurum backtester, real data), HalfTrend 5 with the EMA 200 filter:
+//   "4% stop, 7R target"          33 trades, profit factor 2.7, max DD 5.6%  (best on gold)
+//   "Swing + 0.5 ATR, 7R target"  33 trades, profit factor 1.9, max DD 10.6%
+// at 1% risk per trade. TradingView does not charge swap; budget for it on gold longs.
+//
+// Alerts: one alert on this strategy, "alert() function calls only", webhook to the aurum
+// dashboard (https://<tunnel>/webhook/tradingview?token=<token>).
+// Research software. Not investment advice.
+
+//@version=6
+strategy("aurum · Swing Desk", shorttitle = "aurum swing", overlay = true,
+     initial_capital = 100000, currency = currency.USD,
+     default_qty_type = strategy.fixed, default_qty_value = 1,
+     commission_type = strategy.commission.percent, commission_value = 0.01,
+     slippage = 2, pyramiding = 0, margin_long = 1, margin_short = 1, max_bars_back = 5000,
+     max_boxes_count = 500, max_labels_count = 500, max_lines_count = 500)
+
+// ─── Inputs ────────────────────────────────────────────────────────────────
+grpE = "Flip engine"
+engineName = input.string("HalfTrend", "Engine", options = ["HalfTrend", "Supertrend", "Chandelier", "UT Bot"], group = grpE)
+htAmp      = input.int(5, "HalfTrend amplitude", minval = 1, group = grpE)
+htDev      = input.float(2.0, "HalfTrend channel deviation", step = 0.5, group = grpE)
+stLen      = input.int(10, "Supertrend ATR length", minval = 1, group = grpE)
+stFac      = input.float(3.0, "Supertrend factor", step = 0.1, group = grpE)
+ceLen      = input.int(22, "Chandelier length", minval = 1, group = grpE)
+ceMult     = input.float(3.0, "Chandelier multiplier", step = 0.1, group = grpE)
+utKey      = input.float(1.0, "UT Bot key value", step = 0.1, group = grpE)
+utLen      = input.int(10, "UT Bot ATR length", minval = 1, group = grpE)
+
+grpF = "Filters"
+useRegime  = input.bool(true, "Regime filter: longs above / shorts below EMA", group = grpF)
+regimeLen  = input.int(200, "Regime EMA", minval = 10, group = grpF)
+allowLong  = input.bool(true, "Longs", group = grpF)
+allowShort = input.bool(true, "Shorts", group = grpF)
+mtfMin     = input.int(0, "Min aligned timeframes (0 = off)", minval = 0, maxval = 5, group = grpF)
+
+grpR = "Risk and stops"
+stopMode   = input.string("Swing + 0.5 ATR, 7R target", "Stop mode",
+     options = ["Swing + 0.5 ATR, 7R target", "4% stop, 7R target", "Trail engine line", "4% stop, breakeven 1R, trail", "2.5 ATR, trail"], group = grpR)
+swingLen   = input.int(10, "Swing lookback, bars", minval = 2, group = grpR)
+swingBuf   = input.float(0.5, "Swing buffer, ATR", step = 0.05, group = grpR)
+showPlan   = input.bool(true, "Draw entry / stop / target boxes", group = grpR)
+stopPct    = input.float(4.0, "Fixed stop %", step = 0.25, group = grpR)
+targetR    = input.float(7.0, "Target, R multiple", step = 0.5, group = grpR)
+beR        = input.float(1.0, "Breakeven after, R", step = 0.25, group = grpR)
+riskPct    = input.float(1.0, "Risk per trade, % equity", minval = 0.1, maxval = 5, step = 0.1, group = grpR)
+
+grpD = "Display"
+fastLen    = input.int(20, "Fast EMA", group = grpD)
+midLen     = input.int(50, "Mid EMA", group = grpD)
+showTable  = input.bool(true, "Multi timeframe table", group = grpD)
+tf1        = input.timeframe("5", "Table TF 1", group = grpD)
+tf2        = input.timeframe("15", "Table TF 2", group = grpD)
+tf3        = input.timeframe("60", "Table TF 3", group = grpD)
+tf4        = input.timeframe("240", "Table TF 4", group = grpD)
+tf5        = input.timeframe("D", "Table TF 5", group = grpD)
+showPo3    = input.bool(true, "Higher timeframe candle (PO3)", group = grpD)
+po3Tf      = input.timeframe("D", "PO3 timeframe", group = grpD)
+
+// ─── Engines: each returns [direction (+1/-1), trailing line] ───────────────
+fHalfTrend(int amp, float dev) =>
+    var int trend = 0
+    var int nextTrend = 0
+    var float maxLow = low
+    var float minHigh = high
+    var float up = na
+    var float down = na
+    atr2 = ta.atr(100) / 2
+    highPrice = ta.highest(high, amp)
+    lowPrice = ta.lowest(low, amp)
+    highMa = ta.sma(high, amp)
+    lowMa = ta.sma(low, amp)
+    prevTrend = trend
+    if nextTrend == 1
+        maxLow := math.max(lowPrice, maxLow)
+        if highMa < maxLow and close < nz(low[1], low)
+            trend := 1
+            nextTrend := 0
+            minHigh := highPrice
+    else
+        minHigh := math.min(highPrice, minHigh)
+        if lowMa > minHigh and close > nz(high[1], high)
+            trend := 0
+            nextTrend := 1
+            maxLow := lowPrice
+    if trend == 0
+        up := prevTrend != 0 ? nz(down, maxLow) : na(up) ? maxLow : math.max(maxLow, up)
+    else
+        down := prevTrend != 1 ? nz(up, minHigh) : na(down) ? minHigh : math.min(minHigh, down)
+    ht = trend == 0 ? up : down
+    [trend == 0 ? 1 : -1, ht, dev * atr2]
+
+fSupertrend(float fac, int len) =>
+    [st, d] = ta.supertrend(fac, len)
+    [d < 0 ? 1 : -1, st]
+
+fChandelier(int len, float mult) =>
+    a = mult * ta.atr(len)
+    longStop = ta.highest(close, len) - a
+    longPrev = nz(longStop[1], longStop)
+    longStop := close[1] > longPrev ? math.max(longStop, longPrev) : longStop
+    shortStop = ta.lowest(close, len) + a
+    shortPrev = nz(shortStop[1], shortStop)
+    shortStop := close[1] < shortPrev ? math.min(shortStop, shortPrev) : shortStop
+    var int ceD = 1
+    ceD := close > shortPrev ? 1 : close < longPrev ? -1 : ceD
+    [ceD, ceD == 1 ? longStop : shortStop]
+
+fUtBot(float key, int len) =>
+    nLoss = key * ta.atr(len)
+    var float ts = na
+    prev = nz(ts[1], close)
+    ts := close > prev and close[1] > prev ? math.max(prev, close - nLoss) :
+          close < prev and close[1] < prev ? math.min(prev, close + nLoss) :
+          close > prev ? close - nLoss : close + nLoss
+    var int utP = 1
+    utP := close[1] < prev and close > prev ? 1 : close[1] > prev and close < prev ? -1 : utP
+    [utP, ts]
+
+fEngineDir() =>
+    [d1, l1, c1] = fHalfTrend(htAmp, htDev)
+    [d2, l2] = fSupertrend(stFac, stLen)
+    [d3, l3] = fChandelier(ceLen, ceMult)
+    [d4, l4] = fUtBot(utKey, utLen)
+    engineName == "HalfTrend" ? d1 : engineName == "Supertrend" ? d2 : engineName == "Chandelier" ? d3 : d4
+
+// ─── Engine on the chart timeframe ──────────────────────────────────────────
+[htDir, htLine, htChan] = fHalfTrend(htAmp, htDev)
+[stDir, stLine] = fSupertrend(stFac, stLen)
+[ceDir, ceLine] = fChandelier(ceLen, ceMult)
+[utDir, utLine] = fUtBot(utKey, utLen)
+dir  = engineName == "HalfTrend" ? htDir : engineName == "Supertrend" ? stDir : engineName == "Chandelier" ? ceDir : utDir
+trail = engineName == "HalfTrend" ? htLine : engineName == "Supertrend" ? stLine : engineName == "Chandelier" ? ceLine : utLine
+flipUp = dir == 1 and dir[1] == -1
+flipDn = dir == -1 and dir[1] == 1
+
+emaR = ta.ema(close, regimeLen)
+emaF = ta.ema(close, fastLen)
+emaM = ta.ema(close, midLen)
+atr14 = ta.atr(14)
+
+// ─── Multi timeframe table values ───────────────────────────────────────────
+m1 = request.security(syminfo.tickerid, tf1, fEngineDir())
+m2 = request.security(syminfo.tickerid, tf2, fEngineDir())
+m3 = request.security(syminfo.tickerid, tf3, fEngineDir())
+m4 = request.security(syminfo.tickerid, tf4, fEngineDir())
+m5 = request.security(syminfo.tickerid, tf5, fEngineDir())
+upCount = (m1 == 1 ? 1 : 0) + (m2 == 1 ? 1 : 0) + (m3 == 1 ? 1 : 0) + (m4 == 1 ? 1 : 0) + (m5 == 1 ? 1 : 0)
+dnCount = 5 - upCount
+
+// ─── Entry rules ────────────────────────────────────────────────────────────
+longOk  = allowLong and (not useRegime or close > emaR) and (mtfMin == 0 or upCount >= mtfMin)
+shortOk = allowShort and (not useRegime or close < emaR) and (mtfMin == 0 or dnCount >= mtfMin)
+
+useSwing = stopMode == "Swing + 0.5 ATR, 7R target"
+usePct  = stopMode == "4% stop, 7R target" or stopMode == "4% stop, breakeven 1R, trail"
+useAtr  = stopMode == "2.5 ATR, trail"
+trails  = stopMode != "4% stop, 7R target" and not useSwing
+useTgt  = stopMode == "4% stop, 7R target" or useSwing
+swingLo = ta.lowest(low, swingLen) - swingBuf * atr14
+swingHi = ta.highest(high, swingLen) + swingBuf * atr14
+useBe   = stopMode == "4% stop, breakeven 1R, trail"
+
+var float stopPx = na
+var float targetPx = na
+var float entryRef = na
+var float initDist = na
+var float bestPx = na
+
+alertJson(string action, int s, float qty) =>
+    '{"source":"aurum-swing","symbol":"' + syminfo.tickerid + '","engine":"' + engineName + '","action":"' + action +
+     '","side":' + str.tostring(s) + ',"qty":' + str.tostring(qty, "#.####") + ',"price":' + str.tostring(close, "#.##") +
+     ',"stop":' + str.tostring(nz(stopPx), "#.##") + ',"target":' + str.tostring(nz(targetPx), "#.##") +
+     ',"time":' + str.tostring(time_close) + '}'
+
+enterTrade(int side) =>
+    dist = useSwing ? (side == 1 ? close - swingLo : swingHi - close) : usePct ? close * stopPct / 100 : useAtr ? 2.5 * atr14 : math.abs(close - trail)
+    dist := dist > 0 ? dist : 2.0 * atr14
+    qty = strategy.equity * riskPct / 100 / dist
+    [dist, qty]
+
+pos = strategy.position_size > 0 ? 1 : strategy.position_size < 0 ? -1 : 0
+
+// Position tool style drawing of each trade: red stop zone, green target zone, labels.
+var box slBox = na
+var box tpBox = na
+var label slLab = na
+var label tpLab = na
+var label rrLab = na
+drawPlan(int side, float entry, float stp, float tgt, float qty) =>
+    right = bar_index + 20
+    tgtLevel = na(tgt) ? entry + side * 3 * math.abs(entry - stp) : tgt
+    sl = box.new(bar_index, math.max(entry, stp), right, math.min(entry, stp), border_color = color.new(#ef5350, 60), bgcolor = color.new(#ef5350, 85))
+    tp = box.new(bar_index, math.max(entry, tgtLevel), right, math.min(entry, tgtLevel), border_color = color.new(#26a69a, 60), bgcolor = color.new(#26a69a, 85))
+    riskAmt = qty * math.abs(entry - stp)
+    slTxt = "Stop: " + str.tostring(math.abs(entry - stp), format.mintick) + " (" + str.tostring(100 * math.abs(entry - stp) / entry, "#.###") + "%), Amount: " + str.tostring(riskAmt, "#")
+    tpTxt = na(tgt) ? "Target: trailing" : "Target: " + str.tostring(math.abs(tgt - entry), format.mintick) + " (" + str.tostring(100 * math.abs(tgt - entry) / entry, "#.###") + "%), Amount: " + str.tostring(qty * math.abs(tgt - entry), "#")
+    sll = label.new(bar_index, stp, slTxt, style = side == 1 ? label.style_label_up : label.style_label_down, color = color.new(#ef5350, 0), textcolor = color.white, size = size.small)
+    tpl = label.new(bar_index, tgtLevel, tpTxt, style = side == 1 ? label.style_label_down : label.style_label_up, color = color.new(#26a69a, 0), textcolor = color.white, size = size.small)
+    rrl = label.new(bar_index, entry, "Qty: " + str.tostring(qty, "#.####") + (na(tgt) ? "" : "\nRisk/reward ratio: " + str.tostring(math.abs(tgt - entry) / math.abs(entry - stp), "#.##")),
+         style = label.style_label_left, color = color.new(#26a69a, 20), textcolor = color.white, size = size.small)
+    [sl, tp, sll, tpl, rrl]
+
+// Opposite flip closes the trade; a fresh flip that passes the filters opens one.
+if pos == 1 and dir == -1 and not (flipDn and shortOk)
+    strategy.close("Long", comment = "flip")
+    alert(alertJson("close", 0, 0), alert.freq_once_per_bar_close)
+if pos == -1 and dir == 1 and not (flipUp and longOk)
+    strategy.close("Short", comment = "flip")
+    alert(alertJson("close", 0, 0), alert.freq_once_per_bar_close)
+
+if flipUp and longOk
+    [d, q] = enterTrade(1)
+    if q > 0
+        entryRef := close
+        initDist := d
+        bestPx := close
+        stopPx := close - d
+        targetPx := useTgt ? close + targetR * d : na
+        strategy.entry("Long", strategy.long, qty = q)
+        if showPlan
+            [b1, b2, l1, l2, l3] = drawPlan(1, close, stopPx, targetPx, q)
+            slBox := b1
+            tpBox := b2
+            slLab := l1
+            tpLab := l2
+            rrLab := l3
+        alert(alertJson("buy", 1, q), alert.freq_once_per_bar_close)
+if flipDn and shortOk
+    [d, q] = enterTrade(-1)
+    if q > 0
+        entryRef := close
+        initDist := d
+        bestPx := close
+        stopPx := close + d
+        targetPx := useTgt ? close - targetR * d : na
+        strategy.entry("Short", strategy.short, qty = q)
+        if showPlan
+            [b1, b2, l1, l2, l3] = drawPlan(-1, close, stopPx, targetPx, q)
+            slBox := b1
+            tpBox := b2
+            slLab := l1
+            tpLab := l2
+            rrLab := l3
+        alert(alertJson("sell", -1, q), alert.freq_once_per_bar_close)
+
+// Trailing and breakeven, ratcheting only in the trade's favour.
+if pos != 0 and not na(stopPx)
+    bestPx := pos == 1 ? math.max(nz(bestPx, high), high) : math.min(nz(bestPx, low), low)
+    if trails and not na(trail)
+        stopPx := pos == 1 ? math.max(stopPx, trail) : math.min(stopPx, trail)
+    if useBe and pos * (bestPx - strategy.position_avg_price) >= beR * nz(initDist)
+        stopPx := pos == 1 ? math.max(stopPx, strategy.position_avg_price) : math.min(stopPx, strategy.position_avg_price)
+if strategy.position_size != 0
+    strategy.exit("risk", stop = stopPx, limit = targetPx, comment_loss = "stop", comment_profit = "target")
+    // Keep the open trade's boxes running with price and show the trailed stop.
+    if showPlan and not na(slBox)
+        box.set_right(slBox, bar_index + 5)
+        box.set_right(tpBox, bar_index + 5)
+        entryNow = strategy.position_avg_price
+        box.set_top(slBox, math.max(entryNow, stopPx))
+        box.set_bottom(slBox, math.min(entryNow, stopPx))
+
+// ─── Plots ──────────────────────────────────────────────────────────────────
+upCol = color.new(#26a69a, 0)
+dnCol = color.new(#ef5350, 0)
+lineP = plot(trail, "Trailing line", color = dir == 1 ? upCol : dnCol, style = plot.style_stepline, linewidth = 2)
+midP  = plot((open + close) / 2, "Body middle", display = display.none)
+fill(lineP, midP, color = dir == 1 ? color.new(#26a69a, 82) : color.new(#ef5350, 82), title = "Ribbon")
+plot(emaR, "EMA regime", color = color.black, linewidth = 2)
+plot(emaF, "EMA fast", color = color.new(color.blue, 20), linewidth = 1)
+plot(emaM, "EMA mid", color = color.new(color.purple, 20), linewidth = 1)
+plotshape(flipUp, "Buy flip", style = shape.labelup, location = location.belowbar, color = color.new(#26a69a, 0),
+     text = "▲", textcolor = color.white, size = size.small)
+plotshape(flipDn, "Sell flip", style = shape.labeldown, location = location.abovebar, color = color.new(#ef5350, 0),
+     text = "▼", textcolor = color.white, size = size.small)
+plot(pos != 0 ? stopPx : na, "Active stop", color = color.new(color.red, 0), style = plot.style_linebr)
+plot(pos != 0 ? targetPx : na, "Active target", color = color.new(color.green, 0), style = plot.style_linebr)
+
+// ─── Table: timeframes, alignment, win rates ────────────────────────────────
+var table t = table.new(position.top_right, 2, 9, bgcolor = color.new(color.white, 0), border_color = color.new(color.gray, 60), border_width = 1)
+sigCell(int r, string tf, int d) =>
+    table.cell(t, 0, r, tf, text_color = color.black)
+    table.cell(t, 1, r, d == 1 ? "Bullish" : d == -1 ? "Bearish" : "n/a", text_color = color.black,
+         bgcolor = d == 1 ? color.new(#26a69a, 60) : d == -1 ? color.new(#ef5350, 60) : color.new(color.gray, 80))
+
+if showTable and barstate.islast
+    longs = 0
+    longWins = 0
+    shorts = 0
+    shortWins = 0
+    for i = 0 to math.max(strategy.closedtrades - 1, 0)
+        if strategy.closedtrades == 0
+            break
+        if strategy.closedtrades.size(i) > 0
+            longs += 1
+            longWins += strategy.closedtrades.profit(i) > 0 ? 1 : 0
+        else
+            shorts += 1
+            shortWins += strategy.closedtrades.profit(i) > 0 ? 1 : 0
+    table.cell(t, 0, 0, "Time Frame", text_color = color.black)
+    table.cell(t, 1, 0, "Signal", text_color = color.black)
+    sigCell(1, tf1, int(m1))
+    sigCell(2, tf2, int(m2))
+    sigCell(3, tf3, int(m3))
+    sigCell(4, tf4, int(m4))
+    sigCell(5, tf5, int(m5))
+    table.cell(t, 0, 6, "Aligned", text_color = color.black)
+    table.cell(t, 1, 6, str.tostring(upCount) + "▲ / " + str.tostring(dnCount) + "▼", text_color = color.black)
+    table.cell(t, 0, 7, "Long WR", text_color = color.black)
+    table.cell(t, 1, 7, longs > 0 ? str.tostring(100.0 * longWins / longs, "#") + "% (" + str.tostring(longs) + ")" : "n/a", text_color = color.black)
+    table.cell(t, 0, 8, "Short WR", text_color = color.black)
+    table.cell(t, 1, 8, shorts > 0 ? str.tostring(100.0 * shortWins / shorts, "#") + "% (" + str.tostring(shorts) + ")" : "n/a", text_color = color.black)
+
+// ─── Higher timeframe candle to the right of price (PO3 view) ──────────────
+[po3O, po3H, po3L, po3C] = request.security(syminfo.tickerid, po3Tf, [open, high, low, close], lookahead = barmerge.lookahead_on)
+var box po3Body = na
+var line po3Wick = na
+var label po3Label = na
+if showPo3 and barstate.islast
+    box.delete(po3Body)
+    line.delete(po3Wick)
+    label.delete(po3Label)
+    x1 = bar_index + 4
+    x2 = bar_index + 8
+    col = po3C >= po3O ? color.new(#26a69a, 40) : color.new(#ef5350, 40)
+    po3Body := box.new(x1, math.max(po3O, po3C), x2, math.min(po3O, po3C), border_color = col, bgcolor = col)
+    po3Wick := line.new(x1 + 2, po3H, x1 + 2, po3L, color = col, width = 2)
+    po3Label := label.new(x2 + 2, po3H, po3Tf + " CANDLE PO3\nRange: " + str.tostring(po3H - po3L, format.mintick) + " " + syminfo.currency,
+         style = label.style_label_left, color = color.new(color.white, 0), textcolor = color.black, size = size.small)

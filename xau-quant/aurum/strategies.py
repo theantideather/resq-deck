@@ -196,6 +196,38 @@ class Strategy:
     description: str
     signal: Callable[[MarketData, pd.DataFrame], pd.Series]
     config: BacktestConfig = field(default_factory=BacktestConfig)
+    # Bar size the strategy runs on: "H1" (the data as given), "D" (broker
+    # trading day), or a resample rule such as "4h".
+    timeframe: str = "H1"
+    # Optional trailing stop level (e.g. the HalfTrend line), same index as the bars.
+    stop_line: Callable[[MarketData], pd.Series] | None = None
+    # Optional entry stop levels (columns long, short), e.g. swing low/high +- 0.5 ATR.
+    entry_stops: Callable[[MarketData], pd.DataFrame] | None = None
+    # Swing strategies keep their SwingParams here for charting.
+    swing: object | None = None
+
+
+def prepare_market(md: MarketData, strat: Strategy) -> MarketData:
+    """The market on the strategy's own timeframe."""
+    if strat.timeframe == "H1":
+        return md
+    from .swing import daily_market
+    return daily_market(md, strat.timeframe)
+
+
+def run_strategy(md: MarketData, strat: Strategy, feats: pd.DataFrame | None = None,
+                 config: BacktestConfig | None = None):
+    """Backtest a strategy on its own timeframe. Returns (result, signal, market used, stop line)."""
+    from .backtest import run_backtest
+    from .features import build_features
+
+    m = prepare_market(md, strat)
+    if m is not md or feats is None:
+        feats = build_features(m) if strat.timeframe == "H1" else pd.DataFrame(index=m.bars.index)
+    sig = strat.signal(m, feats)
+    line = strat.stop_line(m) if strat.stop_line else None
+    stops = strat.entry_stops(m) if strat.entry_stops else None
+    return run_backtest(m, sig, config or strat.config, stop_line=line, entry_stops=stops), sig, m, line
 
 
 STRATEGIES: dict[str, Strategy] = {
@@ -230,9 +262,52 @@ STRATEGIES["fix_fade"] = Strategy(
     fix_fade,
     BacktestConfig(stop_atr=1.0, max_bars_in_trade=3, risk_per_trade=0.004),
 )
+
+
+# ---------------------------------------------------------------------------
+# Swing strategies modelled on the friend's BTC chart (see aurum/swing.py)
+# ---------------------------------------------------------------------------
+
+def _swing(params, use_line: bool):
+    from .swing import swing_signal
+
+    def signal(md: MarketData, feats: pd.DataFrame) -> pd.Series:
+        return swing_signal(md.bars, params)[0]
+
+    def line(md: MarketData) -> pd.Series:
+        return swing_signal(md.bars, params)[1]
+
+    return signal, (line if use_line else None)
+
+
+def _register_swing() -> None:
+    from .swing import SwingParams, swing_config, swing_stops
+
+    specs = [
+        ("swing_halftrend", "Friend's setup on gold: HalfTrend 5 flips on 1D, longs above / shorts below "
+         "EMA 200, 4% stop, 7R target", SwingParams("halftrend", {"amplitude": 5}, 200), "pct_r", "D", {}),
+        ("swing_halftrend_trail", "HalfTrend 5 on 1D with EMA 200 filter, stop trails the HalfTrend line",
+         SwingParams("halftrend", {"amplitude": 5}, 200), "trail", "D", {}),
+        ("swing_halftrend_4h", "HalfTrend 5 flips on 4h, longs only, 1.5% stop, 7R target (1 to 2 week swings)",
+         SwingParams("halftrend", {"amplitude": 5}, None, allow_short=False), "pct_r", "4h", {"stop_pct": 0.015}),
+        ("swing_supertrend", "Supertrend 10/3 flips on 1D, stop trails the Supertrend line",
+         SwingParams("supertrend", {"period": 10, "factor": 3.0}, None), "trail", "D", {}),
+        ("swing_halftrend_structure", "HalfTrend 5 on 1D with EMA 200 filter, stop beyond the 10 day swing "
+         "high/low + 0.5 ATR, 7R target (his BTC position tool)", SwingParams("halftrend", {"amplitude": 5}, 200),
+         "swing_r", "D", {}),
+    ]
+    for name, desc, params, mode, tf, over in specs:
+        cfg, use_line = swing_config(mode, **over)
+        sig, line = _swing(params, use_line)
+        stops = (lambda md: swing_stops(md.bars)) if mode == "swing_r" else None
+        STRATEGIES[name] = Strategy(name, desc, sig, cfg, timeframe=tf, stop_line=line, entry_stops=stops,
+                                    swing=params)
+
+
 STRATEGIES["ensemble"] = Strategy(
     "ensemble",
     "Regime weighted blend of breakout, trend and macro reversion",
     ensemble,
     BacktestConfig(stop_atr=5.0, risk_per_trade=0.01),
 )
+_register_swing()

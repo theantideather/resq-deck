@@ -8,6 +8,22 @@ There are three ways to connect them, and you can use all three together.
 | **B. MCP** | Claude Code drives TradingView Desktop and aurum together: loads and compiles the Pine strategy, reads the tester, pulls bars into the aurum desk | TradingView Desktop, Node 18+, Claude Code |
 | **C. Webhooks** | TradingView alerts from the strategy land in the aurum dashboard's alert log | A public HTTPS URL (tunnel) to the dashboard |
 
+## The swing desk indicator (his chart, for gold)
+
+`tradingview/aurum_swing_indicator.pine` rebuilds the friend's BTC chart for XAUUSD. It shows:
+- the HalfTrend ribbon with ▲/▼ labels
+- the black EMA 200, plus blue and purple EMAs
+- his Time Frame / Signal table, with Aligned and Long/Short WR rows
+- the D candle PO3 box
+- an entry / stop / target box with labels for every signal, drawn like the position tool
+
+To add it:
+1. TradingView → open `OANDA:XAUUSD` (or `TVC:GOLD`), daily timeframe.
+2. Pine Editor (bottom panel) → **Open → New blank indicator**. Select all, delete, and paste the whole file.
+3. **Save**, then **Add to chart**. Set the stop mode, engine and risk in the indicator's settings (gear icon).
+
+To test it in the Strategy Tester, paste `tradingview/aurum_swing.pine` into a new **strategy** instead. See `docs/SWING.md` for how the chart was identified and the gold backtest.
+
 ## A. Pine Script by hand
 
 1. Open `tradingview/aurum_gold.pine`, or press **Copy Pine Script** in the dashboard.

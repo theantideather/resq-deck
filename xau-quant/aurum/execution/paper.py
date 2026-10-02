@@ -130,6 +130,15 @@ class PaperBroker(Broker):
                 return OrderResult(False, "close", 0, 0.0, message="no open position")
             return self._close_at(self.state["last_price"], self.state.get("last_bar") or "", comment)
 
+    def modify_stop(self, stop: float, comment: str = "") -> OrderResult:
+        with self._lock:
+            p = self.state["position"]
+            if not p:
+                return OrderResult(False, "modify", 0, 0.0, message="no open position")
+            p["stop"] = float(stop)
+            self._save()
+            return OrderResult(True, "modify", p["side"], p["lots"], float(stop), p["id"], comment)
+
     def set_price(self, price: float, when: str = "") -> None:
         """Mark the book at an external price (e.g. a TradingView alert) without bars."""
         with self._lock:

@@ -73,6 +73,10 @@ class Broker(ABC):
     @abstractmethod
     def close(self, comment: str = "") -> OrderResult: ...
 
+    def modify_stop(self, stop: float, comment: str = "") -> OrderResult:
+        """Move the open position's protective stop (trailing, breakeven)."""
+        return OrderResult(False, "modify", 0, 0.0, message=f"{self.name} cannot modify stops")
+
     def sync(self, bars: pd.DataFrame) -> list[dict]:
         """Let simulated brokers catch up on bars (stops, swap). Real brokers do this themselves."""
         return []

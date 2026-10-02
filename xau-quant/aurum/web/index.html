@@ -20,6 +20,8 @@
   --down: #e66767;
   --bull: #3987e5;
   --warn: #c98500;
+  --ema-fast: #3987e5;
+  --ema-mid: #9085e9;
   --focus: #e0b252;
 }
 @media (prefers-color-scheme: light) {
@@ -27,7 +29,7 @@
     color-scheme: light;
     --bg: #f6f4ef; --panel: #fcfcfb; --panel-2: #f0efec; --rule: #e1ded6;
     --text: #0b0b0b; --text-2: #52514e; --muted: #75736c;
-    --gold: #9a6b00; --gold-ink: #ffffff; --up: #1baf7a; --down: #e34948; --bull: #2a78d6; --warn: #b07400;
+    --gold: #9a6b00; --gold-ink: #ffffff; --up: #1baf7a; --down: #e34948; --bull: #2a78d6; --warn: #b07400; --ema-fast: #2a78d6; --ema-mid: #4a3aa7;
   }
 }
 :root[data-theme="light"] {
@@ -35,6 +37,7 @@
   --bg: #f6f4ef; --panel: #fcfcfb; --panel-2: #f0efec; --rule: #e1ded6;
   --text: #0b0b0b; --text-2: #52514e; --muted: #75736c;
   --gold: #9a6b00; --gold-ink: #ffffff; --up: #1baf7a; --down: #e34948; --bull: #2a78d6; --warn: #b07400;
+  --ema-fast: #2a78d6; --ema-mid: #4a3aa7;
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
@@ -61,7 +64,7 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
 main { max-width: 1440px; margin: 0 auto; padding: 16px; display: grid; gap: 16px; }
 .grid-top { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 16px; }
 .panel { background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; padding: 14px; min-width: 0; }
-.panel h2 { margin: 0 0 10px; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.panel h2 { flex-wrap: wrap; margin: 0 0 10px; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .panel h2 small { text-transform: none; letter-spacing: 0; font-weight: 400; }
 #tv { height: 520px; border-radius: 8px; overflow: hidden; position: relative; background: var(--panel-2); }
 #tv::before { content: "Loading TradingView… If this stays empty, tradingview.com is blocked on this network."; position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center; color: var(--muted); font-size: 13px; }
@@ -81,6 +84,18 @@ th { color: var(--muted); font-weight: 500; font-size: 12px; }
 tbody tr:hover { background: var(--panel-2); }
 tr.sel td { color: var(--gold); }
 .scroll { overflow: auto; max-height: 360px; }
+.swing-grid { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; }
+#swingChart { height: 460px; }
+.tftable td:last-child { font-weight: 600; }
+.tftable .bull { background: color-mix(in srgb, var(--up) 22%, transparent); }
+.tftable .bear { background: color-mix(in srgb, var(--down) 22%, transparent); }
+.plan { margin-top: 12px; border-radius: 8px; overflow: hidden; border: 1px solid var(--rule); }
+.plan div { padding: 6px 10px; font-size: 13px; display: flex; justify-content: space-between; gap: 8px; }
+.plan .stop { background: color-mix(in srgb, var(--down) 18%, transparent); }
+.plan .tgt { background: color-mix(in srgb, var(--up) 18%, transparent); }
+.key { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: var(--text-2); margin: 4px 0 8px; }
+.key i { display: inline-block; width: 14px; height: 3px; vertical-align: middle; margin-right: 4px; border-radius: 2px; }
+@media (max-width: 1100px) { .swing-grid { grid-template-columns: minmax(0, 1fr); } }
 .verdict { padding: 10px 12px; border-radius: 8px; background: var(--panel-2); border-left: 4px solid var(--muted); margin-bottom: 10px; }
 .verdict.pass { border-color: var(--up); } .verdict.fail { border-color: var(--down); } .verdict.warn { border-color: var(--warn); }
 .verdict b { display: block; margin-bottom: 2px; }
@@ -148,6 +163,33 @@ footer { max-width: 1440px; margin: 0 auto; padding: 8px 16px 32px; color: var(-
         </span>
       </h2>
       <div id="deskBody" class="muted">Loading…</div>
+    </div>
+  </section>
+
+  <section class="panel" id="swingPanel">
+    <h2>Swing desk
+      <span style="display:flex;gap:6px;align-items:center;text-transform:none;letter-spacing:0;font-weight:400">
+        <select id="swingStrat" aria-label="Swing strategy"></select>
+        <button id="swingBtn">Load</button>
+      </span>
+    </h2>
+    <p class="muted" id="swingDesc" style="margin:0 0 6px;font-size:12px"></p>
+    <div class="key">
+      <span><i style="background:var(--up)"></i>Trailing line, uptrend</span>
+      <span><i style="background:var(--down)"></i>Trailing line, downtrend</span>
+      <span><i style="background:var(--text)"></i>EMA 200</span>
+      <span><i style="background:var(--ema-fast)"></i>EMA 20</span>
+      <span><i style="background:var(--ema-mid)"></i>EMA 50</span>
+      <span>▲ / ▼ trend flips · dashed lines: entry, stop, target of the current trade</span>
+    </div>
+    <div class="swing-grid">
+      <div id="swingChart"></div>
+      <div>
+        <table class="tftable" id="tfTable"><thead><tr><th scope="col">Time Frame</th><th scope="col">Signal</th></tr></thead><tbody></tbody></table>
+        <div class="plan" id="planBox"></div>
+        <div class="tile" style="margin-top:12px" id="po3Box"></div>
+        <div class="kv num" style="margin-top:12px" id="swingStats"></div>
+      </div>
     </div>
   </section>
 
@@ -330,7 +372,7 @@ $("theme").onclick = () => {
   const next = currentTheme() === "dark" ? "light" : "dark";
   document.documentElement.dataset.theme = next;
   try { localStorage.setItem("aurum-theme", next); } catch (e) {}
-  restyleCharts(); mountTradingView();
+  restyleCharts(); styleSwing(); mountTradingView();
 };
 
 // ---- TradingView live widget ---------------------------------------------
@@ -556,6 +598,89 @@ async function loadAlerts() {
   } catch (e) {}
 }
 
+// ---- swing desk ------------------------------------------------------------
+const swingCharts = {};
+function makeSwingChart() {
+  if (!LW) return;
+  const c = LW.createChart($("swingChart"), baseOpts());
+  swingCharts.chart = c;
+  swingCharts.candles = c.addSeries(LW.CandlestickSeries, {});
+  swingCharts.trail = c.addSeries(LW.LineSeries, { lineWidth: 2, lineType: LW.LineType.WithSteps, priceLineVisible: false, lastValueVisible: false });
+  swingCharts.emaR = c.addSeries(LW.LineSeries, { lineWidth: 2, priceLineVisible: false, lastValueVisible: false });
+  swingCharts.emaF = c.addSeries(LW.LineSeries, { lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
+  swingCharts.emaM = c.addSeries(LW.LineSeries, { lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
+  swingCharts.markers = LW.createSeriesMarkers(swingCharts.candles, []);
+  swingCharts.lines = [];
+  styleSwing();
+}
+function styleSwing() {
+  if (!swingCharts.chart) return;
+  swingCharts.chart.applyOptions(baseOpts());
+  const up = css("--up"), down = css("--down");
+  swingCharts.candles.applyOptions({ upColor: "rgba(0,0,0,0)", downColor: down, borderUpColor: up, borderDownColor: down, wickUpColor: up, wickDownColor: down });
+  swingCharts.emaR.applyOptions({ color: css("--text") });
+  swingCharts.emaF.applyOptions({ color: css("--ema-fast") });
+  swingCharts.emaM.applyOptions({ color: css("--ema-mid") });
+  if (swingCharts.last) drawSwing(swingCharts.last);
+}
+function drawSwing(r) {
+  swingCharts.last = r;
+  const up = css("--up"), down = css("--down");
+  swingCharts.candles.setData(r.candles);
+  swingCharts.trail.setData(r.trail.map((p) => ({ time: p.time, value: p.value, color: p.color === "up" ? up : down })));
+  swingCharts.emaR.setData(r.emas.ema_regime || []);
+  swingCharts.emaF.setData(r.emas.ema_fast || []);
+  swingCharts.emaM.setData(r.emas.ema_mid || []);
+  swingCharts.markers.setMarkers(r.markers.map((m) => ({
+    time: m.time, position: m.side > 0 ? "belowBar" : "aboveBar", shape: m.side > 0 ? "arrowUp" : "arrowDown",
+    color: m.side > 0 ? up : down, text: m.side > 0 ? "▲" : "▼", size: 1 })));
+  for (const l of swingCharts.lines) swingCharts.candles.removePriceLine(l);
+  swingCharts.lines = [];
+  const t = r.open_trade;
+  if (t) {
+    const risk = Math.abs(t.entry - t.stop);
+    const add = (price, color, title) => swingCharts.lines.push(swingCharts.candles.createPriceLine({ price, color, lineWidth: 1, lineStyle: 2, axisLabelVisible: true, title }));
+    add(t.entry, css("--muted"), `Entry ${t.side > 0 ? "long" : "short"}`);
+    add(t.stop, down, `Stop ${num(risk)} (${(100 * risk / t.entry).toFixed(2)}%)`);
+    if (t.target) add(t.target, up, `Target ${num(Math.abs(t.target - t.entry))} (${(100 * Math.abs(t.target - t.entry) / t.entry).toFixed(2)}%) R:R ${(Math.abs(t.target - t.entry) / risk).toFixed(2)}`);
+  }
+  swingCharts.chart.timeScale().setVisibleLogicalRange({ from: Math.max(0, r.candles.length - 260), to: r.candles.length + 8 });
+  // Table like his: timeframe signals, alignment, win rates.
+  const tb = $("tfTable").querySelector("tbody");
+  const rows = Object.entries(r.table.timeframes).map(([tf, d]) => el("tr", {},
+    el("td", { text: tf }), el("td", { class: d === 1 ? "bull" : d === -1 ? "bear" : "", text: d === 1 ? "Bullish" : d === -1 ? "Bearish" : "n/a" })));
+  const wr = (x) => x.trades ? `${Math.round(100 * x.win_rate)}% (${x.trades})` : "n/a";
+  rows.push(el("tr", {}, el("td", { text: "Aligned" }), el("td", { text: `${r.table.aligned_up}▲ / ${r.table.aligned_down}▼` })));
+  rows.push(el("tr", {}, el("td", { text: "Long WR" }), el("td", { text: wr(r.table.long) })));
+  rows.push(el("tr", {}, el("td", { text: "Short WR" }), el("td", { text: wr(r.table.short) })));
+  tb.replaceChildren(...rows);
+  const p = r.plan;
+  $("planBox").replaceChildren(
+    el("div", {}, el("b", { text: `Plan if entering ${p.side} now` }), el("span", { class: "muted", text: p.trails ? "stop trails" : `${p.risk_reward}R target` })),
+    p.target ? el("div", { class: "tgt" }, el("span", { text: "Target" }), el("span", { class: "num", text: `${num(p.target)} (${p.target_pct.toFixed(2)}%)` })) : "",
+    el("div", {}, el("span", { text: "Entry" }), el("span", { class: "num", text: num(p.entry) })),
+    el("div", { class: "stop" }, el("span", { text: "Stop" }), el("span", { class: "num", text: `${num(p.stop)} (${p.stop_pct.toFixed(2)}%)` })),
+    el("div", {}, el("span", { text: "Size at 1% risk" }), el("span", { class: "num", text: `${p.lots} lots · ${usd(p.risk_usd)}` })));
+  $("po3Box").replaceChildren(el("div", { class: "k", text: "D candle PO3" }),
+    el("div", { class: "num", style: "font-size:13px;margin-top:4px", text: `O ${num(r.po3.open)}  H ${num(r.po3.high)}  L ${num(r.po3.low)}  C ${num(r.po3.close)}` }),
+    el("div", { class: "num", style: "font-size:13px", text: `Range ${num(r.po3.range)}` }));
+  const s = r.stats;
+  $("swingStats").replaceChildren(
+    el("span", { text: "Backtest return" }), el("span", { class: signCls(s.total_return), text: pct(s.total_return) }),
+    el("span", { text: "Sharpe · max DD" }), el("span", { text: `${num(s.sharpe)} · ${pct(s.max_drawdown)}` }),
+    el("span", { text: "Trades · PF · avg R" }), el("span", { text: `${s.trades} · ${num(s.profit_factor)} · ${num(s.avg_r)}` }),
+    el("span", { text: "Swap paid" }), el("span", { class: signCls(s.swap), text: usd(s.swap) }));
+  $("swingDesc").textContent = `${r.description} · ${r.engine} ${JSON.stringify(r.engine_params)}`;
+}
+async function loadSwing() {
+  const p = params(); p.set("strategy", $("swingStrat").value);
+  status("Loading swing desk…");
+  try { drawSwing(await api("/api/swing?" + p)); status("Swing desk loaded"); }
+  catch (e) { status(e.message, true); }
+}
+$("swingBtn").onclick = loadSwing;
+$("swingStrat").onchange = loadSwing;
+
 // ---- paper trading --------------------------------------------------------
 async function post(path, body = {}) {
   const r = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json", "X-Aurum": "1" }, body: JSON.stringify(body) });
@@ -679,14 +804,19 @@ $("briefBtn").onclick = brief;
 (async () => {
   mountTradingView();
   makeCharts();
+  makeSwingChart();
   try {
     const st = await api("/api/strategies");
     $("strategy").replaceChildren(...st.map((s) => el("option", { value: s.name, text: s.name.replaceAll("_", " ") })));
     $("strategy").value = "macro_reversion";
+    const sw = st.filter((x) => x.timeframe && x.timeframe !== "H1");
+    $("swingStrat").replaceChildren(...sw.map((s) => el("option", { value: s.name, text: s.name.replaceAll("_", " ") })));
+    if (sw.some((x) => x.name === "swing_halftrend_structure")) $("swingStrat").value = "swing_halftrend_structure";
   } catch (e) { status(e.message, true); }
   loadPine(); loadAlerts(); loadPaper(); setInterval(loadAlerts, 15000);
   await runBacktest();
   brief();
+  loadSwing();
 })();
 </script>
 </body>

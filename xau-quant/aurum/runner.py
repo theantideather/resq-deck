@@ -33,7 +33,7 @@ import numpy as np
 import pandas as pd
 
 from . import calendar as cal
-from .backtest import BacktestConfig, risk_lots
+from .backtest import BacktestConfig, initial_stop_distance, risk_lots
 from .data import market_from_bars
 from .execution.base import Broker
 from .features import atr as _atr
@@ -44,6 +44,20 @@ from .strategies import STRATEGIES
 AURUM_HOME = Path(os.environ.get("AURUM_HOME", Path.home() / ".aurum"))
 LIVE_ACK = "I accept the risk of trading real money"
 BAR_SECONDS = {"M15": 900, "15m": 900, "H1": 3600, "1h": 3600, "H4": 14400, "4h": 14400, "D": 86400}
+
+
+def completed_market(md, timeframe: str, now: pd.Timestamp):
+    """Strategy timeframe candles that have fully closed by `now`."""
+    from .data import MarketData
+    from .swing import bars_for, to_daily
+
+    if timeframe in ("D", "1D"):
+        b = to_daily(md.bars, now=now)
+    else:
+        b = bars_for(md.bars, timeframe)
+        if len(b) and b.index[-1] + pd.Timedelta(timeframe) > now:
+            b = b.iloc[:-1]
+    return MarketData(b, pd.DataFrame(index=b.index), md.events, md.source)
 
 
 class LiveTradingBlocked(RuntimeError):
@@ -63,6 +77,9 @@ class RunnerConfig:
     daily_loss_limit: float = 0.03
     max_drawdown_kill: float = 0.20
     stale_after_bars: float = 3.0
+    # Swing strategies (daily, 4h) need years of history for the EMA 200 and the
+    # path dependent HalfTrend state to match the backtest.
+    swing_history_days: int = 1500
     allow_live: bool = False
     journal_path: Path = field(default_factory=lambda: AURUM_HOME / "journal.jsonl")
     state_path: Path = field(default_factory=lambda: AURUM_HOME / "runner_state.json")
@@ -113,7 +130,9 @@ class Runner:
         now = self.now()
         rec: dict = {"time_utc": now.isoformat(), "broker": self.broker.name, "live": self.broker.live,
                      "strategy": cfg.strategy, "orders": [], "notes": []}
-        bars = self.broker.candles(cfg.bars, cfg.granularity)
+        strat = STRATEGIES[cfg.strategy]
+        need = cfg.bars if strat.timeframe == "H1" else max(cfg.bars, cfg.swing_history_days * 24)
+        bars = self.broker.candles(need, cfg.granularity)
         if bars is None or len(bars) < 300:
             rec["action"] = "skip"
             rec["notes"].append(f"only {0 if bars is None else len(bars)} bars; need 300")
@@ -133,9 +152,19 @@ class Runner:
             return rec
 
         md = market_from_bars(bars, with_macro=cfg.with_macro, source=self.broker.name, quiet=True)
-        feats = build_features(md, fair_window=min(2000, max(200, len(bars) // 3)))
-        strat = STRATEGIES[cfg.strategy]
-        signal = strat.signal(md, feats)
+        # Hourly features are only needed by hourly strategies and by the desk.
+        need_feats = strat.timeframe == "H1" or cfg.use_desk
+        feats = build_features(md, fair_window=min(2000, max(200, len(bars) // 3))) if need_feats \
+            else pd.DataFrame(index=md.bars.index)
+        # Swing strategies run on their own candles, completed ones only.
+        m = md if strat.timeframe == "H1" else completed_market(md, strat.timeframe, now)
+        sfeats = feats if m is md else pd.DataFrame(index=m.bars.index)
+        signal = strat.signal(m, sfeats)
+        line = strat.stop_line(m) if strat.stop_line else None
+        stops = strat.entry_stops(m) if strat.entry_stops else None
+        rec["timeframe"] = strat.timeframe
+        if line is not None and len(line) and np.isfinite(line.iloc[-1]):
+            rec["trail_level"] = float(line.iloc[-1])
         quant = float(np.clip(signal.iloc[-1], -1, 1)) if np.isfinite(signal.iloc[-1]) else 0.0
         rec["quant_signal"] = quant
         final = quant
@@ -193,39 +222,69 @@ class Runner:
         if cfg.risk_per_trade:
             bt_cfg = BacktestConfig(**{**bt_cfg.__dict__, "risk_per_trade": cfg.risk_per_trade})
         # Time stop.
+        time_stop = False
         if pos and bt_cfg.max_bars_in_trade and st["entry_bar"]:
             held = (last_bar - pd.Timestamp(st["entry_bar"])).total_seconds() / bar_s
             if held >= bt_cfg.max_bars_in_trade:
                 rec["notes"].append(f"time stop after {held:.0f} bars")
                 want = 0
+                time_stop = True
 
         if pos and want != pos.side:
-            r = self.broker.close("signal" if want == 0 else "reverse")
+            r = self.broker.close("time" if time_stop else ("signal" if want == 0 else "reverse"))
             rec["orders"].append(r.to_dict())
             if r.ok:
                 st["closed_by_us"] = True
                 pos = None
         if want and pos is None:
-            a = float(_atr(bars).iloc[-1])
-            lots, stop_dist = risk_lots(acct.equity, abs(final), a, rec["price"], bt_cfg)
+            a = float(_atr(m.bars).iloc[-1])
+            line_dist = want * (rec["price"] - float(line.iloc[-1])) if line is not None else None
+            if stops is not None:
+                sd = want * (rec["price"] - float(stops["long" if want > 0 else "short"].iloc[-1]))
+                dist = sd if np.isfinite(sd) and sd > 0 else 2.0 * a
+            else:
+                dist = initial_stop_distance(bt_cfg, a, rec["price"], line_dist)
+            lots, stop_dist = risk_lots(acct.equity, abs(final), a, rec["price"], bt_cfg, dist)
             lots = min(lots, cfg.max_lots)
             if lots > 0:
-                stop = rec["price"] - want * stop_dist if bt_cfg.stop_atr else None
-                target = rec["price"] + want * bt_cfg.target_atr * a if bt_cfg.target_atr else None
+                has_stop = bool(bt_cfg.stop_pct or bt_cfg.stop_atr or line is not None or stops is not None)
+                stop = rec["price"] - want * stop_dist if has_stop else None
+                if bt_cfg.target_r:
+                    target = rec["price"] + want * bt_cfg.target_r * stop_dist
+                else:
+                    target = rec["price"] + want * bt_cfg.target_atr * a if bt_cfg.target_atr else None
                 r = self.broker.open(want, lots, stop, target, comment=f"aurum {cfg.strategy}")
                 rec["orders"].append(r.to_dict())
                 if r.ok:
                     st["entry_bar"] = last_bar.isoformat()
+                    st["entry_price"] = r.price or rec["price"]
+                    st["init_dist"] = stop_dist
+                    st["best"] = st["entry_price"]
             else:
                 rec["notes"].append("size rounds to zero; account too small for this stop")
+        elif pos and pos.side == want and pos.stop is not None:
+            # Trailing and breakeven, with the same rules as the backtester.
+            st["best"] = max(st.get("best") or pos.entry_price, rec["price"]) if pos.side > 0 else \
+                min(st.get("best") or pos.entry_price, rec["price"])
+            new = pos.stop
+            if line is not None and np.isfinite(line.iloc[-1]):
+                lv = float(line.iloc[-1])
+                new = max(new, lv) if pos.side > 0 else min(new, lv)
+            if bt_cfg.breakeven_r and st.get("init_dist") and \
+                    pos.side * (st["best"] - pos.entry_price) >= bt_cfg.breakeven_r * st["init_dist"]:
+                new = max(new, pos.entry_price) if pos.side > 0 else min(new, pos.entry_price)
+            if abs(new - pos.stop) > 1e-6 and pos.side * (rec["price"] - new) > 0:
+                r = self.broker.modify_stop(new, "trail")
+                rec["orders"].append(r.to_dict())
         new_pos = self.broker.position()
         st["last_side"] = new_pos.side if new_pos else 0
         rec["position"] = new_pos.to_dict() if new_pos else None
-        rec["action"] = "trade" if rec["orders"] else "hold"
+        rec["action"] = "trade" if any(o["action"] != "modify" for o in rec["orders"]) else (
+            "trail" if rec["orders"] else "hold")
         self._save_state()
         self._journal(rec)
         for o in rec["orders"]:
-            verb = {"open": "OPEN", "close": "CLOSE"}[o["action"]]
+            verb = {"open": "OPEN", "close": "CLOSE", "modify": "MOVE STOP"}[o["action"]]
             side = "LONG" if o["side"] > 0 else "SHORT"
             status = "ok" if o["ok"] else f"FAILED ({o['message']})"
             px = f" @ {o['price']:.2f}" if o.get("price") else ""

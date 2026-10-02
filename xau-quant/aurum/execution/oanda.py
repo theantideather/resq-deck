@@ -67,7 +67,7 @@ class OandaBroker(Broker):
     def candles(self, count: int = 3000, granularity: str = "H1") -> pd.DataFrame:
         g = GRANULARITY.get(granularity, granularity)
         out = []
-        remaining = min(count, 20000)
+        remaining = min(count, 60000)
         to = None
         # OANDA caps a request at 5000 candles; page backwards for more.
         while remaining > 0:
@@ -133,6 +133,18 @@ class OandaBroker(Broker):
         tid = (fill.get("tradeOpened") or {}).get("tradeID", fill.get("id", ""))
         return OrderResult(True, "open", side, abs(units) / self.instrument.contract_size_oz,
                            float(fill["price"]), str(tid), comment)
+
+    def modify_stop(self, stop: float, comment: str = "") -> OrderResult:
+        pos = self.position()
+        if pos is None:
+            return OrderResult(False, "modify", 0, 0.0, message="no open position")
+        last = None
+        for tid in filter(None, pos.broker_id.split(",")):
+            last = self._transport("PUT", self._acct(f"/trades/{tid}/orders"),
+                                   {"stopLoss": {"price": f"{stop:.2f}", "timeInForce": "GTC"}})
+        ok = bool(last) and "stopLossOrderTransaction" in last
+        return OrderResult(ok, "modify", pos.side, pos.lots, float(stop), pos.broker_id,
+                           comment if ok else json.dumps(last)[:300])
 
     def close(self, comment: str = "") -> OrderResult:
         pos = self.position()
