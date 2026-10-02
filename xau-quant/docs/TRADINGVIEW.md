@@ -22,6 +22,8 @@ To add it:
 2. Pine Editor (bottom panel) → **Open → New blank indicator**. Select all, delete, and paste the whole file.
 3. **Save**, then **Add to chart**. Set the stop mode, engine and risk in the indicator's settings (gear icon).
 
+The ribbon is HalfTrend's ATR channel, and the ▲/▼ squares sit on its outer edge. The thin stepped line is the open trade's stop. Only the latest trade keeps its Stop / Open PnL / Target labels. Trades and win rates count from the date set in **Trades and win rates from** (default 1 Apr 2025). On BINANCE:BTCUSDT.P 1D, that default gives his 4 longs and 5 shorts; the win rates differ until his exit rule is known.
+
 To test it in the Strategy Tester, paste `tradingview/aurum_swing.pine` into a new **strategy** instead. See `docs/SWING.md` for how the chart was identified and the gold backtest.
 
 ## A. Pine Script by hand

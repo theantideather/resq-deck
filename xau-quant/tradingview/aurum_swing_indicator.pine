@@ -24,6 +24,12 @@
 //   "Swing + 0.5 ATR, 7R target"  33 trades, profit factor 1.9, max DD 10.6%
 // at 1% risk per trade. TradingView does not charge swap; budget for it on gold longs.
 //
+// Look: HalfTrend ATR channel as the thick ribbon (red above price in downtrends, mint below
+// in uptrends), ▲/▼ squares on the ribbon's outer edge, the open trade's stop as a thin stepped
+// line, and a position tool box per trade with Stop / Open PnL / Target labels on the latest one.
+// Trade count check on BTC 1D: HalfTrend 5 + EMA 200 filter from April 2025 gives 4 longs and
+// 5 shorts, his table's counts. Win rates differ (his 75% / 0%) because his exit rule isn't known.
+//
 // Indicator version of aurum_swing.pine: same chart, no Strategy Tester. Trades are simulated
 // inside the script (stop and target checked on bar highs and lows, stop first when both are
 // touched) to draw the position boxes and the Long/Short WR rows, like the original chart.
@@ -37,46 +43,48 @@ indicator("aurum · Swing Desk (indicator)", shorttitle = "aurum swing", overlay
 
 // ─── Inputs ────────────────────────────────────────────────────────────────
 grpE = "Flip engine"
-engineName = input.string("HalfTrend", "Engine", options = ["HalfTrend", "Supertrend", "Chandelier", "UT Bot"], group = grpE)
-htAmp      = input.int(5, "HalfTrend amplitude", minval = 1, group = grpE)
-htDev      = input.float(2.0, "HalfTrend channel deviation", step = 0.5, group = grpE)
-stLen      = input.int(10, "Supertrend ATR length", minval = 1, group = grpE)
-stFac      = input.float(3.0, "Supertrend factor", step = 0.1, group = grpE)
-ceLen      = input.int(22, "Chandelier length", minval = 1, group = grpE)
-ceMult     = input.float(3.0, "Chandelier multiplier", step = 0.1, group = grpE)
-utKey      = input.float(1.0, "UT Bot key value", step = 0.1, group = grpE)
-utLen      = input.int(10, "UT Bot ATR length", minval = 1, group = grpE)
+engineName = input.string("HalfTrend", "Engine", options = ["HalfTrend", "Supertrend", "Chandelier", "UT Bot"], group = grpE, display = display.none)
+htAmp      = input.int(5, "HalfTrend amplitude", minval = 1, group = grpE, display = display.none)
+htDev      = input.float(2.0, "HalfTrend channel deviation", step = 0.5, group = grpE, display = display.none)
+stLen      = input.int(10, "Supertrend ATR length", minval = 1, group = grpE, display = display.none)
+stFac      = input.float(3.0, "Supertrend factor", step = 0.1, group = grpE, display = display.none)
+ceLen      = input.int(22, "Chandelier length", minval = 1, group = grpE, display = display.none)
+ceMult     = input.float(3.0, "Chandelier multiplier", step = 0.1, group = grpE, display = display.none)
+utKey      = input.float(1.0, "UT Bot key value", step = 0.1, group = grpE, display = display.none)
+utLen      = input.int(10, "UT Bot ATR length", minval = 1, group = grpE, display = display.none)
 
 grpF = "Filters"
-useRegime  = input.bool(true, "Regime filter: longs above / shorts below EMA", group = grpF)
-regimeLen  = input.int(200, "Regime EMA", minval = 10, group = grpF)
-allowLong  = input.bool(true, "Longs", group = grpF)
-allowShort = input.bool(true, "Shorts", group = grpF)
-mtfMin     = input.int(0, "Min aligned timeframes (0 = off)", minval = 0, maxval = 5, group = grpF)
+useRegime  = input.bool(true, "Regime filter: longs above / shorts below EMA", group = grpF, display = display.none)
+regimeLen  = input.int(200, "Regime EMA", minval = 10, group = grpF, display = display.none)
+allowLong  = input.bool(true, "Longs", group = grpF, display = display.none)
+allowShort = input.bool(true, "Shorts", group = grpF, display = display.none)
+mtfMin     = input.int(0, "Min aligned timeframes (0 = off)", minval = 0, maxval = 5, group = grpF, display = display.none)
 
 grpR = "Risk and stops"
 stopMode   = input.string("Swing + 0.5 ATR, 7R target", "Stop mode",
-     options = ["Swing + 0.5 ATR, 7R target", "4% stop, 7R target", "Trail engine line", "4% stop, breakeven 1R, trail", "2.5 ATR, trail"], group = grpR)
-swingLen   = input.int(10, "Swing lookback, bars", minval = 2, group = grpR)
-swingBuf   = input.float(0.5, "Swing buffer, ATR", step = 0.05, group = grpR)
-showPlan   = input.bool(true, "Draw entry / stop / target boxes", group = grpR)
-stopPct    = input.float(4.0, "Fixed stop %", step = 0.25, group = grpR)
-targetR    = input.float(7.0, "Target, R multiple", step = 0.5, group = grpR)
-beR        = input.float(1.0, "Breakeven after, R", step = 0.25, group = grpR)
-riskPct    = input.float(1.0, "Risk per trade, % equity", minval = 0.1, maxval = 5, step = 0.1, group = grpR)
-accountUsd = input.float(100000, "Account size for position sizing", minval = 100, group = grpR)
+     options = ["Swing + 0.5 ATR, 7R target", "4% stop, 7R target", "Trail engine line", "4% stop, breakeven 1R, trail", "2.5 ATR, trail"], group = grpR, display = display.none)
+swingLen   = input.int(10, "Swing lookback, bars", minval = 2, group = grpR, display = display.none)
+swingBuf   = input.float(0.5, "Swing buffer, ATR", step = 0.05, group = grpR, display = display.none)
+showPlan   = input.bool(true, "Draw entry / stop / target boxes", group = grpR, display = display.none)
+stopPct    = input.float(4.0, "Fixed stop %", step = 0.25, group = grpR, display = display.none)
+targetR    = input.float(7.0, "Target, R multiple", step = 0.5, group = grpR, display = display.none)
+beR        = input.float(1.0, "Breakeven after, R", step = 0.25, group = grpR, display = display.none)
+riskPct    = input.float(1.0, "Risk per trade, % equity", minval = 0.1, maxval = 5, step = 0.1, group = grpR, display = display.none)
+accountUsd = input.float(100000, "Account size for position sizing", minval = 100, group = grpR, display = display.none)
+tradeFrom  = input.time(timestamp("01 Apr 2025 00:00 +0000"), "Trades and win rates from", group = grpR, display = display.none)
 
 grpD = "Display"
-fastLen    = input.int(20, "Fast EMA", group = grpD)
-midLen     = input.int(50, "Mid EMA", group = grpD)
-showTable  = input.bool(true, "Multi timeframe table", group = grpD)
-tf1        = input.timeframe("5", "Table TF 1", group = grpD)
-tf2        = input.timeframe("15", "Table TF 2", group = grpD)
-tf3        = input.timeframe("60", "Table TF 3", group = grpD)
-tf4        = input.timeframe("240", "Table TF 4", group = grpD)
-tf5        = input.timeframe("D", "Table TF 5", group = grpD)
-showPo3    = input.bool(true, "Higher timeframe candle (PO3)", group = grpD)
-po3Tf      = input.timeframe("D", "PO3 timeframe", group = grpD)
+fastLen    = input.int(20, "Fast EMA", group = grpD, display = display.none)
+midLen     = input.int(50, "Mid EMA", group = grpD, display = display.none)
+showRibbon = input.bool(true, "ATR channel ribbon", group = grpD, display = display.none)
+showTable  = input.bool(true, "Multi timeframe table", group = grpD, display = display.none)
+tf1        = input.timeframe("5", "Table TF 1", group = grpD, display = display.none)
+tf2        = input.timeframe("15", "Table TF 2", group = grpD, display = display.none)
+tf3        = input.timeframe("60", "Table TF 3", group = grpD, display = display.none)
+tf4        = input.timeframe("240", "Table TF 4", group = grpD, display = display.none)
+tf5        = input.timeframe("D", "Table TF 5", group = grpD, display = display.none)
+showPo3    = input.bool(true, "Higher timeframe candle (PO3)", group = grpD, display = display.none)
+po3Tf      = input.timeframe("D", "PO3 timeframe", group = grpD, display = display.none)
 
 // ─── Engines: each returns [direction (+1/-1), trailing line] ───────────────
 fHalfTrend(int amp, float dev) =>
@@ -170,8 +178,9 @@ upCount = (m1 == 1 ? 1 : 0) + (m2 == 1 ? 1 : 0) + (m3 == 1 ? 1 : 0) + (m4 == 1 ?
 dnCount = 5 - upCount
 
 // ─── Entry rules ────────────────────────────────────────────────────────────
-longOk  = allowLong and (not useRegime or close > emaR) and (mtfMin == 0 or upCount >= mtfMin)
-shortOk = allowShort and (not useRegime or close < emaR) and (mtfMin == 0 or dnCount >= mtfMin)
+inWindow = time >= tradeFrom
+longOk  = inWindow and allowLong and (not useRegime or close > emaR) and (mtfMin == 0 or upCount >= mtfMin)
+shortOk = inWindow and allowShort and (not useRegime or close < emaR) and (mtfMin == 0 or dnCount >= mtfMin)
 
 useSwing = stopMode == "Swing + 0.5 ATR, 7R target"
 usePct  = stopMode == "4% stop, 7R target" or stopMode == "4% stop, breakeven 1R, trail"
@@ -207,6 +216,8 @@ var int nLongWin = 0
 var int nShort = 0
 var int nShortWin = 0
 var float entryPx = na
+var float qtyOpen = na
+var int entryBar = na
 recordExit(int side, float entry, float exitPx) =>
     win = side * (exitPx - entry) > 0
     [side == 1 ? 1 : 0, side == 1 and win ? 1 : 0, side == -1 ? 1 : 0, side == -1 and win ? 1 : 0]
@@ -218,18 +229,36 @@ var label slLab = na
 var label tpLab = na
 var label rrLab = na
 drawPlan(int side, float entry, float stp, float tgt, float qty) =>
-    right = bar_index + 20
     tgtLevel = na(tgt) ? entry + side * 3 * math.abs(entry - stp) : tgt
-    sl = box.new(bar_index, math.max(entry, stp), right, math.min(entry, stp), border_color = color.new(#ef5350, 60), bgcolor = color.new(#ef5350, 85))
-    tp = box.new(bar_index, math.max(entry, tgtLevel), right, math.min(entry, tgtLevel), border_color = color.new(#26a69a, 60), bgcolor = color.new(#26a69a, 85))
-    riskAmt = qty * math.abs(entry - stp)
-    slTxt = "Stop: " + str.tostring(math.abs(entry - stp), format.mintick) + " (" + str.tostring(100 * math.abs(entry - stp) / entry, "#.###") + "%), Amount: " + str.tostring(riskAmt, "#")
-    tpTxt = na(tgt) ? "Target: trailing" : "Target: " + str.tostring(math.abs(tgt - entry), format.mintick) + " (" + str.tostring(100 * math.abs(tgt - entry) / entry, "#.###") + "%), Amount: " + str.tostring(qty * math.abs(tgt - entry), "#")
-    sll = label.new(bar_index, stp, slTxt, style = side == 1 ? label.style_label_up : label.style_label_down, color = color.new(#ef5350, 0), textcolor = color.white, size = size.small)
-    tpl = label.new(bar_index, tgtLevel, tpTxt, style = side == 1 ? label.style_label_down : label.style_label_up, color = color.new(#26a69a, 0), textcolor = color.white, size = size.small)
-    rrl = label.new(bar_index, entry, "Qty: " + str.tostring(qty, "#.####") + (na(tgt) ? "" : "\nRisk/reward ratio: " + str.tostring(math.abs(tgt - entry) / math.abs(entry - stp), "#.##")),
-         style = label.style_label_left, color = color.new(#26a69a, 20), textcolor = color.white, size = size.small)
+    risk = math.abs(entry - stp)
+    reward = math.abs(tgtLevel - entry)
+    sl = box.new(bar_index, math.max(entry, stp), bar_index + 1, math.min(entry, stp), border_color = color.new(#ef5350, 70), bgcolor = color.new(#ef5350, 75))
+    tp = box.new(bar_index, math.max(entry, tgtLevel), bar_index + 1, math.min(entry, tgtLevel), border_color = color.new(#26a69a, 70), bgcolor = color.new(#26a69a, 72))
+    slTxt = "Stop: " + str.tostring(risk, format.mintick) + " (" + str.tostring(100 * risk / entry, "#.###") + "%) " +
+         str.tostring(math.round(risk / syminfo.mintick)) + ", Amount: " + str.tostring(qty * risk, "#.##")
+    tpTxt = (na(tgt) ? "Target (trailing): " : "Target: ") + str.tostring(reward, format.mintick) + " (" + str.tostring(100 * reward / entry, "#.###") + "%) " +
+         str.tostring(math.round(reward / syminfo.mintick)) + ", Amount: " + str.tostring(qty * reward, "#.##")
+    sll = label.new(bar_index, stp, slTxt, style = side == 1 ? label.style_label_up : label.style_label_down, color = color.new(#f23645, 0), textcolor = color.white, size = size.small)
+    tpl = label.new(bar_index, tgtLevel, tpTxt, style = side == 1 ? label.style_label_down : label.style_label_up, color = color.new(#089981, 0), textcolor = color.white, size = size.small)
+    rrl = label.new(bar_index, entry, "Open PnL: 0, Qty: " + str.tostring(qty, "#.####") + "\nRisk/reward ratio: " + str.tostring(reward / risk, "#.##"),
+         style = label.style_label_center, color = color.new(#089981, 10), textcolor = color.white, size = size.small)
     [sl, tp, sll, tpl, rrl]
+
+// Stretch the boxes to the current bar and keep the labels centred over them.
+updatePlan(float px, string state) =>
+    if showPlan and not na(slBox)
+        box.set_right(slBox, bar_index)
+        box.set_right(tpBox, bar_index)
+        box.set_top(slBox, math.max(entryPx, stopPx))
+        box.set_bottom(slBox, math.min(entryPx, stopPx))
+        midX = math.round((entryBar + bar_index) / 2)
+        pnl = pos * (px - entryPx) * qtyOpen
+        label.set_x(slLab, midX)
+        label.set_x(tpLab, midX)
+        label.set_x(rrLab, midX)
+        rr = na(targetPx) ? "trailing" : str.tostring(math.abs(targetPx - entryPx) / nz(initDist, 1), "#.##")
+        label.set_text(rrLab, state + " PnL: " + str.tostring(pnl, "#.#") + ", Qty: " + str.tostring(qtyOpen, "#.####") + "\nRisk/reward ratio: " + rr)
+        label.set_color(rrLab, pnl >= 0 ? color.new(#089981, 10) : color.new(#f23645, 10))
 
 // 1. Stop and target inside this bar for an open trade (stop first if both touched).
 if pos != 0 and not na(stopPx)
@@ -243,6 +272,7 @@ if pos != 0 and not na(stopPx)
         nShort += a3
         nShortWin += a4
         alert(alertJson(hitStop ? "stop" : "target", 0, 0), alert.freq_once_per_bar_close)
+        updatePlan(exitPx, "Closed")
         pos := 0
 
 // 2. Opposite flip closes the trade.
@@ -253,6 +283,7 @@ if pos != 0 and dir != pos
     nShort += a3
     nShortWin += a4
     alert(alertJson("close", 0, 0), alert.freq_once_per_bar_close)
+    updatePlan(close, "Closed")
     pos := 0
 
 // 3. A fresh flip that passes the filters opens a trade at the close.
@@ -262,11 +293,17 @@ if pos == 0 and ((flipUp and longOk) or (flipDn and shortOk))
     if q > 0
         pos := side
         entryPx := close
+        entryBar := bar_index
+        qtyOpen := q
         initDist := d
         bestPx := close
         stopPx := close - side * d
         targetPx := useTgt ? close + side * targetR * d : na
         if showPlan
+            // Only the latest trade keeps its labels, like a selected position tool.
+            label.delete(slLab)
+            label.delete(tpLab)
+            label.delete(rrLab)
             [b1, b2, l1, l2, l3] = drawPlan(side, close, stopPx, targetPx, q)
             slBox := b1
             tpBox := b2
@@ -281,35 +318,35 @@ else if pos != 0 and not na(stopPx)
         stopPx := pos == 1 ? math.max(stopPx, trail) : math.min(stopPx, trail)
     if useBe and pos * (bestPx - entryPx) >= beR * nz(initDist)
         stopPx := pos == 1 ? math.max(stopPx, entryPx) : math.min(stopPx, entryPx)
-    if showPlan and not na(slBox)
-        box.set_right(slBox, bar_index + 5)
-        box.set_right(tpBox, bar_index + 5)
-        box.set_top(slBox, math.max(entryPx, stopPx))
-        box.set_bottom(slBox, math.min(entryPx, stopPx))
+    updatePlan(close, "Open")
 
 alertcondition(flipUp and longOk, "Long signal", "aurum swing: long signal on {{ticker}} at {{close}}")
 alertcondition(flipDn and shortOk, "Short signal", "aurum swing: short signal on {{ticker}} at {{close}}")
 
 // ─── Plots ──────────────────────────────────────────────────────────────────
-upCol = color.new(#26a69a, 0)
-dnCol = color.new(#ef5350, 0)
-lineP = plot(trail, "Trailing line", color = dir == 1 ? upCol : dnCol, style = plot.style_stepline, linewidth = 2)
-midP  = plot((open + close) / 2, "Body middle", display = display.none)
-fill(lineP, midP, color = dir == 1 ? color.new(#26a69a, 82) : color.new(#ef5350, 82), title = "Ribbon")
+upCol = color.new(#22ab94, 0)
+dnCol = color.new(#f23645, 0)
+chan = nz(htChan, atr14)
+bandEdge = dir == 1 ? trail - chan : trail + chan
+lineP = plot(trail, "HalfTrend line", color = dir == 1 ? upCol : dnCol, linewidth = 1)
+edgeP = plot(showRibbon ? bandEdge : na, "ATR channel edge", color = color.new(color.white, 100), editable = false)
+fill(lineP, edgeP, color = dir == 1 ? color.new(#2ed3a5, 55) : color.new(#f05350, 55), title = "ATR channel ribbon")
 plot(emaR, "EMA regime", color = color.black, linewidth = 2)
 plot(emaF, "EMA fast", color = color.new(color.blue, 20), linewidth = 1)
 plot(emaM, "EMA mid", color = color.new(color.purple, 20), linewidth = 1)
-plotshape(flipUp, "Buy flip", style = shape.labelup, location = location.belowbar, color = color.new(#26a69a, 0),
-     text = "▲", textcolor = color.white, size = size.small)
-plotshape(flipDn, "Sell flip", style = shape.labeldown, location = location.abovebar, color = color.new(#ef5350, 0),
-     text = "▼", textcolor = color.white, size = size.small)
-plot(pos != 0 ? stopPx : na, "Active stop", color = color.new(color.red, 0), style = plot.style_linebr)
-plot(pos != 0 ? targetPx : na, "Active target", color = color.new(color.green, 0), style = plot.style_linebr)
+plotshape(flipUp ? trail - chan : na, "Buy flip", style = shape.labelup, location = location.absolute, color = color.new(#22ab94, 0),
+     text = "▲", textcolor = color.black, size = size.small)
+plotshape(flipDn ? trail + chan : na, "Sell flip", style = shape.labeldown, location = location.absolute, color = color.new(#f4511e, 0),
+     text = "▼", textcolor = color.black, size = size.small)
+plot(pos != 0 ? stopPx : na, "Active stop", color = pos == 1 ? upCol : dnCol, style = plot.style_steplinebr, linewidth = 1)
 
 // ─── Table: timeframes, alignment, win rates ────────────────────────────────
 var table t = table.new(position.top_right, 2, 9, bgcolor = color.new(color.white, 0), border_color = color.new(color.gray, 60), border_width = 1)
+tfName(string tf) =>
+    tf == "D" ? "1D" : tf == "W" ? "1W" : tf == "M" ? "1M" : tf
+
 sigCell(int r, string tf, int d) =>
-    table.cell(t, 0, r, tf, text_color = color.black)
+    table.cell(t, 0, r, tfName(tf), text_color = color.black)
     table.cell(t, 1, r, d == 1 ? "Bullish" : d == -1 ? "Bearish" : "n/a", text_color = color.black,
          bgcolor = d == 1 ? color.new(#26a69a, 60) : d == -1 ? color.new(#ef5350, 60) : color.new(color.gray, 80))
 
@@ -347,4 +384,4 @@ if showPo3 and barstate.islast
     po3Body := box.new(x1, math.max(po3O, po3C), x2, math.min(po3O, po3C), border_color = col, bgcolor = col)
     po3Wick := line.new(x1 + 2, po3H, x1 + 2, po3L, color = col, width = 2)
     po3Label := label.new(x2 + 2, po3H, po3Tf + " CANDLE PO3\nRange: " + str.tostring(po3H - po3L, format.mintick) + " " + syminfo.currency,
-         style = label.style_label_left, color = color.new(color.white, 0), textcolor = color.black, size = size.small)
+         style = label.style_label_left, color = color.new(#d1d4dc, 30), textcolor = color.black, size = size.small)
