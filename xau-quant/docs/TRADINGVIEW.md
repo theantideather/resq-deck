@@ -8,6 +8,13 @@ There are three ways to connect them, and you can use all three together.
 | **B. MCP** | Claude Code drives TradingView Desktop and aurum together: loads and compiles the Pine strategy, reads the tester, pulls bars into the aurum desk | TradingView Desktop, Node 18+, Claude Code |
 | **C. Webhooks** | TradingView alerts from the strategy land in the aurum dashboard's alert log | A public HTTPS URL (tunnel) to the dashboard |
 
+## aurum Gold Breakout (recommended)
+
+`tradingview/aurum_gold_breakout.pine`: a custom daily gold system. See `docs/BREAKOUT.md` for the rules and the 2017–2026 results. To add it:
+1. Pine Editor → **Open → New blank indicator**.
+2. Select all and delete, so the editor is empty.
+3. Paste the file, then **Save** and **Add to chart** on OANDA:XAUUSD **D**.
+
 ## The swing desk indicator (his chart, for gold)
 
 `tradingview/aurum_swing_indicator.pine` rebuilds the friend's BTC chart for XAUUSD. It shows:
